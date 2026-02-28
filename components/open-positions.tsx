@@ -272,6 +272,30 @@ export function OpenPositions() {
                       <p className="text-[8px] text-muted-foreground/30">#{pos.positionId}</p>
                     </div>
                   </div>
+
+                  {/* Minimal Graph */}
+                  <div className="flex-1 h-8 md:h-10 mx-2 md:mx-4 max-w-[80px] md:max-w-[120px] opacity-70 hover:opacity-100 transition-opacity">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={pos.history}>
+                        <defs>
+                          <linearGradient id={`pnlGradient-${pos.id}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={isProfit ? '#4ade80' : '#f87171'} stopOpacity={0.3} />
+                            <stop offset="95%" stopColor={isProfit ? '#4ade80' : '#f87171'} stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <Area
+                          type="monotone"
+                          dataKey="pnl"
+                          stroke={isProfit ? '#4ade80' : '#f87171'}
+                          strokeWidth={1.5}
+                          fillOpacity={1}
+                          fill={`url(#pnlGradient-${pos.id})`}
+                          isAnimationActive={false}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+
                   <div className="text-right shrink-0">
                     <p className={`text-base md:text-xl font-bold tracking-tighter ${isProfit ? 'text-green-400' : 'text-red-400'}`}>
                       {isProfit ? '+' : ''}${Math.abs(pos.unrealized).toFixed(2)}
@@ -279,29 +303,6 @@ export function OpenPositions() {
                     <p className="text-[7px] md:text-[8px] text-muted-foreground/40 uppercase font-bold tracking-widest mt-0.5">unrealized pnl</p>
                   </div>
                 </div>
-                {/* Graph row: full width, always visible */}
-                <div className="w-full h-10 md:h-8">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={pos.history}>
-                      <defs>
-                        <linearGradient id={`pnlGradient-${pos.id}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={isProfit ? '#4ade80' : '#f87171'} stopOpacity={0.2} />
-                          <stop offset="95%" stopColor={isProfit ? '#4ade80' : '#f87171'} stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <Area
-                        type="monotone"
-                        dataKey="pnl"
-                        stroke={isProfit ? '#4ade80' : '#f87171'}
-                        strokeWidth={1.5}
-                        fillOpacity={1}
-                        fill={`url(#pnlGradient-${pos.id})`}
-                        isAnimationActive={false}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-
                 <div className="grid grid-cols-4 gap-2">
                   {[
                     { label: 'entry', val: `$${pos.entry.toFixed(2)}` },
