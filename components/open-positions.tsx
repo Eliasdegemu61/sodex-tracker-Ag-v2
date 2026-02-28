@@ -224,11 +224,16 @@ export function OpenPositions() {
 
       {/* Balance Info */}
       {balanceData && (
-        <div className="grid grid-cols-2 gap-2 mb-8">
+        <div className="grid grid-cols-3 gap-2 mb-8">
           <div className="p-2 md:p-4 rounded-2xl bg-secondary/5 border border-border/5 space-y-1">
             <p className="text-[7px] text-muted-foreground/30 font-bold">Wallet Balance</p>
             <p className="text-sm md:text-xl font-bold tracking-tight text-foreground/80">${parseFloat(balanceData.walletBalance).toFixed(2)}</p>
             <p className="text-[7px] text-muted-foreground/20 font-bold hidden sm:block">perpetuals (usdc)</p>
+          </div>
+          <div className="p-2 md:p-4 rounded-2xl bg-secondary/5 border border-border/5 space-y-1">
+            <p className="text-[7px] text-muted-foreground/30 font-bold">Liquidity</p>
+            <p className="text-sm md:text-xl font-bold tracking-tight text-green-400">${parseFloat(balanceData.availableBalance).toFixed(2)}</p>
+            <p className="text-[7px] text-muted-foreground/20 font-bold hidden sm:block">Available to trade</p>
           </div>
           <div className="p-2 md:p-4 rounded-2xl bg-secondary/5 border border-border/5 space-y-1">
             <p className="text-[7px] text-muted-foreground/30 font-bold">Exposure</p>
