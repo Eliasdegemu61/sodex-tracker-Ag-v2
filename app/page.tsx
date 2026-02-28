@@ -826,9 +826,6 @@ export default function Dashboard() {
 
                 {/* Mobile Cards Section - Correct order for mobile */}
                 <div className="lg:hidden order-2 p-2 space-y-3 w-full">
-                  {/* Today's Top Pairs */}
-                  <TodayTopPairs />
-
                   {/* Total Value Locked */}
                   <TVLCard />
 
