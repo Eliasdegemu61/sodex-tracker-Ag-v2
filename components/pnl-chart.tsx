@@ -13,6 +13,24 @@ interface PnLChartProps {
 export function PnLChart({ title = 'Profit & Loss' }: PnLChartProps) {
   const { positions } = usePortfolio();
   const [timePeriod, setTimePeriod] = useState<'all' | '1w' | '1m' | '3m' | '1y'>('all');
+  const [selectedPair, setSelectedPair] = useState<string>('all');
+
+  const topPairs = useMemo(() => {
+    if (!positions || positions.length === 0) return [];
+
+    const pairCounts = new Map<string, number>();
+    positions.forEach(pos => {
+      const pair = pos.pairName;
+      if (pair) {
+        pairCounts.set(pair, (pairCounts.get(pair) || 0) + 1);
+      }
+    });
+
+    return Array.from(pairCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(entry => entry[0]);
+  }, [positions]);
 
   const getFilteredPositions = useMemo(() => {
     if (!positions || positions.length === 0) {
@@ -40,8 +58,12 @@ export function PnLChart({ title = 'Profit & Loss' }: PnLChartProps) {
         startDate = new Date(0);
     }
 
-    return positions.filter((pos) => new Date(pos.created_at) >= startDate);
-  }, [positions, timePeriod]);
+    return positions.filter((pos) => {
+      const dateMatch = new Date(pos.created_at) >= startDate;
+      const pairMatch = selectedPair === 'all' || pos.pairName === selectedPair;
+      return dateMatch && pairMatch;
+    });
+  }, [positions, timePeriod, selectedPair]);
 
   const chartData = useMemo(() => {
     if (!getFilteredPositions || getFilteredPositions.length === 0) {
@@ -142,18 +164,33 @@ export function PnLChart({ title = 'Profit & Loss' }: PnLChartProps) {
           <h3 className="text-xs font-semibold text-muted-foreground/60">
             {title}
           </h3>
-          <Select value={timePeriod} onValueChange={(value: any) => setTimePeriod(value)}>
-            <SelectTrigger className="w-28 h-7 text-[10px] font-bold  bg-secondary/10 border-border/10 rounded-lg">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-card border-border/10">
-              <SelectItem value="all" className="text-[10px]">All Time</SelectItem>
-              <SelectItem value="1w" className="text-[10px]">1 Week</SelectItem>
-              <SelectItem value="1m" className="text-[10px]">1 Month</SelectItem>
-              <SelectItem value="3m" className="text-[10px]">3 Months</SelectItem>
-              <SelectItem value="1y" className="text-[10px]">1 Year</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            {topPairs.length > 0 && (
+              <Select value={selectedPair} onValueChange={(value: string) => setSelectedPair(value)}>
+                <SelectTrigger className="w-24 h-7 text-[10px] font-bold bg-secondary/10 border-border/10 rounded-lg">
+                  <SelectValue placeholder="All pairs" />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border/10">
+                  <SelectItem value="all" className="text-[10px]">All pairs</SelectItem>
+                  {topPairs.map((pair) => (
+                    <SelectItem key={pair} value={pair} className="text-[10px]">{pair}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <Select value={timePeriod} onValueChange={(value: any) => setTimePeriod(value)}>
+              <SelectTrigger className="w-24 h-7 text-[10px] font-bold  bg-secondary/10 border-border/10 rounded-lg">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-card border-border/10">
+                <SelectItem value="all" className="text-[10px]">All Time</SelectItem>
+                <SelectItem value="1w" className="text-[10px]">1 Week</SelectItem>
+                <SelectItem value="1m" className="text-[10px]">1 Month</SelectItem>
+                <SelectItem value="3m" className="text-[10px]">3 Months</SelectItem>
+                <SelectItem value="1y" className="text-[10px]">1 Year</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="flex items-baseline gap-2">
           <p className={`text-2xl font-bold tracking-tight ${stats.isPositive ? 'text-green-400' : 'text-red-400'}`}>
