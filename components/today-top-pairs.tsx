@@ -9,6 +9,20 @@ import { useMemo } from 'react'
 export function TodayTopPairs() {
   const { volumeData, isLoading, error } = useVolumeData()
 
+  // Memoize individual entries for Top 5 Spot and Top 5 Futures
+  const allEntries = useMemo(() => {
+    const todayData = volumeData?.today_stats
+    if (!todayData) return []
+
+    const spotEntries = todayData.top_5_spot.map(p => ({ ...p, type: 'SPOT' as const }))
+    const futuresEntries = todayData.top_5_futures.map(p => ({ ...p, type: 'FUTURES' as const }))
+
+    // Combine and take top 5 overall performers by volume
+    return [...spotEntries, ...futuresEntries]
+      .sort((a, b) => b.volume - a.volume)
+      .slice(0, 5)
+  }, [volumeData?.today_stats])
+
   const formatVolume = (volume: number | undefined) => {
     if (volume === undefined) return '-'
     if (volume >= 1e6) return (volume / 1e6).toFixed(2) + 'M'
@@ -41,19 +55,6 @@ export function TodayTopPairs() {
   }
 
   const todayData = volumeData?.today_stats
-
-  // Memoize individual entries for Top 5 Spot and Top 5 Futures
-  const allEntries = useMemo(() => {
-    if (!todayData) return []
-
-    const spotEntries = todayData.top_5_spot.map(p => ({ ...p, type: 'SPOT' as const }))
-    const futuresEntries = todayData.top_5_futures.map(p => ({ ...p, type: 'FUTURES' as const }))
-
-    // Combine and take top 5 overall performers by volume
-    return [...spotEntries, ...futuresEntries]
-      .sort((a, b) => b.volume - a.volume)
-      .slice(0, 5)
-  }, [todayData])
 
   return (
     <Card className="p-6 bg-card/95 shadow-sm border border-border/20 rounded-[2rem] shadow-sm overflow-hidden flex flex-col">
