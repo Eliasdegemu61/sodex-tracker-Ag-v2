@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card'
 import { TrendingUp, HelpCircle, Loader2 } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatNumber } from '@/lib/format-number'
-import { fetchLiveLeaderboardData } from '@/lib/sodex-api'
+// Removed import { fetchLiveLeaderboardData }
 
 interface Gainer {
   wallet_address: string
@@ -22,9 +22,13 @@ export function TopGainersCard() {
     const loadGainers = async () => {
       setIsLoading(true)
       try {
-        // Fetch top 5 gainers for 24H
-        const data = await fetchLiveLeaderboardData('24H', 'pnl', 5)
-        setGainers(data)
+        const response = await fetch(
+          `https://mainnet-data.sodex.dev/api/v1/leaderboard?window_type=24H&sort_by=pnl&sort_order=desc&page=1&page_size=5`
+        )
+        const json = await response.json()
+        if (json.code === 0 && json.data?.items) {
+          setGainers(json.data.items)
+        }
       } catch (error) {
         console.error('[v0] Error loading gainers:', error)
       } finally {

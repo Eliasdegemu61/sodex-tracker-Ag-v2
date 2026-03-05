@@ -19,7 +19,6 @@ import { TopTradersCard } from '@/components/top-traders-card'
 import { TopSpotTradersCard } from '@/components/top-spot-traders-card'
 import { OverallDepositsCard, NetRemainingCard } from '@/components/overall-token-flow'
 import { TopGainersCard } from '@/components/top-gainers-card'
-import { TopLosersCard } from '@/components/top-losers-card'
 import { LeaderboardPage } from '@/components/leaderboard-page'
 import { ProfitEfficiencyCard } from '@/components/profit-efficiency-card'
 import { OverallProfitEfficiencyCard } from '@/components/overall-profit-efficiency-card'
@@ -816,10 +815,9 @@ export default function Dashboard() {
 
                   {/* Key Metrics: Top Spot Traders, Top Gainers, Top Losers */}
                   {/* Desktop grid */}
-                  <div className="hidden lg:grid grid-cols-3 gap-2 md:gap-4 mt-4">
+                  <div className="hidden lg:grid grid-cols-2 gap-2 md:gap-4 mt-4">
                     <TopSpotTradersCard />
                     <TopGainersCard />
-                    <TopLosersCard />
                   </div>
 
                 </div>
@@ -835,10 +833,9 @@ export default function Dashboard() {
                     <TopTradersCard />
                   </div>
 
-                  {/* Top Gainers & Losers side by side */}
-                  <div className="grid grid-cols-2 gap-2 md:gap-4 mt-4">
+                  {/* Top Gainers side by side */}
+                  <div className="mt-4">
                     <TopGainersCard />
-                    <TopLosersCard />
                   </div>
 
                   {/* Announcements */}
