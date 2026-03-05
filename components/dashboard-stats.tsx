@@ -96,82 +96,69 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
     new: entry.newUsers
   }))
 
-  const UserCard = () => (
-    <Card className="relative p-5 bg-card/95 backdrop-blur-sm shadow-sm border border-border/20 rounded-3xl overflow-hidden group">
-      <div className="relative z-10 flex gap-4 items-center h-20">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-1 whitespace-nowrap">Total Users</h3>
-          <div className="flex flex-col">
-            <div className="text-2xl font-bold tracking-tight text-foreground leading-none mb-2">
-              {totalUsers.toLocaleString()}
-            </div>
-            {userGain > 0 && (
-              <div className="flex items-center text-[11px] font-bold text-emerald-500 w-fit">
-                <TrendingUp className="w-3 h-3 mr-1" />
-                +{userGain.toLocaleString()} <span className="text-[9px] ml-1 opacity-80 font-medium">({userGainPercent.toFixed(2)}%)</span>
-              </div>
-            )}
+  // Revised User and Volume Cards for Mobile Merger
+  const StatsHeader = () => {
+    const SharedCard = ({ children }: { children: React.ReactNode }) => (
+      <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl group">
+        {children}
+      </Card>
+    );
+
+    const UserStats = () => (
+      <div className="flex-1 min-w-0">
+        <h3 className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-1 whitespace-nowrap text-zinc-500">Total Users</h3>
+        <div className="flex flex-col">
+          <div className="text-2xl font-bold tracking-tight text-foreground leading-none mb-2">
+            {totalUsers.toLocaleString()}
           </div>
-        </div>
-
-        <div className="w-24 h-12 flex-shrink-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#fb923c" stopOpacity={0.6} />
-                  <stop offset="100%" stopColor="#fb923c" stopOpacity={0} />
-                </linearGradient>
-                <filter id="glow">
-                  <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
-                  <feMerge>
-                    <feMergeNode in="coloredBlur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-              <Area
-                type="monotone"
-                dataKey="new"
-                stroke="#fb923c"
-                strokeWidth={2}
-                fill="url(#areaGradient)"
-                filter="url(#glow)"
-                isAnimationActive={false}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          {userGain > 0 && (
+            <div className="flex items-center text-[11px] font-bold text-emerald-500 w-fit">
+              <TrendingUp className="w-3 h-3 mr-1" />
+              +{userGain.toLocaleString()} <span className="text-[9px] ml-1 opacity-80 font-medium tracking-tight">({userGainPercent.toFixed(2)}%)</span>
+            </div>
+          )}
         </div>
       </div>
+    );
 
-      {/* Subtle background glow */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 blur-[60px] rounded-full -mr-16 -mt-16 pointer-events-none" />
-    </Card>
-  )
+    const VolumeStats = () => (
+      <div className="flex-1 min-w-0">
+        <h3 className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-1 whitespace-nowrap text-zinc-500">Total Volume</h3>
+        <div className="text-2xl font-bold tracking-tight text-foreground">${formatNumber(totalVolume)}</div>
+      </div>
+    );
 
-  // Compact variant - only show top 2 cards
-  if (variant === 'compact') {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-1 gap-3">
-        <UserCard />
-        <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm">
-          <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60 mb-2 text-zinc-500 uppercase tracking-wider">Total Volume</h3>
-          <div className="text-2xl font-bold tracking-tight text-foreground">${formatNumber(totalVolume)}</div>
-        </Card>
+      <div className="space-y-3 mb-4">
+        {/* Mobile View: Merged Card */}
+        <div className="block lg:hidden">
+          <SharedCard>
+            <div className="flex items-center justify-between gap-6 divide-x divide-border/10">
+              <UserStats />
+              <div className="pl-6 flex-1">
+                <VolumeStats />
+              </div>
+            </div>
+          </SharedCard>
+        </div>
+
+        {/* Desktop View: Separate Cards */}
+        <div className="hidden lg:grid grid-cols-1 gap-3">
+          <SharedCard>
+            <UserStats />
+          </SharedCard>
+          <SharedCard>
+            <VolumeStats />
+          </SharedCard>
+        </div>
       </div>
-    )
-  }
+    );
+  };
 
   // Default variant - show all cards
   return (
     <div className="space-y-3 mb-6">
-      <div className="grid grid-cols-2 lg:grid-cols-1 gap-3">
-        <UserCard />
-        <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm">
-          <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60 mb-2 text-zinc-500 uppercase tracking-wider">Total Volume</h3>
-          <div className="text-2xl font-bold tracking-tight text-foreground">${formatNumber(totalVolume)}</div>
-        </Card>
-      </div>
+      <StatsHeader />
 
       {/* Spot vs Futures Volume */}
       <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm overflow-hidden group">
