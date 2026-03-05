@@ -4,7 +4,9 @@ import React, { useMemo, useState, useEffect } from "react"
 
 
 import { Card } from '@/components/ui/card';
-import { Trophy, TrendingUp, TrendingDown, DollarSign, Activity, Target, AlertCircle, BarChart3, Zap, Wallet } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Trophy, TrendingUp, DollarSign, Activity, BarChart3, Settings2, Target, Zap } from 'lucide-react';
 import { usePortfolio } from '@/context/portfolio-context';
 import { fetchPnLOverview, getVolumeFromPnLOverview, fetchDetailedBalance } from '@/lib/sodex-api';
 import { fetchSpotTradesData } from '@/lib/spot-api';
@@ -44,7 +46,6 @@ interface PortfolioStat {
 
 export function PortfolioOverview() {
   const { positions, userId, vaultBalance, setVaultBalance, walletAddress, sourceWalletAddress } = usePortfolio();
-  const { leaderboardCache } = useSessionCache();
 
   const [balances, setBalances] = useState({
     total: 0,
@@ -185,14 +186,34 @@ export function PortfolioOverview() {
     return () => clearInterval(interval);
   }, [walletAddress, sourceWalletAddress, setVaultBalance]);
 
-  // Calculate Ranks from Cache
-  const ranks = useMemo(() => {
-    if (!leaderboardCache || !walletAddress) return { spot: 'N/A', perps: 'N/A' };
-    const userAddr = (sourceWalletAddress || walletAddress).toLowerCase();
-    const spotRank = leaderboardCache.spotData.find(t => t.address?.toLowerCase() === userAddr)?.rank || 'N/A';
-    const perpsRank = leaderboardCache.volumeData.find(t => t.address?.toLowerCase() === userAddr)?.rank || 'N/A';
-    return { spot: spotRank, perps: perpsRank };
-  }, [leaderboardCache, walletAddress, sourceWalletAddress]);
+  // Rank Selection State
+  const [rankOptions, setRankOptions] = useState({
+    windowType: '30D' as '24H' | '7D' | '30D' | 'ALL_TIME',
+    sortBy: 'volume' as 'pnl' | 'volume'
+  });
+  const [userRankData, setUserRankData] = useState<any>(null);
+  const [isRankLoading, setIsRankLoading] = useState(false);
+
+  // Fetch Live Rank
+  useEffect(() => {
+    const addr = sourceWalletAddress || walletAddress;
+    if (!addr) return;
+
+    const loadRank = async () => {
+      setIsRankLoading(true);
+      try {
+        const { fetchUserRank } = await import('@/lib/sodex-api');
+        const data = await fetchUserRank(addr, rankOptions.windowType, rankOptions.sortBy);
+        setUserRankData(data);
+      } catch (err) {
+        console.error('[v0] Error fetching live rank:', err);
+      } finally {
+        setIsRankLoading(false);
+      }
+    };
+
+    loadRank();
+  }, [walletAddress, sourceWalletAddress, rankOptions]);
 
   const totalNetWorth = balances.total + balances.vault;
   const isSyncing = loading.balances || loading.metrics || loading.vault;
@@ -277,17 +298,77 @@ export function PortfolioOverview() {
 
             {/* Global Rankings */}
             <div className="space-y-4">
-              <p className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.3em] flex items-center gap-2">
-                <Trophy className="w-3 h-3 text-orange-500" /> Leaderboard status
-              </p>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-2xl bg-muted/5 border border-border/10 group/rank hover:bg-muted/10 transition-all">
-                  <span className="text-[8px] font-black text-muted-foreground/50 uppercase tracking-widest block mb-1">Futures Rank</span>
-                  <span className="text-xl font-black text-orange-500 italic drop-shadow-sm">#{ranks.perps}</span>
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.3em] flex items-center gap-2">
+                  <Trophy className="w-3 h-3 text-orange-500" /> Leaderboard status
+                </p>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-lg hover:bg-orange-500/10">
+                      <Settings2 className="w-3.5 h-3.5 text-orange-500/60" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 p-4 bg-card/95 backdrop-blur-xl border-border/20 rounded-2xl shadow-2xl" align="end">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Timeframe</label>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {(['24H', '7D', '30D', 'ALL_TIME'] as const).map((t) => (
+                            <button
+                              key={t}
+                              onClick={() => setRankOptions(prev => ({ ...prev, windowType: t }))}
+                              className={cn(
+                                "px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all border",
+                                rankOptions.windowType === t
+                                  ? "bg-orange-500/10 border-orange-500/20 text-orange-500"
+                                  : "bg-secondary/5 border-border/10 text-muted-foreground hover:bg-secondary/10"
+                              )}
+                            >
+                              {t}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Sort By</label>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {(['pnl', 'volume'] as const).map((s) => (
+                            <button
+                              key={s}
+                              onClick={() => setRankOptions(prev => ({ ...prev, sortBy: s }))}
+                              className={cn(
+                                "px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all border flex items-center justify-center gap-1.5",
+                                rankOptions.sortBy === s
+                                  ? "bg-orange-500/10 border-orange-500/20 text-orange-500"
+                                  : "bg-secondary/5 border-border/10 text-muted-foreground hover:bg-secondary/10"
+                              )}
+                            >
+                              {s === 'pnl' ? <Activity className="w-3 h-3" /> : <BarChart3 className="w-3 h-3" />}
+                              <span className="capitalize">{s}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="p-6 rounded-3xl bg-orange-500/[0.03] border border-orange-500/10 flex items-center justify-between group/rank transition-all hover:bg-orange-500/[0.05]">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em] block">
+                    {rankOptions.windowType} {rankOptions.sortBy} Rank
+                  </span>
+                  {isRankLoading ? (
+                    <LoadingShimmer className="h-8 w-20" />
+                  ) : (
+                    <span className="text-3xl font-black text-orange-500 italic drop-shadow-sm">
+                      #{userRankData?.rank || '---'}
+                    </span>
+                  )}
                 </div>
-                <div className="p-4 rounded-2xl bg-muted/5 border border-border/10 group/rank hover:bg-muted/10 transition-all">
-                  <span className="text-[8px] font-black text-muted-foreground/50 uppercase tracking-widest block mb-1">Spot Rank</span>
-                  <span className="text-xl font-black text-green-500 italic drop-shadow-sm">#{ranks.spot}</span>
+                <div className="h-10 w-10 rounded-2xl bg-orange-500/10 flex items-center justify-center">
+                  <Trophy className="w-5 h-5 text-orange-500" />
                 </div>
               </div>
             </div>

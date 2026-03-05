@@ -606,3 +606,52 @@ export function getVolumeFromPnLOverview(
 ): number {
   return parseFloat(pnlData.cumulative_quote_volume || '0');
 }
+export async function fetchUserRank(
+  walletAddress: string,
+  windowType: string = '30D',
+  sortBy: string = 'volume'
+): Promise<any> {
+  const url = new URL('https://mainnet-data.sodex.dev/api/v1/leaderboard/rank');
+  url.searchParams.append('window_type', windowType);
+  url.searchParams.append('sort_by', sortBy);
+  url.searchParams.append('wallet_address', walletAddress);
+
+  try {
+    const response = await fetch(url.toString());
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (data.code === 0 && data.data?.found) {
+      return data.data.item;
+    }
+    return null;
+  } catch (error) {
+    console.error('[v0] Error fetching user rank:', error);
+    return null;
+  }
+}
+
+export async function fetchLiveLeaderboardData(
+  windowType: string = 'ALL_TIME',
+  sortBy: string = 'pnl',
+  pageSize: number = 50
+): Promise<any[]> {
+  const url = new URL('https://mainnet-data.sodex.dev/api/v1/leaderboard');
+  url.searchParams.append('window_type', windowType);
+  url.searchParams.append('sort_by', sortBy);
+  url.searchParams.append('sort_order', 'desc');
+  url.searchParams.append('page', '1');
+  url.searchParams.append('page_size', String(pageSize));
+
+  try {
+    const response = await fetch(url.toString());
+    if (!response.ok) return [];
+    const data = await response.json();
+    if (data.code === 0 && data.data?.items) {
+      return data.data.items;
+    }
+    return [];
+  } catch (error) {
+    console.error('[v0] Error fetching live leaderboard:', error);
+    return [];
+  }
+}

@@ -289,7 +289,6 @@ export default function Dashboard() {
             <div className="w-full lg:w-[320px] xl:w-[380px] p-6 space-y-6 lg:flex-shrink-0 order-3 bg-secondary/5 lg:bg-transparent">
               <AnnouncementsPanel />
               <TopGainersCard />
-              <TopLosersCard />
 
               <div className="relative group overflow-hidden rounded-[2.5rem] border border-border/20 shadow-2xl transition-all duration-500 hover:border-orange-500/30">
                 <img
