@@ -90,7 +90,7 @@ export function PerpsLeaderboard() {
     return (
       <div className="flex flex-col items-center justify-center py-20 animate-pulse">
         <div className="w-10 h-10 rounded-full border-2 border-orange-500/20 border-t-orange-500 animate-spin mb-4" />
-        <p className="text-[10px] text-muted-foreground/40 font-bold uppercase tracking-widest">Synchronizing global data...</p>
+        <p className="text-[10px] text-muted-foreground/40 font-bold uppercase tracking-widest">Loading...</p>
       </div>
     )
   }
