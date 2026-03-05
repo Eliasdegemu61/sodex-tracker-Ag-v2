@@ -33,7 +33,7 @@ export function MobileNavMenu({ currentPage, onNavigate }: MobileNavMenuProps) {
     { id: 'portfolio', label: 'Portfolio', icon: Wallet },
     { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
     { id: 'assets', label: 'Assets', icon: Compass },
-    { id: 'analyzer', label: 'Analyzer', icon: Zap },
+    { id: 'analyzer', label: 'Reverse Search', icon: Zap },
     { id: 'about', label: 'What is SoDEX', icon: Info },
   ];
 

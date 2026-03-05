@@ -31,7 +31,7 @@ export function LandingPage() {
     { id: 'tracker', label: 'Tracker', icon: LineChart },
     { id: 'portfolio', label: 'Portfolio', icon: PieChart },
     { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
-    { id: 'analyzer', label: 'Analyzer', icon: Flashlight },
+    { id: 'analyzer', label: 'Reverse Search', icon: Flashlight },
     { id: 'whale-tracker', label: 'Whales', icon: Shield },
   ];
 

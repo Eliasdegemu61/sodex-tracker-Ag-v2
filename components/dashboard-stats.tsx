@@ -2,10 +2,18 @@
 
 import { Card } from '@/components/ui/card'
 import { useState, useEffect } from 'react'
-import { ResponsiveContainer, PieChart, Pie, Cell, Sector } from 'recharts'
+import { ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts'
 import { formatNumber } from '@/lib/format-number'
 import { useDexData } from '@/context/dex-data-context'
 import { useVolumeData } from '@/context/volume-data-context'
+import { TrendingUp } from 'lucide-react'
+
+interface UserDataEntry {
+  day_date: string
+  timestamp: number
+  newUsers: number
+  cumulativeUsers: number
+}
 
 interface DashboardStatsProps {
   variant?: 'default' | 'compact'
@@ -14,7 +22,8 @@ interface DashboardStatsProps {
 export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
   const { overallStats, isLoading: dexLoading } = useDexData()
   const { volumeData, isLoading: volumeLoading } = useVolumeData()
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
+  const [userData, setUserData] = useState<UserDataEntry[]>([])
+  const [userLoading, setUserLoading] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -24,9 +33,27 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  const isLoading = dexLoading || volumeLoading
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setUserLoading(true)
+        const response = await fetch('https://mainnet-data.sodex.dev/api/v1/dashboard/users?start_date=2024-01-01&end_date=2026-03-06')
+        const json = await response.json()
+        if (json.code === 0 && json.data?.data) {
+          setUserData(json.data.data)
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error)
+      } finally {
+        setUserLoading(false)
+      }
+    }
+    fetchUserData()
+  }, [])
 
-  if (isLoading || !overallStats || !volumeData) {
+  const isLoading = dexLoading || volumeLoading || userLoading
+
+  if (isLoading || !overallStats || !volumeData || userData.length === 0) {
     return (
       <div className="space-y-2 mb-4">
         {variant === 'compact' ? (
@@ -45,7 +72,14 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
     )
   }
 
-  const totalUsers = overallStats?.summary?.total_users || 0
+  const latestUserEntry = userData[userData.length - 1]
+  const previousUserEntry = userData[userData.length - 2]
+  const totalUsers = latestUserEntry?.cumulativeUsers || 0
+  const userGain = totalUsers - (previousUserEntry?.cumulativeUsers || 0)
+  const userGainPercent = previousUserEntry?.cumulativeUsers
+    ? (userGain / previousUserEntry.cumulativeUsers) * 100
+    : 0
+
   const spotVolume = volumeData?.all_time_stats?.total_spot_volume || 0
   const futuresVolume = volumeData?.all_time_stats?.total_futures_volume || 0
   const totalVolume = spotVolume + futuresVolume
@@ -55,17 +89,74 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
     { name: 'Futures', value: futuresVolume },
   ]
 
+  // Prepare chart data for the small graph - past 7 days
+  const chartData = userData.slice(-7).map(entry => ({
+    name: entry.day_date,
+    users: entry.cumulativeUsers,
+    new: entry.newUsers
+  }))
+
+  const UserCard = () => (
+    <Card className="relative p-5 bg-card/95 backdrop-blur-sm shadow-sm border border-border/20 rounded-3xl overflow-hidden group">
+      <div className="relative z-10 flex gap-4 items-center h-20">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-1 whitespace-nowrap">Total Users</h3>
+          <div className="flex flex-col">
+            <div className="text-2xl font-bold tracking-tight text-foreground leading-none mb-2">
+              {totalUsers.toLocaleString()}
+            </div>
+            {userGain > 0 && (
+              <div className="flex items-center text-[11px] font-bold text-emerald-500 w-fit">
+                <TrendingUp className="w-3 h-3 mr-1" />
+                +{userGain.toLocaleString()} <span className="text-[9px] ml-1 opacity-80 font-medium">({userGainPercent.toFixed(2)}%)</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="w-24 h-12 flex-shrink-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#fb923c" stopOpacity={0.6} />
+                  <stop offset="100%" stopColor="#fb923c" stopOpacity={0} />
+                </linearGradient>
+                <filter id="glow">
+                  <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
+                  <feMerge>
+                    <feMergeNode in="coloredBlur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+              <Area
+                type="monotone"
+                dataKey="new"
+                stroke="#fb923c"
+                strokeWidth={2}
+                fill="url(#areaGradient)"
+                filter="url(#glow)"
+                isAnimationActive={false}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Subtle background glow */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 blur-[60px] rounded-full -mr-16 -mt-16 pointer-events-none" />
+    </Card>
+  )
+
   // Compact variant - only show top 2 cards
   if (variant === 'compact') {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-1 gap-3">
+        <UserCard />
         <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm">
-          <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60 mb-2">Total Users</h3>
-          <div className="text-xl font-bold tracking-tight text-foreground">{totalUsers.toLocaleString()}</div>
-        </Card>
-        <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm">
-          <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60 mb-2">Total Volume</h3>
-          <div className="text-xl font-bold tracking-tight text-foreground">${formatNumber(totalVolume)}</div>
+          <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60 mb-2 text-zinc-500 uppercase tracking-wider">Total Volume</h3>
+          <div className="text-2xl font-bold tracking-tight text-foreground">${formatNumber(totalVolume)}</div>
         </Card>
       </div>
     )
@@ -75,20 +166,17 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
   return (
     <div className="space-y-3 mb-6">
       <div className="grid grid-cols-2 lg:grid-cols-1 gap-3">
+        <UserCard />
         <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm">
-          <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60 mb-2">Total Users</h3>
-          <div className="text-xl font-bold tracking-tight text-foreground">{totalUsers.toLocaleString()}</div>
-        </Card>
-        <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm">
-          <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60 mb-2">Total Volume</h3>
-          <div className="text-xl font-bold tracking-tight text-foreground">${formatNumber(totalVolume)}</div>
+          <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60 mb-2 text-zinc-500 uppercase tracking-wider">Total Volume</h3>
+          <div className="text-2xl font-bold tracking-tight text-foreground">${formatNumber(totalVolume)}</div>
         </Card>
       </div>
 
       {/* Spot vs Futures Volume */}
       <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm overflow-hidden group">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60">Volume Split</h3>
+          <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60 text-zinc-500 uppercase tracking-wider">Volume Split</h3>
         </div>
 
         <div className="relative w-full h-40 flex items-center justify-center">
@@ -96,7 +184,7 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
           <ResponsiveContainer width="100%" height="100%">
             <PieChart className="animate-spin hover:scale-105 transition-transform duration-700" style={{ animationDuration: '20s' }}>
               <defs>
-                <filter id="glow">
+                <filter id="pieGlow">
                   <feGaussianBlur stdDeviation="2" result="coloredBlur" />
                   <feMerge>
                     <feMergeNode in="coloredBlur" />
@@ -121,7 +209,7 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
             </PieChart>
           </ResponsiveContainer>
           <div className="absolute flex flex-col items-center justify-center text-center">
-            <span className="text-[8px] text-muted-foreground/30 font-bold  ">Futures</span>
+            <span className="text-[8px] text-muted-foreground/30 font-bold  uppercase">Futures</span>
             <span className="text-xs font-bold text-foreground/80">
               {((futuresVolume / totalVolume) * 100).toFixed(1)}%
             </span>
@@ -132,14 +220,14 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
           <div className="p-3 bg-secondary/10 rounded-2xl border border-border/5 space-y-1">
             <div className="flex items-center gap-2 mb-1">
               <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />
-              <span className="text-[8px] text-muted-foreground/70 dark:text-muted-foreground/40 font-bold  ">Spot</span>
+              <span className="text-[8px] text-muted-foreground/70 dark:text-muted-foreground/40 font-bold  uppercase">Spot</span>
             </div>
             <p className="text-xs font-bold text-foreground/80">${formatNumber(spotVolume)}</p>
           </div>
           <div className="p-3 bg-secondary/10 rounded-2xl border border-border/5 space-y-1">
             <div className="flex items-center gap-2 mb-1">
               <div className="w-1.5 h-1.5 rounded-full bg-orange-600" />
-              <span className="text-[8px] text-muted-foreground/70 dark:text-muted-foreground/40 font-bold  ">Futures</span>
+              <span className="text-[8px] text-muted-foreground/70 dark:text-muted-foreground/40 font-bold  uppercase">Futures</span>
             </div>
             <p className="text-xs font-bold text-foreground/80">${formatNumber(futuresVolume)}</p>
           </div>

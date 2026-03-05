@@ -41,10 +41,6 @@ export interface CachedVolumeData {
 const VOLUME_CACHE_KEY = 'trading_volume_data'
 const API_URL = 'https://raw.githubusercontent.com/Eliasdegemu61/sodex-tracker-new-v1-data-2/main/volume_summary.json'
 const CHART_API_URL = 'https://raw.githubusercontent.com/Eliasdegemu61/sodex-tracker-new-v1-data-2/main/volume_chart.json'
-const LEADERBOARD_API_URL = 'https://raw.githubusercontent.com/Eliasdegemu61/Sodex-Tracker-new-v1/main/live_stats.json'
-const SPOT_LEADERBOARD_API_URL = 'https://raw.githubusercontent.com/Eliasdegemu61/sodex-spot-volume-data/main/spot_vol_data.json'
-const LEADERBOARD_CACHE_KEY = 'leaderboard_data'
-const SPOT_LEADERBOARD_CACHE_KEY = 'spot_leaderboard_data'
 const CHART_CACHE_KEY = 'chart_data'
 
 export interface ChartDataPoint {
@@ -54,19 +50,6 @@ export interface ChartDataPoint {
   total_day_vol: number
 }
 
-interface LeaderboardApiEntry {
-  userId: string
-  address: string
-  pnl: string
-  vol: string
-}
-
-interface SpotLeaderboardEntry {
-  userId: string
-  address: string
-  vol: number
-  last_ts: number
-}
 
 function getTodayDate(): string {
   const today = new Date()
@@ -365,115 +348,3 @@ function generateMockChartData(): ChartDataPoint[] {
   return data
 }
 
-export async function fetchLeaderboardData(): Promise<LeaderboardApiEntry[]> {
-  return cacheManager.deduplicate(LEADERBOARD_CACHE_KEY, async () => {
-    try {
-      // Fetch PnL leaderboard CSV directly from GitHub
-      const response = await fetch('https://raw.githubusercontent.com/Eliasdegemu61/sodex-finalised-raw-data/refs/heads/main/pnl_leaderboard.csv');
-      if (!response.ok) throw new Error(`Leaderboard API error: ${response.status}`);
-      const csvText = await response.text();
-
-      // Parse CSV
-      const lines = csvText.trim().split('\n');
-      if (lines.length < 2) throw new Error('Empty CSV data');
-
-      const headers = lines[0].split(',').map(h => h.trim());
-      const data: LeaderboardApiEntry[] = [];
-
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim());
-        const obj: any = {};
-        headers.forEach((header, index) => {
-          obj[header] = values[index] || '';
-        });
-
-        data.push({
-          userId: obj.userId || obj.user_id || '',
-          address: obj.address || '',
-          pnl: obj.pnl || '0',
-          vol: obj.vol || '0',
-        });
-      }
-
-      console.log('[v0] Leaderboard data fetched from GitHub:', data.length, 'entries');
-      return data;
-    } catch (error) {
-      console.error('[v0] Failed to fetch leaderboard data from GitHub, using mock data:', error);
-      return generateMockLeaderboardData();
-    }
-  });
-}
-
-function generateMockLeaderboardData(): LeaderboardApiEntry[] {
-  const users = [
-    '0x81A856c650d8D94cf9Bc72B5104a2E3dfDA21A60',
-    '0xC50E42e7F49881127E8183755be3F281bb687f7B',
-    '0x7Bb606394706AB92Ead357B1C1F65D2fE059DaeA',
-    '0x1234567890abcdef1234567890abcdef12345678',
-    '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-  ]
-
-  return users.map((address, idx) => ({
-    userId: String(1000 + idx),
-    address,
-    pnl: String(Math.random() * 10000000 - 5000000),
-    vol: String(Math.random() * 100000000),
-  }))
-}
-
-
-export async function fetchSpotLeaderboardData(): Promise<Array<{ address: string; userId: string; vol: number; last_ts: number }>> {
-  return cacheManager.deduplicate(SPOT_LEADERBOARD_CACHE_KEY, async () => {
-    try {
-      // Fetch spot leaderboard CSV directly from GitHub
-      const response = await fetch('https://raw.githubusercontent.com/Eliasdegemu61/sodex-finalised-raw-data/refs/heads/main/spot_leaderboard.csv');
-      if (!response.ok) throw new Error(`Spot leaderboard API error: ${response.status}`);
-      const csvText = await response.text();
-
-      // Parse CSV
-      const lines = csvText.trim().split('\n');
-      if (lines.length < 2) throw new Error('Empty CSV data');
-
-      const headers = lines[0].split(',').map(h => h.trim());
-      const data: Array<{ address: string; userId: string; vol: number; last_ts: number }> = [];
-
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim());
-        const obj: any = {};
-        headers.forEach((header, index) => {
-          obj[header] = values[index] || '';
-        });
-
-        data.push({
-          address: obj.address || '',
-          userId: obj.userId || obj.user_id || '',
-          vol: parseFloat(obj.vol || '0'),
-          last_ts: Date.now(),
-        });
-      }
-
-      console.log('[v0] Spot leaderboard data fetched from GitHub:', data.length, 'entries');
-      return data;
-    } catch (error) {
-      console.error('[v0] Failed to fetch spot leaderboard data from GitHub, using mock data:', error)
-      return generateMockSpotLeaderboardData()
-    }
-  })
-}
-
-function generateMockSpotLeaderboardData(): Array<{ address: string; userId: string; vol: number; last_ts: number }> {
-  const users = [
-    '0x81A856c650d8D94cf9Bc72B5104a2E3dfDA21A60',
-    '0xC50E42e7F49881127E8183755be3F281bb687f7B',
-    '0x8500C7C7B0b2Ef8a27396a6e1f17cd8C62962D91',
-    '0x3d4595C8742d0a58173a9963c05755B59A8f8255',
-    '0x1234567890abcdef1234567890abcdef12345678',
-  ]
-
-  return users.map((address, idx) => ({
-    address,
-    userId: String(1000 + idx),
-    vol: Math.random() * 50000000,
-    last_ts: Date.now() - Math.random() * 86400000,
-  }))
-}

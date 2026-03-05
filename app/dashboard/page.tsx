@@ -25,187 +25,21 @@ import { OverallProfitEfficiencyCard } from '@/components/overall-profit-efficie
 import { TVLCard } from '@/components/tvl-card'
 import { VolumeRangeCard } from '@/components/volume-range-card'
 import { AnnouncementsPanel } from '@/components/announcements-panel'
-import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts'
 import { MobileNavMenu } from '@/components/mobile-nav-menu'
-import { NewTradersTracker } from '@/components/new-traders-tracker'
 import { AnnouncementSidePanel } from '@/components/announcement-side-panel'
 import { TrackerSection } from '@/components/tracker-section'
 import { Footer } from '@/components/footer'
-import { SopointsAnalyzer } from '@/components/sopoints-analyzer'
 import { useSessionCache } from '@/context/session-cache-context'
 
 function LoadingCard() {
   return <Card className="p-4 md:p-6 bg-card border border-border h-64 animate-pulse" />
 }
 
-function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
-  const [activeTab, setActiveTab] = useState<'distribution' | 'reverse' | 'sopoints' | 'new-traders'>('distribution')
-  const [brackets, setBrackets] = useState([
-    { id: '1', volMin: '', volMax: '', pnlMin: '', pnlMax: '' }
-  ])
+function ReverseSearchPage({ onBack }: { onBack: () => void }) {
   const [reversePrefix, setReversePrefix] = useState('')
   const [reverseSuffix, setReverseSuffix] = useState('')
-  const [searchAddress, setSearchAddress] = useState('')
-  const [searchAddressResult, setSearchAddressResult] = useState<any>(null)
-  const [distributionResults, setDistributionResults] = useState<any>(null)
   const [reverseResults, setReverseResults] = useState<any[]>([])
-  const [isLoadingDistribution, setIsLoadingDistribution] = useState(false)
   const [isLoadingReverse, setIsLoadingReverse] = useState(false)
-  const [isSearchingAddress, setIsSearchingAddress] = useState(false)
-  const [allTraders, setAllTraders] = useState<any[]>([])
-
-  const addBracket = () => {
-    setBrackets([...brackets, { id: Date.now().toString(), volMin: '', volMax: '', pnlMin: '', pnlMax: '' }])
-  }
-
-  const updateBracket = (id: string, field: string, value: string) => {
-    setBrackets(brackets.map(b => b.id === id ? { ...b, [field]: value } : b))
-  }
-
-  const removeBracket = (id: string) => {
-    if (brackets.length > 1) setBrackets(brackets.filter(b => b.id !== id))
-  }
-
-  const handleApply = async () => {
-    setIsLoadingDistribution(true)
-    try {
-      // Fetch pnl_leaderboard.csv directly from GitHub
-      const response = await fetch('https://raw.githubusercontent.com/Eliasdegemu61/sodex-finalised-raw-data/refs/heads/main/pnl_leaderboard.csv')
-      if (!response.ok) throw new Error('Failed to fetch data')
-      const csvText = await response.text()
-
-      // Parse CSV
-      const lines = csvText.trim().split('\n')
-      if (lines.length < 2) throw new Error('Empty CSV data')
-
-      const headers = lines[0].split(',').map(h => h.trim())
-      const traders: any[] = []
-
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim())
-        const obj: any = {}
-        headers.forEach((header, index) => {
-          obj[header] = values[index] || ''
-        })
-        traders.push({
-          userId: obj.userId || obj.user_id || '',
-          address: obj.address || '',
-          pnl: obj.pnl || '0',
-          vol: obj.vol || '0',
-        })
-      }
-
-      setAllTraders(traders)
-
-      // Calculate stats FOR EACH BRACKET separately
-      const bracketStats = brackets.map(bracket => {
-        const filtered = traders.filter(trader => {
-          const vol = typeof trader.vol === 'string' ? parseFloat(trader.vol) : trader.vol || 0
-          const pnl = typeof trader.pnl === 'string' ? parseFloat(trader.pnl) : trader.pnl || 0
-
-          const volMin = bracket.volMin ? parseFloat(bracket.volMin) : -Infinity
-          const volMax = bracket.volMax ? parseFloat(bracket.volMax) : Infinity
-          const pnlMin = bracket.pnlMin ? parseFloat(bracket.pnlMin) : -Infinity
-          const pnlMax = bracket.pnlMax ? parseFloat(bracket.pnlMax) : Infinity
-
-          return vol >= volMin && vol <= volMax && pnl >= pnlMin && pnl <= pnlMax
-        })
-
-        const totalVol = filtered.reduce((sum, t) => sum + (typeof t.vol === 'string' ? parseFloat(t.vol) : t.vol || 0), 0)
-        const totalPnl = filtered.reduce((sum, t) => sum + (typeof t.pnl === 'string' ? parseFloat(t.pnl) : t.pnl || 0), 0)
-        const profitCount = filtered.filter(t => (typeof t.pnl === 'string' ? parseFloat(t.pnl) : t.pnl || 0) > 0).length
-        const lossCount = filtered.filter(t => (typeof t.pnl === 'string' ? parseFloat(t.pnl) : t.pnl || 0) < 0).length
-
-        // Donut chart data
-        const donutData = [
-          { name: 'Profitable', value: profitCount, color: '#22c55e' },
-          { name: 'Loss', value: lossCount, color: '#ef4444' }
-        ]
-
-        return {
-          bracketId: bracket.id,
-          count: filtered.length,
-          totalVolume: totalVol,
-          totalPnl: totalPnl,
-          profitCount,
-          lossCount,
-          donutData,
-          traders: filtered
-        }
-      })
-
-      setDistributionResults(bracketStats)
-    } catch (error) {
-      console.error('[v0] Error filtering data:', error)
-      setDistributionResults(null)
-    } finally {
-      setIsLoadingDistribution(false)
-    }
-  }
-
-  const handleSearchAddress = async (bracketId?: string) => {
-    if (!searchAddress.trim()) return
-    setIsSearchingAddress(true)
-    try {
-      if (allTraders.length === 0) {
-        // Fetch pnl_leaderboard.csv from GitHub
-        const response = await fetch('https://raw.githubusercontent.com/Eliasdegemu61/sodex-finalised-raw-data/refs/heads/main/pnl_leaderboard.csv')
-        if (!response.ok) throw new Error('Failed to fetch data')
-        const csvText = await response.text()
-
-        // Parse CSV
-        const lines = csvText.trim().split('\n')
-        if (lines.length < 2) throw new Error('Empty CSV data')
-
-        const headers = lines[0].split(',').map(h => h.trim())
-        const traders: any[] = []
-
-        for (let i = 1; i < lines.length; i++) {
-          const values = lines[i].split(',').map(v => v.trim())
-          const obj: any = {}
-          headers.forEach((header, index) => {
-            obj[header] = values[index] || ''
-          })
-          traders.push({
-            userId: obj.userId || obj.user_id || '',
-            address: obj.address || '',
-            pnl: obj.pnl || '0',
-            vol: obj.vol || '0',
-          })
-        }
-
-        setAllTraders(traders)
-      }
-
-      const found = allTraders.find(t => (t.address || '').toLowerCase() === searchAddress.toLowerCase())
-      if (found) {
-        const vol = typeof found.vol === 'string' ? parseFloat(found.vol) : found.vol || 0
-        const pnl = typeof found.pnl === 'string' ? parseFloat(found.pnl) : found.pnl || 0
-
-        // Check if address fits in THIS bracket only
-        let bracketMatch = null
-        if (bracketId && distributionResults) {
-          const bracket = brackets.find(b => b.id === bracketId)
-          if (bracket) {
-            const volMin = bracket.volMin ? parseFloat(bracket.volMin) : -Infinity
-            const volMax = bracket.volMax ? parseFloat(bracket.volMax) : Infinity
-            const pnlMin = bracket.pnlMin ? parseFloat(bracket.pnlMin) : -Infinity
-            const pnlMax = bracket.pnlMax ? parseFloat(bracket.pnlMax) : Infinity
-            bracketMatch = vol >= volMin && vol <= volMax && pnl >= pnlMin && pnl <= pnlMax
-          }
-        }
-
-        setSearchAddressResult({ ...found, vol, pnl, matchesBracket: bracketMatch })
-      } else {
-        setSearchAddressResult({ notFound: true })
-      }
-    } catch (error) {
-      console.error('[v0] Error searching address:', error)
-      setSearchAddressResult(null)
-    } finally {
-      setIsSearchingAddress(false)
-    }
-  }
 
   const handleReverseSearch = async () => {
     if (!reversePrefix || !reverseSuffix) return
@@ -235,336 +69,69 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <div>
-      <div className="border-b border-border bg-card/30 sticky top-0 z-40">
-        <div className="px-3 md:px-6 flex gap-4">
-          <button
-            onClick={() => setActiveTab('distribution')}
-            className={`px-4 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'distribution'
-              ? 'text-accent border-accent'
-              : 'text-muted-foreground border-transparent hover:text-foreground'
-              }`}
-          >
-            Distribution Analyzer
-          </button>
-          <button
-            onClick={() => setActiveTab('reverse')}
-            className={`px-4 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'reverse'
-              ? 'text-accent border-accent'
-              : 'text-muted-foreground border-transparent hover:text-foreground'
-              }`}
-          >
-            Reverse Search address
-          </button>
-          <button
-            onClick={() => setActiveTab('sopoints')}
-            className={`px-4 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'sopoints'
-              ? 'text-accent border-accent'
-              : 'text-muted-foreground border-transparent hover:text-foreground'
-              }`}
-          >
-            Sopoints
-          </button>
-          <button
-            onClick={() => setActiveTab('new-traders')}
-            className={`px-4 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'new-traders'
-              ? 'text-accent border-accent'
-              : 'text-muted-foreground border-transparent hover:text-foreground'
-              }`}
-          >
-            Active Traders
-          </button>
-        </div>
-      </div>
-
-      <div className="p-4 md:p-6 space-y-6">
-        {activeTab === 'distribution' && (
-          <>
-            <Card className="p-8 md:p-10 bg-card/20 dark:bg-[#141414]/90 border border-border/20 dark:border-white/5 rounded-[2rem] shadow-2xl">
-              <h2 className="text-xl md:text-2xl font-bold text-foreground dark:text-white mb-8 tracking-tight">Distribution Analyzer</h2>
-              <div className="space-y-4">
-                {brackets.map((bracket, idx) => (
-                  <div key={bracket.id} className="p-6 bg-secondary/10 dark:bg-[#1a1a1a] rounded-2xl border border-transparent dark:border-white/5">
-                    <div className="flex justify-between items-center mb-6">
-                      <span className="text-xs font-bold text-foreground/80 dark:text-white/80">Bracket {idx + 1}</span>
-                      {brackets.length > 1 && (
-                        <button
-                          onClick={() => removeBracket(bracket.id)}
-                          className="text-xs text-red-500/80 hover:text-red-400 transition-colors bg-red-500/10 px-2.5 py-1 rounded-md font-medium"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-semibold text-muted-foreground/60 dark:text-white/40 uppercase tracking-wider block">Vol Min</label>
-                        <input
-                          type="number"
-                          placeholder="0"
-                          value={bracket.volMin}
-                          onChange={(e) => updateBracket(bracket.id, 'volMin', e.target.value)}
-                          className="w-full bg-transparent border-none text-sm font-medium text-foreground dark:text-white placeholder:text-muted-foreground/30 focus:outline-none focus:ring-0 p-0"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-semibold text-muted-foreground/60 dark:text-white/40 uppercase tracking-wider block">Vol Max</label>
-                        <input
-                          type="number"
-                          placeholder="∞"
-                          value={bracket.volMax}
-                          onChange={(e) => updateBracket(bracket.id, 'volMax', e.target.value)}
-                          className="w-full bg-transparent border-none text-sm font-medium text-foreground dark:text-white placeholder:text-muted-foreground/30 focus:outline-none focus:ring-0 p-0"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-semibold text-muted-foreground/60 dark:text-white/40 uppercase tracking-wider block">PnL Min</label>
-                        <input
-                          type="number"
-                          placeholder="-∞"
-                          value={bracket.pnlMin}
-                          onChange={(e) => updateBracket(bracket.id, 'pnlMin', e.target.value)}
-                          className="w-full bg-transparent border-none text-sm font-medium text-foreground dark:text-white placeholder:text-muted-foreground/30 focus:outline-none focus:ring-0 p-0"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-semibold text-muted-foreground/60 dark:text-white/40 uppercase tracking-wider block">PnL Max</label>
-                        <input
-                          type="number"
-                          placeholder="∞"
-                          value={bracket.pnlMax}
-                          onChange={(e) => updateBracket(bracket.id, 'pnlMax', e.target.value)}
-                          className="w-full bg-transparent border-none text-sm font-medium text-foreground dark:text-white placeholder:text-muted-foreground/30 focus:outline-none focus:ring-0 p-0"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                <div className="flex items-center gap-6 mt-6 pt-2">
-                  <button onClick={addBracket} className="text-xs font-bold text-foreground/80 dark:text-white/80 hover:text-foreground dark:hover:text-white transition-colors">
-                    + Add Bracket
-                  </button>
-                  <button onClick={handleApply} disabled={isLoadingDistribution} className="px-6 py-2 bg-foreground text-background dark:bg-white dark:text-black rounded-xl text-xs font-bold hover:opacity-90 disabled:opacity-50 transition-opacity">
-                    {isLoadingDistribution ? 'Applying...' : 'Apply'}
-                  </button>
-                </div>
-              </div>
-            </Card>
-
-            {distributionResults && Array.isArray(distributionResults) && (
-              <div className="space-y-4">
-                {distributionResults.map((bracketResult, idx) => (
-                  <Card key={bracketResult.bracketId} className="p-6 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm hover:border-accent/10 transition-all">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* Left: Stats */}
-                      <div>
-                        <h3 className="text-xs md:text-sm font-bold mb-3">Bracket {idx + 1}</h3>
-                        <div className="space-y-2 text-xs">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Traders</span>
-                            <span className="font-bold">{bracketResult.count}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Total Volume</span>
-                            <span className="font-bold text-accent">${(bracketResult.totalVolume / 1e6).toFixed(1)}M</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Total PnL</span>
-                            <span className={`font-bold ${bracketResult.totalPnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                              ${(bracketResult.totalPnl / 1e6).toFixed(1)}M
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Profitable</span>
-                            <span className="font-bold text-green-400">{bracketResult.profitCount}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Loss</span>
-                            <span className="font-bold text-red-400">{bracketResult.lossCount}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Middle: Donut Chart */}
-                      <div className="flex justify-center items-center">
-                        <style>{`
-                          .donut-segment {
-                            filter: drop-shadow(0 0 4px currentColor);
-                          }
-                          .recharts-tooltip-wrapper {
-                            outline: none !important;
-                          }
-                          .recharts-default-tooltip {
-                            background-color: #1a1a1a !important;
-                            border: 1px solid #333 !important;
-                            border-radius: 4px !important;
-                          }
-                          .recharts-tooltip-label {
-                            color: #ffffff !important;
-                          }
-                          .recharts-tooltip-item {
-                            color: #ffffff !important;
-                          }
-                        `}</style>
-                        <ResponsiveContainer width="100%" height={180}>
-                          <PieChart>
-                            <Pie
-                              data={bracketResult.donutData}
-                              cx="50%"
-                              cy="50%"
-                              innerRadius={50}
-                              outerRadius={80}
-                              paddingAngle={2}
-                              dataKey="value"
-                              stroke="none"
-                            >
-                              {bracketResult.donutData.map((entry: any, index: number) => (
-                                <Cell
-                                  key={`cell-${index}`}
-                                  fill={entry.color}
-                                  className="donut-segment"
-                                  style={{
-                                    filter: `drop-shadow(0 0 4px ${entry.color})`,
-                                  }}
-                                />
-                              ))}
-                            </Pie>
-                            <Tooltip
-                              contentStyle={{
-                                backgroundColor: '#1a1a1a',
-                                border: '1px solid #333',
-                                color: '#ffffff'
-                              }}
-                              labelStyle={{ color: '#ffffff' }}
-                              formatter={(value: any, name: any) => [`${value} traders`, name]}
-                            />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </div>
-
-                      {/* Right: Search Box */}
-                      <div className="space-y-2">
-                        <p className="text-xs font-semibold text-muted-foreground">Search Address</p>
-                        <Input
-                          placeholder="Enter wallet address"
-                          value={searchAddress}
-                          onChange={(e) => setSearchAddress(e.target.value)}
-                          className="h-8 text-xs"
-                          onKeyDown={(e) => e.key === 'Enter' && handleSearchAddress(bracketResult.bracketId)}
-                        />
-                        <Button
-                          onClick={() => handleSearchAddress(bracketResult.bracketId)}
-                          disabled={isSearchingAddress}
-                          size="sm"
-                          className="w-full h-8 text-xs"
-                        >
-                          {isSearchingAddress ? 'Checking...' : 'Check'}
-                        </Button>
-                        {searchAddressResult && (
-                          <div className="text-xs p-2 bg-secondary/30 rounded border border-border">
-                            {searchAddressResult.notFound ? (
-                              <p className="text-red-400">Not found</p>
-                            ) : (
-                              <div className="space-y-1">
-                                <p className=" text-xs truncate">{searchAddressResult.address}</p>
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Vol:</span>
-                                  <span className="font-bold">${searchAddressResult.vol.toLocaleString('en-US', { maximumFractionDigits: 2 })}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">PnL:</span>
-                                  <span className={`font-bold ${searchAddressResult.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                    ${searchAddressResult.pnl.toLocaleString('en-US', { maximumFractionDigits: 2 })}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Fits:</span>
-                                  <span className={`font-bold ${searchAddressResult.matchesBracket ? 'text-green-400' : 'text-red-400'}`}>
-                                    {searchAddressResult.matchesBracket ? '✓' : '✗'}
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-
-        {activeTab === 'reverse' && (
-          <Card className="p-8 md:p-10 bg-card/20 dark:bg-[#141414]/90 border border-border/20 dark:border-white/5 rounded-[2rem] shadow-2xl">
-            <h2 className="text-xl md:text-2xl font-bold text-foreground dark:text-white mb-8 tracking-tight">Reverse Search</h2>
-            <div className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-foreground/80 dark:text-white/80 block mb-2">First 4 Characters</label>
-                  <input
-                    placeholder="e.g., 0x1a"
-                    maxLength={4}
-                    value={reversePrefix}
-                    onChange={(e) => setReversePrefix(e.target.value.toUpperCase())}
-                    className="w-full bg-transparent border-none text-sm font-mono text-muted-foreground dark:text-white/60 placeholder:text-muted-foreground/30 focus:outline-none focus:ring-0 p-0"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-foreground/80 dark:text-white/80 block mb-2">Last 4 Characters</label>
-                  <input
-                    placeholder="e.g., a2f4"
-                    maxLength={4}
-                    value={reverseSuffix}
-                    onChange={(e) => setReverseSuffix(e.target.value.toUpperCase())}
-                    className="w-full bg-transparent border-none text-sm font-mono text-muted-foreground dark:text-white/60 placeholder:text-muted-foreground/30 focus:outline-none focus:ring-0 p-0"
-                  />
-                </div>
-              </div>
-              <button onClick={handleReverseSearch} disabled={isLoadingReverse} className="w-full md:w-auto px-8 py-2.5 bg-foreground text-background dark:bg-white dark:text-black rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-50 transition-opacity">
-                {isLoadingReverse ? 'Searching...' : 'Search'}
-              </button>
-
-              {reverseResults.length > 0 && (
-                <div className="mt-8 space-y-3">
-                  <p className="text-sm text-muted-foreground">Found {reverseResults.length} matching addresses</p>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-border text-left">
-                          <th className="px-3 py-2 font-semibold">Address</th>
-                          <th className="px-3 py-2 font-semibold">Volume</th>
-                          <th className="px-3 py-2 font-semibold">PnL</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {reverseResults.map((trader, i) => (
-                          <tr key={i} className="border-b border-border/50 hover:bg-secondary/20">
-                            <td className="px-3 py-2 text-xs">{trader.address || 'N/A'}</td>
-                            <td className="px-3 py-2">${typeof trader.vol === 'string' ? parseFloat(trader.vol).toFixed(0) : trader.vol || 0}</td>
-                            <td className={`px-3 py-2 ${(trader.pnl || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                              ${typeof trader.pnl === 'string' ? parseFloat(trader.pnl).toFixed(0) : trader.pnl || 0}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
+    <div className="p-4 md:p-6 space-y-6">
+      <Card className="p-8 md:p-10 bg-card/20 dark:bg-[#141414]/90 border border-border/20 dark:border-white/5 rounded-[2rem] shadow-2xl">
+        <h2 className="text-xl md:text-2xl font-bold text-foreground dark:text-white mb-8 tracking-tight">Reverse Search Address</h2>
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-foreground/80 dark:text-white/80 block mb-2">First 4 Characters</label>
+              <input
+                placeholder="0x1a"
+                maxLength={4}
+                value={reversePrefix}
+                onChange={(e) => setReversePrefix(e.target.value.toUpperCase())}
+                className="w-full bg-transparent border-none text-sm font-mono text-muted-foreground dark:text-white/60 placeholder:text-muted-foreground/30 focus:outline-none focus:ring-0 p-0"
+              />
             </div>
-          </Card>
-        )}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-foreground/80 dark:text-white/80 block mb-2">Last 4 Characters</label>
+              <input
+                placeholder="a2f4"
+                maxLength={4}
+                value={reverseSuffix}
+                onChange={(e) => setReverseSuffix(e.target.value.toUpperCase())}
+                className="w-full bg-transparent border-none text-sm font-mono text-muted-foreground dark:text-white/60 placeholder:text-muted-foreground/30 focus:outline-none focus:ring-0 p-0"
+              />
+            </div>
+          </div>
+          <button
+            onClick={handleReverseSearch}
+            disabled={isLoadingReverse}
+            className="w-full md:w-auto px-8 py-2.5 bg-foreground text-background dark:bg-white dark:text-black rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-50 transition-opacity"
+          >
+            {isLoadingReverse ? 'Searching...' : 'Search'}
+          </button>
 
-        {activeTab === 'new-traders' && (
-          <NewTradersTracker />
-        )}
-
-        {activeTab === 'sopoints' && (
-          <SopointsAnalyzer />
-        )}
-      </div>
+          {reverseResults.length > 0 && (
+            <div className="mt-8 space-y-3">
+              <p className="text-sm text-muted-foreground">Found {reverseResults.length} matching addresses</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-left">
+                      <th className="px-3 py-2 font-semibold">Address</th>
+                      <th className="px-3 py-2 font-semibold text-right">Volume</th>
+                      <th className="px-3 py-2 font-semibold text-right">PnL</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reverseResults.map((trader, i) => (
+                      <tr key={i} className="border-b border-border/50 hover:bg-secondary/20">
+                        <td className="px-3 py-2 text-xs font-mono">{trader.address || 'N/A'}</td>
+                        <td className="px-3 py-2 text-right">${typeof trader.vol === 'string' ? parseFloat(trader.vol).toFixed(0) : (trader.vol || 0).toLocaleString()}</td>
+                        <td className={`px-3 py-2 text-right ${(trader.pnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          ${typeof trader.pnl === 'string' ? parseFloat(trader.pnl).toFixed(0) : (trader.pnl || 0).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
     </div>
   )
 }
@@ -653,7 +220,7 @@ export default function Dashboard() {
                 { id: 'dex-status', label: 'SoDex Status' },
                 { id: 'tracker', label: 'Monitor' },
                 { id: 'leaderboard', label: 'Rankings' },
-                { id: 'analyzer', label: 'Forensics' },
+                { id: 'analyzer', label: 'Reverse Search' },
               ].map((item) => (
                 <button
                   key={item.id}
@@ -770,7 +337,7 @@ export default function Dashboard() {
       {currentPage === 'analyzer' && (
         <Suspense fallback={<LoadingCard />}>
           <div className="p-4 md:p-6">
-            <DistributionAnalyzerPage onBack={() => setCurrentPage('dex-status')} />
+            <ReverseSearchPage onBack={() => setCurrentPage('dex-status')} />
           </div>
         </Suspense>
       )}

@@ -57,10 +57,12 @@ export function TopSpotTradersCard() {
       <div className="space-y-2">
         {traders.length > 0 ? (
           traders.map((trader, idx) => (
-            <div key={trader.address} className="flex items-center justify-between p-3 bg-secondary/5 rounded-2xl border border-border/5 hover:bg-orange-500/5 transition-all duration-300">
+            <div key={trader.address} className="group flex items-center justify-between p-3 bg-secondary/5 rounded-2xl border border-border/5 hover:bg-orange-500/5 transition-all duration-300">
               <div className="flex items-center gap-3 min-w-0">
                 <span className="text-[10px] font-bold text-orange-500/60 w-4">#{idx + 1}</span>
-                <span className="text-[11px] text-foreground/70 dark:text-foreground/60 tracking-tight truncate">{formatAddress(trader.address)}</span>
+                <span className="text-[11px] text-foreground/70 dark:text-foreground/60 truncate font-mono">
+                  {trader.address.slice(0, 6)}...{trader.address.slice(-4)}
+                </span>
               </div>
               <span className="text-[11px] font-bold text-foreground/80 tracking-tight">${formatNumber(trader.vol)}</span>
             </div>

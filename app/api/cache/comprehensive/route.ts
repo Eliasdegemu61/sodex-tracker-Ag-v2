@@ -9,10 +9,6 @@ interface LeaderboardEntry {
   vol: string
 }
 
-interface SpotLeaderboardEntry {
-  address: string
-  vol: number
-}
 
 interface CacheData {
   // DEX Status Data
@@ -36,7 +32,6 @@ interface CacheData {
   // Leaderboard Data
   leaderboards: {
     perpsLeaderboard: LeaderboardEntry[]
-    spotLeaderboard: SpotLeaderboardEntry[]
   }
   lastUpdated: number
 }
@@ -53,7 +48,6 @@ const CACHE_KEY = 'comprehensive-dex-cache'
 const GITHUB_URLS = {
   traders: 'https://raw.githubusercontent.com/Eliasdegemu61/Sodex-Tracker-new-v1/main/live_stats.json',
   volume: 'https://raw.githubusercontent.com/Eliasdegemu61/sodex-tracker-new-v1-data-2/main/volume_summary.json',
-  spot: 'https://raw.githubusercontent.com/Eliasdegemu61/sodex-tracker-new-v1-data-2/main/spot_summary.json',
 }
 
 async function calculateComprehensiveData(): Promise<CacheData> {
@@ -61,19 +55,17 @@ async function calculateComprehensiveData(): Promise<CacheData> {
 
   try {
     // Fetch all required data from GitHub
-    const [tradersRes, volumeRes, spotRes] = await Promise.all([
+    const [tradersRes, volumeRes] = await Promise.all([
       fetch(GITHUB_URLS.traders, { cache: 'no-store' }),
       fetch(GITHUB_URLS.volume, { cache: 'no-store' }),
-      fetch(GITHUB_URLS.spot, { cache: 'no-store' }),
     ])
 
-    if (!tradersRes.ok || !volumeRes.ok || !spotRes.ok) {
+    if (!tradersRes.ok || !volumeRes.ok) {
       throw new Error('Failed to fetch GitHub data')
     }
 
     const traders: LeaderboardEntry[] = await tradersRes.json()
     const volumeData = await volumeRes.json()
-    const spotData = await spotRes.json()
 
     // --- DEX STATUS CALCULATIONS ---
 
@@ -190,9 +182,6 @@ async function calculateComprehensiveData(): Promise<CacheData> {
     const perpsLeaderboard = traders
       .sort((a, b) => parseFloat(b.vol) - parseFloat(a.vol))
 
-    // Spot Leaderboard
-    const spotLeaderboard = (spotData || [])
-      .sort((a: any, b: any) => b.vol - a.vol)
 
     // Compile all data
     const cacheData: CacheData = {
@@ -215,7 +204,6 @@ async function calculateComprehensiveData(): Promise<CacheData> {
       },
       leaderboards: {
         perpsLeaderboard,
-        spotLeaderboard,
       },
       lastUpdated: Date.now(),
     }
