@@ -15,10 +15,7 @@ import { VolumeChart } from '@/components/volume-chart'
 import { FundFlowChart } from '@/components/fund-flow-chart'
 import { TopPairsWidget } from '@/components/top-pairs-widget'
 import { TodayTopPairs } from '@/components/today-top-pairs'
-import { TopTradersCard } from '@/components/top-traders-card'
-import { TopSpotTradersCard } from '@/components/top-spot-traders-card'
 import { OverallDepositsCard, NetRemainingCard } from '@/components/overall-token-flow'
-import { TopGainersCard } from '@/components/top-gainers-card'
 import { LeaderboardPage } from '@/components/leaderboard-page'
 import { ProfitEfficiencyCard } from '@/components/profit-efficiency-card'
 import { OverallProfitEfficiencyCard } from '@/components/overall-profit-efficiency-card'
@@ -772,9 +769,6 @@ export default function Dashboard() {
                     {/* Overall Profit Efficiency */}
                     <TVLCard />
 
-                    {/* Top Traders (Perps) */}
-                    <TopTradersCard />
-
 
 
                     {/* Trade on SoDex Promo Card (Moved to Left) */}
@@ -813,31 +807,12 @@ export default function Dashboard() {
                   <TodayTopPairs />
                   <FundFlowChart />
 
-                  {/* Key Metrics: Top Spot Traders, Top Gainers, Top Losers */}
-                  {/* Desktop grid */}
-                  <div className="hidden lg:grid grid-cols-2 gap-2 md:gap-4 mt-4">
-                    <TopSpotTradersCard />
-                    <TopGainersCard />
-                  </div>
-
-                </div>
+                  {/* Key Metrics: Top Spot Traders, Top Gainers, Top Losers */}</div>
 
                 {/* Mobile Cards Section - Correct order for mobile */}
                 <div className="lg:hidden order-2 p-2 space-y-3 w-full">
                   {/* Total Value Locked */}
                   <TVLCard />
-
-                  {/* Top Spot & Futures Performers side by side */}
-                  <div className="grid grid-cols-2 gap-2 md:gap-4 mt-4">
-                    <TopSpotTradersCard />
-                    <TopTradersCard />
-                  </div>
-
-                  {/* Top Gainers side by side */}
-                  <div className="mt-4">
-                    <TopGainersCard />
-                  </div>
-
                   {/* Announcements */}
                   <AnnouncementsPanel />
 

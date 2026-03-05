@@ -198,7 +198,7 @@ export function PerpsLeaderboard() {
               <div className="absolute -top-2 -right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-black font-black text-[10px] border-2 border-background z-20">1</div>
             </div>
             <div className="w-52 md:w-64 h-28 md:h-40 bg-gradient-to-t from-card to-card/60 border-x border-t border-orange-500/20 rounded-t-[2rem] md:rounded-t-[3rem] relative flex flex-col items-center justify-center p-6 shadow-[0_-10px_30px_rgba(0,0,0,0.2)]">
-              <p className="text-[9px] md:text-[11px] font-bold text-orange-500 uppercase tracking-[0.2em] mb-1">[1] CHAMPION</p>
+              <p className="text-[9px] md:text-[11px] font-bold text-orange-500 uppercase tracking-[0.2em] mb-1">[1] RANK</p>
               <p className="text-xs font-mono text-foreground mb-2 truncate max-w-full px-2 text-center">
                 {podiumItems[0].wallet_address.slice(0, 6)}...{podiumItems[0].wallet_address.slice(-4)}
               </p>

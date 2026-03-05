@@ -1,0 +1,89 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { Card } from '@/components/ui/card'
+
+const formatNumber = (num: number): string => {
+  if (Math.abs(num) >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`
+  if (Math.abs(num) >= 1_000) return `${(num / 1_000).toFixed(2)}K`
+  return num.toFixed(2)
+}
+
+const formatAddress = (addr: string) =>
+  addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : 'N/A'
+
+const WINDOWS = ['24H', '7D', '30D', 'ALL_TIME'] as const
+type Window = (typeof WINDOWS)[number]
+
+export function TopVolCard() {
+  const [traders, setTraders] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [window, setWindow] = useState<Window>('ALL_TIME')
+
+  useEffect(() => {
+    setLoading(true)
+    setTraders([])
+    fetch(
+      `https://mainnet-data.sodex.dev/api/v1/leaderboard?window_type=${window}&sort_by=volume&sort_order=desc&page=1&page_size=5`
+    )
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.code === 0 && Array.isArray(json.data?.items)) {
+          setTraders(json.data.items)
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [window])
+
+  return (
+    <Card className="p-5 bg-card/95 border border-border/20 rounded-3xl">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-xs font-semibold text-muted-foreground/80">Top Performers Vol</h3>
+        <div className="flex bg-secondary/20 p-0.5 rounded-lg gap-0.5">
+          {WINDOWS.map((w) => (
+            <button
+              key={w}
+              onClick={() => setWindow(w)}
+              className={`px-2 py-0.5 text-[8px] font-bold rounded-md transition-colors ${window === w
+                  ? 'bg-orange-500/20 text-orange-400'
+                  : 'text-muted-foreground/50 hover:text-foreground'
+                }`}
+            >
+              {w === 'ALL_TIME' ? 'ALL' : w}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        {loading ? (
+          [1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-10 bg-secondary/10 rounded-xl animate-pulse" />
+          ))
+        ) : traders.length > 0 ? (
+          traders.map((t) => (
+            <div
+              key={t.wallet_address}
+              className="flex items-center justify-between p-3 bg-secondary/5 rounded-2xl border border-border/5 hover:bg-orange-500/5 transition-all"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="text-[10px] font-bold text-orange-500/60 w-5">#{t.rank}</span>
+                <span className="text-[11px] text-foreground/70 font-mono truncate">
+                  {formatAddress(t.wallet_address)}
+                </span>
+              </div>
+              <span className="text-[11px] font-bold text-foreground/80 shrink-0">
+                ${formatNumber(parseFloat(t.volume_usd))}
+              </span>
+            </div>
+          ))
+        ) : (
+          <div className="text-[10px] text-muted-foreground/30 font-bold text-center py-6">
+            No data
+          </div>
+        )}
+      </div>
+    </Card>
+  )
+}
