@@ -99,16 +99,16 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
   // Revised User and Volume Cards for Mobile Merger
   const StatsHeader = () => {
     const SharedCard = ({ children }: { children: React.ReactNode }) => (
-      <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl group">
+      <Card className="p-4 lg:p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl group">
         {children}
       </Card>
     );
 
     const UserStats = () => (
       <div className="flex-1 min-w-0">
-        <h3 className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-1 whitespace-nowrap text-zinc-500">Total Users</h3>
+        <h3 className="text-[10px] lg:text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-1 whitespace-nowrap text-zinc-500">Total Users</h3>
         <div className="flex flex-col">
-          <div className="text-2xl font-bold tracking-tight text-foreground leading-none mb-2">
+          <div className="text-xl lg:text-2xl font-bold tracking-tight text-foreground leading-none mb-1 lg:mb-2">
             {totalUsers.toLocaleString()}
           </div>
           {userGain > 0 && (
@@ -123,13 +123,13 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
 
     const VolumeStats = () => (
       <div className="flex-1 min-w-0">
-        <h3 className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-1 whitespace-nowrap text-zinc-500">Total Volume</h3>
-        <div className="text-2xl font-bold tracking-tight text-foreground">${formatNumber(totalVolume)}</div>
+        <h3 className="text-[10px] lg:text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-1 whitespace-nowrap text-zinc-500">Total Volume</h3>
+        <div className="text-xl lg:text-2xl font-bold tracking-tight text-foreground">${formatNumber(totalVolume)}</div>
       </div>
     );
 
     return (
-      <div className="space-y-3 mb-4">
+      <div className="space-y-2 lg:space-y-3 mb-0 lg:mb-4">
         {/* Mobile View: Merged Card */}
         <div className="block lg:hidden">
           <SharedCard>
@@ -161,7 +161,7 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
       <StatsHeader />
 
       {/* Spot vs Futures Volume */}
-      <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm overflow-hidden group">
+      <Card className="hidden lg:block p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm overflow-hidden group">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60 text-zinc-500 uppercase tracking-wider">Volume Split</h3>
         </div>

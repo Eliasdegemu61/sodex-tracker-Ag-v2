@@ -65,8 +65,8 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
   }, [])
 
   return (
-    <Card className="p-8 bg-card/95 shadow-sm border border-border/20 rounded-[2.5rem] shadow-sm flex flex-col">
-      <div className="flex items-center justify-between mb-8">
+    <Card className="p-4 lg:p-8 bg-card/95 shadow-sm border border-border/20 rounded-[2.5rem] shadow-sm flex flex-col">
+      <div className="flex items-center justify-between mb-4 lg:mb-8">
         <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60">volume trend</h3>
         <div className="flex gap-1 bg-secondary/10 p-1 rounded-xl border border-border/5">
           {(['1w', '1m', '3m', '6m', '1y'] as TimeRange[]).map((range) => (
@@ -169,7 +169,7 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
         </ResponsiveContainer>
       </div>
 
-      <div className="mt-8 pt-6 border-t border-border/10 flex items-center justify-between">
+      <div className="mt-4 lg:mt-8 pt-3 lg:pt-6 border-t border-border/10 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />

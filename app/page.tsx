@@ -324,7 +324,7 @@ export default function Dashboard() {
             <div className="flex flex-col w-full overflow-y-auto overflow-x-hidden">
               <div className="flex flex-col lg:flex-row w-full">
                 {/* Top Stats - Mobile Only */}
-                <div className="w-full lg:hidden p-3 order-0 border-b border-border">
+                <div className="w-full lg:hidden p-2 pt-1 order-0">
                   <DashboardStats variant="compact" />
                 </div>
 
@@ -370,7 +370,7 @@ export default function Dashboard() {
                 )}
 
                 {/* Center Content */}
-                <div className="flex-1 p-2 md:p-6 space-y-2 md:space-y-4 lg:flex-shrink-0 order-1 lg:order-2">
+                <div className="flex-1 p-1 md:p-6 space-y-2 md:space-y-4 lg:flex-shrink-0 order-1 lg:order-2">
                   <VolumeChart />
                   <TodayTopPairs />
                   <FundFlowChart />
