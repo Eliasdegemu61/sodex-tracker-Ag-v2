@@ -583,7 +583,15 @@ export async function fetchPnLOverview(
     const response = await fetch(`/api/perps/pnl-overview?account_id=${userId}`);
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch PnL overview: ${response.statusText}`);
+      console.warn(`[v0] Failed to fetch PnL overview: ${response.statusText}`);
+      // Graceful fallback to prevent page crash on 503 Service Unavailable
+      return {
+        account_id: typeof userId === 'number' ? userId : parseInt(userId as string) || 0,
+        ts_ms: Date.now(),
+        cumulative_pnl: '0',
+        cumulative_quote_volume: '0',
+        unrealized_pnl: '0'
+      };
     }
 
     const result = await response.json();
