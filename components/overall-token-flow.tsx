@@ -353,7 +353,7 @@ export function AssetIntelligenceDashboard() {
 
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 relative z-50">
                     <div className="flex items-center gap-4 flex-wrap">
-                        <h2 className="text-xl font-bold text-foreground tracking-tight">Market Overview</h2>
+                        <h2 className="text-xl font-bold text-foreground tracking-tight">Asset Overview</h2>
 
                         {/* Custom Dropdown for Token Selection */}
                         <div className="relative" ref={dropdownRef}>

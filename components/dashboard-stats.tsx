@@ -37,7 +37,8 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
     const fetchUserData = async () => {
       try {
         setUserLoading(true)
-        const response = await fetch('https://mainnet-data.sodex.dev/api/v1/dashboard/users?start_date=2024-01-01&end_date=2026-03-06')
+        const today = new Date().toISOString().split('T')[0]
+        const response = await fetch(`https://mainnet-data.sodex.dev/api/v1/dashboard/users?start_date=2024-01-01&end_date=${today}`)
         const json = await response.json()
         if (json.code === 0 && json.data?.data) {
           setUserData(json.data.data)
