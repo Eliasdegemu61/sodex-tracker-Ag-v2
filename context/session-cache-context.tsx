@@ -3,8 +3,6 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react'
 
 export interface LeaderboardData {
-  volumeData: any[]
-  pnlData: any[]
   spotData: any[]
   lastFetched: number
 }
@@ -62,34 +60,19 @@ export function SessionCacheProvider({ children }: { children: ReactNode }) {
     try {
       console.log('[v0] Preloading leaderboard data in background...')
 
-      // Fetch all leaderboard data in parallel from GitHub CSVs
-      const [volResponse, pnlResponse, spotResponse] = await Promise.all([
-        fetch('https://raw.githubusercontent.com/Eliasdegemu61/sodex-finalised-raw-data/refs/heads/main/vol_leaderboard.csv'),
-        fetch('https://raw.githubusercontent.com/Eliasdegemu61/sodex-finalised-raw-data/refs/heads/main/pnl_leaderboard.csv'),
-        fetch('https://raw.githubusercontent.com/Eliasdegemu61/sodex-finalised-raw-data/refs/heads/main/spot_leaderboard.csv'),
-      ])
+      // Fetch spot leaderboard data
+      const spotResponse = await fetch('https://raw.githubusercontent.com/Eliasdegemu61/sodex-finalised-raw-data/refs/heads/main/spot_leaderboard.csv')
+      const spotText = await spotResponse.text()
 
-      const [volText, pnlText, spotText] = await Promise.all([
-        volResponse.text(),
-        pnlResponse.text(),
-        spotResponse.text(),
-      ])
-
-      const volumeData = parseCSV(volText)
-      const pnlData = parseCSV(pnlText)
       const spotData = parseCSV(spotText)
 
       const cachedData: LeaderboardData = {
-        volumeData,
-        pnlData,
         spotData,
         lastFetched: Date.now(),
       }
 
       setLeaderboardCache(cachedData)
       console.log('[v0] Leaderboard data preloaded successfully:', {
-        volumeCount: volumeData.length,
-        pnlCount: pnlData.length,
         spotCount: spotData.length,
       })
     } catch (error) {

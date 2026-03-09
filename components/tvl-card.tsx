@@ -65,7 +65,7 @@ export function TVLCard() {
       </div>
       <div className="flex items-baseline gap-2">
         <div className="text-xl font-bold tracking-tight text-foreground">
-          ${formatNumber(tvl)}
+          {formatNumber(tvl)}
         </div>
         <div className="text-[8px] text-muted-foreground/30 font-bold   group-hover:text-orange-400/40 transition-colors">
           MAG7.SSI
