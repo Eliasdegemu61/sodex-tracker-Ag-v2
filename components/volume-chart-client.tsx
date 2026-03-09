@@ -62,16 +62,20 @@ function buildChartData(chartData: ChartDataPoint[], timeRange: TimeRange) {
 
     const spotVal = Number((day.spot_vol / 1e6).toFixed(2))
     const futuresVal = Number((day.futures_vol / 1e6).toFixed(2))
+    const dailyTotalVal = Number(((day.spot_vol + day.futures_vol) / 1e6).toFixed(2))
     const cumulVal = Number((day.cumulativeVol / 1e9).toFixed(3))
+    const hasIncomplete = array[array.length - 1].day === todayUtcStr
 
     return {
       date: day.day,
       spot: isIncomplete ? null : spotVal,
       futures: isIncomplete ? null : futuresVal,
+      daily_total: isIncomplete ? null : dailyTotalVal,
       cumulative: isIncomplete ? null : cumulVal,
-      spot_incomplete: (isIncomplete || (isSecondToLast && array[array.length - 1].day === todayUtcStr)) ? spotVal : null,
-      futures_incomplete: (isIncomplete || (isSecondToLast && array[array.length - 1].day === todayUtcStr)) ? futuresVal : null,
-      cumulative_incomplete: (isIncomplete || (isSecondToLast && array[array.length - 1].day === todayUtcStr)) ? cumulVal : null,
+      spot_incomplete: (isIncomplete || (isSecondToLast && hasIncomplete)) ? spotVal : null,
+      futures_incomplete: (isIncomplete || (isSecondToLast && hasIncomplete)) ? futuresVal : null,
+      daily_total_incomplete: (isIncomplete || (isSecondToLast && hasIncomplete)) ? dailyTotalVal : null,
+      cumulative_incomplete: (isIncomplete || (isSecondToLast && hasIncomplete)) ? cumulVal : null,
       isIncomplete,
     }
   })
@@ -106,7 +110,7 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
                 key={type}
                 onClick={() => setChartType(type)}
                 className={`text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all capitalize ${chartType === type
-                  ? 'bg-blue-500 text-white shadow-lg'
+                  ? 'bg-orange-500 text-black shadow-lg'
                   : 'text-muted-foreground/40 hover:text-foreground hover:bg-secondary/20'
                   }`}
               >
@@ -143,9 +147,13 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
                 <stop offset="5%" stopColor="#ea580c" stopOpacity={0.2} />
                 <stop offset="95%" stopColor="#ea580c" stopOpacity={0} />
               </linearGradient>
-              <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
-                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+              <linearGradient id="colorDailyTotal" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.15} />
+                <stop offset="95%" stopColor="#fbbf24" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#f97316" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" opacity={0.05} />
@@ -265,34 +273,60 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
                   dot={false}
                   activeDot={{ r: 4, strokeWidth: 0, fill: '#ea580c' }}
                 />
+                <Area
+                  type="monotone"
+                  dataKey="daily_total"
+                  stroke="#fbbf24"
+                  fill="url(#colorDailyTotal)"
+                  strokeWidth={2}
+                  isAnimationActive={!isMobile}
+                  animationDuration={1500}
+                  name="Daily Total"
+                  dot={false}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: '#fbbf24' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="daily_total_incomplete"
+                  stroke="#fbbf24"
+                  strokeDasharray="4 4"
+                  fill="url(#colorDailyTotal)"
+                  fillOpacity={0.4}
+                  strokeWidth={2}
+                  isAnimationActive={!isMobile}
+                  animationDuration={1500}
+                  name="Daily Total"
+                  dot={false}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: '#fbbf24' }}
+                />
               </>
             ) : (
               <>
                 <Area
                   type="monotone"
                   dataKey="cumulative"
-                  stroke="#3b82f6"
-                  fill="url(#colorTotal)"
+                  stroke="#f97316"
+                  fill="url(#colorCumulative)"
                   strokeWidth={2}
                   isAnimationActive={true}
                   animationDuration={1500}
                   name="Cumulative Vol"
                   dot={false}
-                  activeDot={{ r: 4, strokeWidth: 0, fill: '#3b82f6' }}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: '#f97316' }}
                 />
                 <Area
                   type="monotone"
                   dataKey="cumulative_incomplete"
-                  stroke="#3b82f6"
+                  stroke="#f97316"
                   strokeDasharray="4 4"
-                  fill="url(#colorTotal)"
+                  fill="url(#colorCumulative)"
                   fillOpacity={0.4}
                   strokeWidth={2}
                   isAnimationActive={true}
                   animationDuration={1500}
                   name="Cumulative Vol"
                   dot={false}
-                  activeDot={{ r: 4, strokeWidth: 0, fill: '#3b82f6' }}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: '#f97316' }}
                 />
               </>
             )}
@@ -312,10 +346,14 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
                 <div className="w-1.5 h-1.5 rounded-full bg-orange-600" />
                 <span className="text-[8px] text-muted-foreground/30 font-bold">futures</span>
               </div>
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-yellow-400" />
+                <span className="text-[8px] text-muted-foreground/30 font-bold">daily total</span>
+              </div>
             </>
           ) : (
             <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
               <span className="text-[8px] text-muted-foreground/30 font-bold">cumulative</span>
             </div>
           )}
