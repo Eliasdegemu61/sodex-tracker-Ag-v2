@@ -13,47 +13,78 @@ interface VolumeChartClientProps {
   chartData?: ChartDataPoint[]
 }
 
-function filterChartData(chartData: ChartDataPoint[] | undefined, timeRange: TimeRange) {
-  if (!chartData || chartData.length === 0) return []
-
+function buildChartData(chartData: ChartDataPoint[], timeRange: TimeRange) {
   const now = new Date()
-  let cutoffDate = new Date()
+  const todayUtcStr = now.toISOString().split('T')[0]
+
+  // All data including today's (potentially incomplete)
+  const sorted = [...chartData].sort((a, b) => a.day.localeCompare(b.day))
+
+  // Compute cumulative running volume over the FULL dataset
+  let runningTotal = 0
+  const withCumulative = sorted.map((day) => {
+    runningTotal += day.spot_vol + day.futures_vol
+    return { ...day, cumulativeVol: runningTotal }
+  })
+
+  // Determine the reference date (last entry)
+  const lastDayStr = withCumulative[withCumulative.length - 1]?.day
+  const referenceDate = new Date(`${lastDayStr}T00:00:00Z`)
+  let cutoffDate = new Date(referenceDate.getTime())
 
   switch (timeRange) {
     case '1w':
-      cutoffDate.setDate(now.getDate() - 7)
+      cutoffDate.setUTCDate(referenceDate.getUTCDate() - 7)
       break
     case '1m':
-      cutoffDate.setMonth(now.getMonth() - 1)
+      cutoffDate.setUTCMonth(referenceDate.getUTCMonth() - 1)
       break
     case '3m':
-      cutoffDate.setMonth(now.getMonth() - 3)
+      cutoffDate.setUTCMonth(referenceDate.getUTCMonth() - 3)
       break
     case '6m':
-      cutoffDate.setMonth(now.getMonth() - 6)
+      cutoffDate.setUTCMonth(referenceDate.getUTCMonth() - 6)
       break
     case '1y':
-      cutoffDate.setFullYear(now.getFullYear() - 1)
+      cutoffDate.setUTCFullYear(referenceDate.getUTCFullYear() - 1)
       break
   }
 
-  return chartData
-    .filter((day) => {
-      const dayDate = new Date(day.day)
-      return dayDate >= cutoffDate
-    })
-    .map((day) => {
-      return {
-        date: day.day,
-        spot: Number((day.spot_vol / 1e6).toFixed(2)),
-        futures: Number((day.futures_vol / 1e6).toFixed(2)),
-        total: Number((day.total_day_vol / 1e6).toFixed(2)),
-      }
-    })
+  const windowed = withCumulative.filter((day) => {
+    const dayDate = new Date(`${day.day}T00:00:00Z`)
+    return dayDate >= cutoffDate
+  })
+
+  return windowed.map((day, index, array) => {
+    const isLast = index === array.length - 1
+    const isSecondToLast = index === array.length - 2
+    const isIncomplete = isLast && day.day === todayUtcStr
+
+    const spotVal = Number((day.spot_vol / 1e6).toFixed(2))
+    const futuresVal = Number((day.futures_vol / 1e6).toFixed(2))
+    const cumulVal = Number((day.cumulativeVol / 1e9).toFixed(3))
+
+    return {
+      date: day.day,
+      spot: isIncomplete ? null : spotVal,
+      futures: isIncomplete ? null : futuresVal,
+      cumulative: isIncomplete ? null : cumulVal,
+      spot_incomplete: (isIncomplete || (isSecondToLast && array[array.length - 1].day === todayUtcStr)) ? spotVal : null,
+      futures_incomplete: (isIncomplete || (isSecondToLast && array[array.length - 1].day === todayUtcStr)) ? futuresVal : null,
+      cumulative_incomplete: (isIncomplete || (isSecondToLast && array[array.length - 1].day === todayUtcStr)) ? cumulVal : null,
+      isIncomplete,
+    }
+  })
+}
+
+function filterChartData(chartData: ChartDataPoint[] | undefined, timeRange: TimeRange) {
+  if (!chartData || chartData.length === 0) return []
+  return buildChartData(chartData, timeRange)
 }
 
 export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
   const [timeRange, setTimeRange] = useState<TimeRange>('1m')
+  const [chartType, setChartType] = useState<'split' | 'total'>('split')
   const processedChartData = filterChartData(chartData, timeRange)
   const [isMobile, setIsMobile] = useState(false)
 
@@ -68,19 +99,35 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
     <Card className="p-4 lg:p-8 bg-card/95 shadow-sm border border-border/20 rounded-[2.5rem] shadow-sm flex flex-col">
       <div className="flex items-center justify-between mb-4 lg:mb-8">
         <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60">volume trend</h3>
-        <div className="flex gap-1 bg-secondary/10 p-1 rounded-xl border border-border/5">
-          {(['1w', '1m', '3m', '6m', '1y'] as TimeRange[]).map((range) => (
-            <button
-              key={range}
-              onClick={() => setTimeRange(range)}
-              className={`text-[9px] font-bold  px-3 py-1.5 rounded-lg transition-all ${timeRange === range
-                ? 'bg-orange-500 text-black shadow-lg'
-                : 'text-muted-foreground/40 hover:text-foreground hover:bg-secondary/20'
-                }`}
-            >
-              {range}
-            </button>
-          ))}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex gap-1 bg-secondary/10 p-1 rounded-xl border border-border/5">
+            {(['split', 'total'] as const).map((type) => (
+              <button
+                key={type}
+                onClick={() => setChartType(type)}
+                className={`text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all capitalize ${chartType === type
+                  ? 'bg-blue-500 text-white shadow-lg'
+                  : 'text-muted-foreground/40 hover:text-foreground hover:bg-secondary/20'
+                  }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-1 bg-secondary/10 p-1 rounded-xl border border-border/5">
+            {(['1w', '1m', '3m', '6m', '1y'] as TimeRange[]).map((range) => (
+              <button
+                key={range}
+                onClick={() => setTimeRange(range)}
+                className={`text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all ${timeRange === range
+                  ? 'bg-orange-500 text-black shadow-lg'
+                  : 'text-muted-foreground/40 hover:text-foreground hover:bg-secondary/20'
+                  }`}
+              >
+                {range}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -95,6 +142,10 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
               <linearGradient id="colorFutures" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#ea580c" stopOpacity={0.2} />
                 <stop offset="95%" stopColor="#ea580c" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" opacity={0.05} />
@@ -114,24 +165,43 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
               tickLine={false}
               axisLine={false}
               tick={{ fill: 'currentColor', opacity: 0.2, fontWeight: 'bold' }}
-              tickFormatter={(value) => `${value}M`}
+              tickFormatter={(value) => chartType === 'total' ? `${value}B` : `${value}M`}
               dx={-10}
             />
             <Tooltip
               cursor={{ stroke: 'currentColor', strokeWidth: 1, strokeOpacity: 0.1 }}
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
+                  const isIncomplete = payload[0].payload.isIncomplete
+
+                  // Deduplicate items so we don't show both regular and incomplete series for the second-to-last item
+                  const uniquePayload = payload.reduce((acc: any[], current: any) => {
+                    const baseDataKey = String(current.dataKey).replace('_incomplete', '')
+                    if (!acc.some(item => String(item.dataKey).replace('_incomplete', '') === baseDataKey)) {
+                      acc.push(current)
+                    }
+                    return acc
+                  }, [])
+
                   return (
                     <div className="bg-card/90 border border-border/20 p-4 rounded-2xl shadow-2xl min-w-[140px]">
-                      <p className="text-[9px] text-muted-foreground/40 font-bold   mb-3">{label}</p>
+                      <p className="text-[9px] text-muted-foreground/40 font-bold mb-3">
+                        {label} {isIncomplete && <span className="text-orange-500 ml-1">(Incomplete Date)</span>}
+                      </p>
                       <div className="space-y-2">
-                        {payload.map((entry: any, index: number) => (
+                        {uniquePayload.map((entry: any, index: number) => (
                           <div key={index} className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-2">
                               <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
-                              <span className="text-[10px] text-foreground/60 font-medium">{entry.name}</span>
+                              <span className="text-[10px] text-foreground/60 font-medium">
+                                {String(entry.name).replace(' (Incomplete)', '')}
+                              </span>
                             </div>
-                            <span className="text-[11px] font-bold text-foreground/80">${entry.value}M</span>
+                            <span className="text-[11px] font-bold text-foreground/80">
+                              {entry.dataKey?.toString().includes('cumulative')
+                                ? `$${Number(entry.value).toFixed(3)}B`
+                                : `$${Number(entry.value).toFixed(2)}M`}
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -141,46 +211,116 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
                 return null
               }}
             />
-            <Area
-              type="monotone"
-              dataKey="spot"
-              stroke="#fb923c"
-              fill="url(#colorSpot)"
-              strokeWidth={2}
-              isAnimationActive={!isMobile}
-              animationDuration={1500}
-              name="Spot"
-              dot={false}
-              activeDot={{ r: 4, strokeWidth: 0, fill: '#fb923c' }}
-            />
-            <Area
-              type="monotone"
-              dataKey="futures"
-              stroke="#ea580c"
-              fill="url(#colorFutures)"
-              strokeWidth={2}
-              isAnimationActive={true}
-              animationDuration={1500}
-              name="Futures"
-              dot={false}
-              activeDot={{ r: 4, strokeWidth: 0, fill: '#ea580c' }}
-            />
+            {chartType === 'split' ? (
+              <>
+                <Area
+                  type="monotone"
+                  dataKey="spot"
+                  stroke="#fb923c"
+                  fill="url(#colorSpot)"
+                  strokeWidth={2}
+                  isAnimationActive={!isMobile}
+                  animationDuration={1500}
+                  name="Spot"
+                  dot={false}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: '#fb923c' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="spot_incomplete"
+                  stroke="#fb923c"
+                  strokeDasharray="4 4"
+                  fill="url(#colorSpot)"
+                  fillOpacity={0.4}
+                  strokeWidth={2}
+                  isAnimationActive={!isMobile}
+                  animationDuration={1500}
+                  name="Spot"
+                  dot={false}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: '#fb923c' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="futures"
+                  stroke="#ea580c"
+                  fill="url(#colorFutures)"
+                  strokeWidth={2}
+                  isAnimationActive={true}
+                  animationDuration={1500}
+                  name="Futures"
+                  dot={false}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: '#ea580c' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="futures_incomplete"
+                  stroke="#ea580c"
+                  strokeDasharray="4 4"
+                  fill="url(#colorFutures)"
+                  fillOpacity={0.4}
+                  strokeWidth={2}
+                  isAnimationActive={true}
+                  animationDuration={1500}
+                  name="Futures"
+                  dot={false}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: '#ea580c' }}
+                />
+              </>
+            ) : (
+              <>
+                <Area
+                  type="monotone"
+                  dataKey="cumulative"
+                  stroke="#3b82f6"
+                  fill="url(#colorTotal)"
+                  strokeWidth={2}
+                  isAnimationActive={true}
+                  animationDuration={1500}
+                  name="Cumulative Vol"
+                  dot={false}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: '#3b82f6' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="cumulative_incomplete"
+                  stroke="#3b82f6"
+                  strokeDasharray="4 4"
+                  fill="url(#colorTotal)"
+                  fillOpacity={0.4}
+                  strokeWidth={2}
+                  isAnimationActive={true}
+                  animationDuration={1500}
+                  name="Cumulative Vol"
+                  dot={false}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: '#3b82f6' }}
+                />
+              </>
+            )}
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
       <div className="mt-4 lg:mt-8 pt-3 lg:pt-6 border-t border-border/10 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />
-            <span className="text-[8px] text-muted-foreground/30 font-bold  ">spot</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-orange-600" />
-            <span className="text-[8px] text-muted-foreground/30 font-bold  ">futures</span>
-          </div>
+          {chartType === 'split' ? (
+            <>
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />
+                <span className="text-[8px] text-muted-foreground/30 font-bold">spot</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-orange-600" />
+                <span className="text-[8px] text-muted-foreground/30 font-bold">futures</span>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              <span className="text-[8px] text-muted-foreground/30 font-bold">cumulative</span>
+            </div>
+          )}
         </div>
-        <span className="text-[8px] text-muted-foreground/10 ">UNIT: MILLION_USD</span>
+        <span className="text-[8px] text-muted-foreground/10">{chartType === 'total' ? 'UNIT: BILLION_USD (CUMULATIVE)' : 'UNIT: MILLION_USD'}</span>
       </div>
     </Card>
   )
