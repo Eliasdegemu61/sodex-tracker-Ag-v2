@@ -10,7 +10,7 @@ export async function fetchRegistryFromServer(): Promise<Array<{ userId: string;
   try {
     console.log('[v0] Fetching registry from server');
     const response = await fetch('/api/wallet/registry');
-
+    
     if (!response.ok) {
       console.error('[v0] Registry fetch failed with status:', response.status);
       throw new Error(`Registry fetch failed: ${response.status}`);
@@ -23,9 +23,9 @@ export async function fetchRegistryFromServer(): Promise<Array<{ userId: string;
       throw new Error(result.error);
     }
 
-    console.log('[v0] Registry fetched from server', {
-      fromCache: result.fromCache,
-      entries: (result.data as any[])?.length
+    console.log('[v0] Registry fetched from server', { 
+      fromCache: result.fromCache, 
+      entries: (result.data as any[])?.length 
     });
     return result.data as Array<{ userId: string; address: string }>;
   } catch (error) {
@@ -36,42 +36,34 @@ export async function fetchRegistryFromServer(): Promise<Array<{ userId: string;
 
 export async function lookupWalletAddress(address: string): Promise<string> {
   try {
-    console.log('[STRICT-ID] Looking up wallet address:', address);
-
-    // Fetch registry directly from GitHub with no-cache to prevent stale ID 1061 mappings
-    const registryUrl = 'https://raw.githubusercontent.com/Eliasdegemu61/Sodex-Tracker-new-v1/refs/heads/main/registry.json';
-    const response = await fetch(registryUrl, { cache: 'no-store' });
-
+    console.log('[v0] Looking up wallet address:', address);
+    
+    // Fetch registry directly from GitHub
+    const response = await fetch('https://raw.githubusercontent.com/Eliasdegemu61/Sodex-Tracker-new-v1/refs/heads/main/registry.json');
+    
     if (!response.ok) {
-      console.error('[STRICT-ID] Registry fetch failed with status:', response.status);
+      console.error('[v0] Registry fetch failed with status:', response.status);
       throw new Error(`Registry fetch failed: ${response.status}`);
     }
 
     const registry = await response.json();
-
+    
     // Registry is an array of objects, search through it
-    const normalizedAddress = address.toLowerCase().trim();
-    const user = registry.find((entry: any) =>
-      entry.address.toLowerCase().trim() === normalizedAddress
+    const normalizedAddress = address.toLowerCase();
+    const user = registry.find((entry: any) => 
+      entry.address.toLowerCase() === normalizedAddress
     );
 
     if (!user) {
-      console.error('[STRICT-ID] Address not found in registry:', address);
+      console.error('[v0] Address not found in registry:', address);
       throw new Error('Address not found in registry');
     }
 
-    // Support both userId and id keys just in case, but prefer userId
     const userId = user.userId || user.id;
-
-    if (!userId) {
-      console.error('[STRICT-ID] Entry found but no ID field present for', address);
-      throw new Error('Registry entry malformed: missing ID');
-    }
-
-    console.log('[STRICT-ID] Wallet lookup successful:', { address, userId });
-    return String(userId);
+    console.log('[v0] Wallet lookup successful', { address, userId });
+    return userId;
   } catch (error) {
-    console.error('[STRICT-ID] Failed to lookup wallet:', error);
+    console.error('[v0] Failed to lookup wallet:', error);
     throw error;
   }
 }

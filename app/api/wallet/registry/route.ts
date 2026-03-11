@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ data: cached, fromCache: true });
     }
 
-    console.log('[v0] Fetching registry from GitHub, token available:', !!GITHUB_TOKEN);
+    console.log('[STRICT-ID] Fetching registry from GitHub, token available:', !!GITHUB_TOKEN);
 
     // Fetch from GitHub with token for better rate limits
     const headers: Record<string, string> = {
@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
     }
 
     const response = await fetch(
-      'https://raw.githubusercontent.com/Eliasdegemu61/Sodex-Tracker-new-v1/main/registry.json',
-      { 
+      'https://raw.githubusercontent.com/Eliasdegemu61/Sodex-Tracker-new-v1/refs/heads/main/registry.json',
+      {
         headers,
         cache: 'no-store'
       }

@@ -162,7 +162,7 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
 
 export default function Dashboard() {
   const { theme, toggleTheme, mounted } = useTheme()
-  const [currentPage, setCurrentPage] = useState<'dex-status' | 'tracker' | 'portfolio' | 'leaderboard' | 'analyzer' | 'about' | 'whale-tracker' | 'assets'>('dex-status')
+  const [currentPage, setCurrentPage] = useState<'dex-status' | 'tracker' | 'portfolio' | 'leaderboard' | 'analyzer' | 'about' | 'whale-tracker' | 'assets' | 'journal'>('dex-status')
   const [searchAddressInput, setSearchAddressInput] = useState('')
   const [trackerSearchAddress, setTrackerSearchAddress] = useState('')
   const [showMoreMenu, setShowMoreMenu] = useState(false)
@@ -264,6 +264,15 @@ export default function Dashboard() {
                 }`}
             >
               Leaderboard
+            </button>
+            <button
+              onClick={() => window.location.href = '/journal'}
+              className={`text-xs md:text-sm border-b-2 transition-all pb-1 ${currentPage === 'journal'
+                ? 'text-foreground border-b-orange-400'
+                : 'text-foreground border-transparent hover:text-orange-400 hover:border-b-orange-400'
+                }`}
+            >
+              Journal
             </button>
             <button
               onClick={() => setCurrentPage('analyzer')}

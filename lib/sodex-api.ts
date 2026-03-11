@@ -58,6 +58,7 @@ export async function fetchPositions(
   accountId: string | number,
   cursor?: string
 ): Promise<{ positions: PositionData[]; nextCursor?: string }> {
+  console.log('[STRICT-ID] API Fetch Positions:', accountId);
   const url = new URL('https://mainnet-data.sodex.dev/api/v1/perps/positions');
   url.searchParams.append('account_id', String(accountId));
   url.searchParams.append('limit', '1000');
@@ -250,6 +251,7 @@ export async function fetchAccountDetails(userId: string | number): Promise<Acco
   const cacheKey = `accountDetails_${userId}`;
 
   return cacheManager.deduplicate(cacheKey, async () => {
+    console.log('[STRICT-ID] API Fetch Account Details:', userId);
     const url = `/api/perps/account-details?accountId=${userId}`;
 
     const response = await fetch(url);
@@ -580,6 +582,7 @@ export async function fetchPnLOverview(
   const cacheKey = `pnl_overview_${userId}`;
 
   return cacheManager.deduplicate(cacheKey, async () => {
+    console.log('[STRICT-ID] API Fetch PnL Overview:', userId);
     const response = await fetch(`/api/perps/pnl-overview?account_id=${userId}`);
 
     if (!response.ok) {

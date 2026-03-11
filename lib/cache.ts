@@ -8,10 +8,10 @@ class CacheManager {
   private requestInProgress: Map<string, Promise<any>> = new Map();
   private readonly TTL = 60 * 60 * 1000; // 1 hour in milliseconds
 
-  set<T>(key: string, data: T): void {
-    const expiresAt = Date.now() + this.TTL;
+  set<T>(key: string, data: T, ttlSeconds?: number): void {
+    const expiresAt = Date.now() + (ttlSeconds ? ttlSeconds * 1000 : this.TTL);
     this.cache.set(key, { data, expiresAt });
-    console.log(`[v0] Cache SET: ${key}`);
+    console.log(`[v0] Cache SET: ${key} (TTL: ${ttlSeconds || this.TTL / 1000}s)`);
   }
 
   get<T>(key: string): T | null {
