@@ -1,7 +1,16 @@
+import type { Metadata } from 'next';
+import { PortfolioProvider } from '@/context/portfolio-context';
+import { JournalPageClient } from '@/components/journal/journal-page-client';
+
+export const metadata: Metadata = {
+    title: 'Trading Journal — SoDex Tracker',
+    description: 'Create and track trading plans, enforce discipline rules, and analyze your performance.',
+};
+
 export default function JournalPage() {
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen">
-            <h1 className="text-3xl font-black">Journal Redesign Coming Soon</h1>
-        </div>
+        <PortfolioProvider>
+            <JournalPageClient />
+        </PortfolioProvider>
     );
 }
