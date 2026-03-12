@@ -146,32 +146,41 @@ export function PlanForm({
         return Object.keys(errs).length === 0 && !isIdLoading && !idLookupError;
     };
 
-    const handleSubmit = () => {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = async () => {
         if (!validate()) return;
+        setIsSubmitting(true);
 
-        const planData = {
-            name: form.name.trim(),
-            startDate: form.startDate,
-            endDate: form.endDate,
-            startingBalance: parseFloat(form.startingBalance) || 0,
-            allocatedBalance: parseFloat(form.allocatedBalance) || parseFloat(form.startingBalance) || 0,
-            dailyProfitTarget: parseFloat(form.dailyProfitTarget) || 0,
-            dailyLossLimit: parseFloat(form.dailyLossLimit) || 0,
-            maxLossPerTrade: parseFloat(form.maxLossPerTrade) || 0,
-            maxTradesPerDay: parseInt(form.maxTradesPerDay) || 0,
-            notes: form.notes.trim(),
-            walletAddress: form.walletAddress,
-            userId: form.userId,
-        };
+        try {
+            const planData = {
+                name: form.name.trim(),
+                startDate: form.startDate,
+                endDate: form.endDate,
+                startingBalance: parseFloat(form.startingBalance) || 0,
+                allocatedBalance: parseFloat(form.allocatedBalance) || parseFloat(form.startingBalance) || 0,
+                dailyProfitTarget: parseFloat(form.dailyProfitTarget) || 0,
+                dailyLossLimit: parseFloat(form.dailyLossLimit) || 0,
+                maxLossPerTrade: parseFloat(form.maxLossPerTrade) || 0,
+                maxTradesPerDay: parseInt(form.maxTradesPerDay) || 0,
+                notes: form.notes.trim(),
+                walletAddress: form.walletAddress,
+                userId: form.userId,
+            };
 
-        let result: TradingPlan | null;
-        if (isEditing && initialPlan) {
-            result = updatePlan(initialPlan.id, planData);
-        } else {
-            result = savePlan(planData);
+            let result: TradingPlan | null;
+            if (isEditing && initialPlan) {
+                result = await updatePlan(initialPlan.id, planData);
+            } else {
+                result = await savePlan(planData);
+            }
+
+            if (result) onSave(result);
+        } catch (error) {
+            console.error('[PlanForm] Submit error:', error);
+        } finally {
+            setIsSubmitting(false);
         }
-
-        if (result) onSave(result);
     };
 
     return (

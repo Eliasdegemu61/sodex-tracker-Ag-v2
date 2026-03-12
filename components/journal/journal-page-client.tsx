@@ -123,12 +123,15 @@ export function JournalPageClient() {
             setUser(session?.user ?? null);
         });
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
             setUser(session?.user ?? null);
             if (session?.user) {
-                // Refresh plans on login
-                loadPlans();
-                syncLocalPlansToCloud();
+                console.log('[Journal] User logged in, triggering sync...');
+                setIsAuthModalOpen(false);
+                // 1. First sync any local plans to cloud
+                await syncLocalPlansToCloud();
+                // 2. Then reload the master plan list from cloud
+                await loadPlans();
             }
         });
 

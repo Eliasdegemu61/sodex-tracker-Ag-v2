@@ -156,7 +156,6 @@ export async function syncLocalPlansToCloud(): Promise<void> {
         });
     }
 
-    // Clear local storage after successful sync? 
-    // Maybe keep as backup but we'll prefer cloud
-    // localStorage.removeItem(STORAGE_KEY);
+    // Clear local storage after successful sync to prevent duplicates
+    localStorage.removeItem(STORAGE_KEY);
 }
