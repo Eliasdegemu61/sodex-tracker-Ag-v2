@@ -36,35 +36,29 @@ export async function fetchRegistryFromServer(): Promise<Array<{ userId: string;
 
 export async function lookupWalletAddress(address: string): Promise<string> {
   try {
-    console.log('[STRICT-ID] Looking up wallet address:', address);
+    console.log('[STRICT-ID] Looking up wallet address via server API:', address);
 
-    // Fetch registry directly from GitHub with no-cache to prevent stale ID 1061 mappings
-    const registryUrl = 'https://raw.githubusercontent.com/Eliasdegemu61/Sodex-Tracker-new-v1/refs/heads/main/registry.json';
-    const response = await fetch(registryUrl, { cache: 'no-store' });
+    const response = await fetch('/api/wallet/lookup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ address }),
+    });
 
     if (!response.ok) {
-      console.error('[STRICT-ID] Registry fetch failed with status:', response.status);
+      if (response.status === 404) {
+        console.error('[STRICT-ID] Address not found in registry:', address);
+        throw new Error('Address not found in registry');
+      }
+      console.error('[STRICT-ID] Registry lookup failed with status:', response.status);
       throw new Error(`Registry fetch failed: ${response.status}`);
     }
 
-    const registry = await response.json();
-
-    // Registry is an array of objects, search through it
-    const normalizedAddress = address.toLowerCase().trim();
-    const user = registry.find((entry: any) =>
-      entry.address.toLowerCase().trim() === normalizedAddress
-    );
-
-    if (!user) {
-      console.error('[STRICT-ID] Address not found in registry:', address);
-      throw new Error('Address not found in registry');
-    }
-
-    // Support both userId and id keys just in case, but prefer userId
-    const userId = user.userId || user.id;
+    const { userId } = await response.json();
 
     if (!userId) {
-      console.error('[STRICT-ID] Entry found but no ID field present for', address);
+      console.error('[STRICT-ID] Server returned success but no ID present for', address);
       throw new Error('Registry entry malformed: missing ID');
     }
 

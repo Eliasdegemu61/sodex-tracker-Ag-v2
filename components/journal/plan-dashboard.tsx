@@ -154,12 +154,12 @@ export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps
                     />
                     <StatCard
                         label="Current"
-                        value={`$${currentBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+                        value={`$${currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                         accent={currentBalance >= plan.startingBalance ? 'green' : 'red'}
                     />
                     <StatCard
                         label="Total P&L"
-                        value={`${isProfit ? '+' : ''}$${Math.abs(totalPnl).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+                        value={`${isProfit ? '+' : ''}$${Math.abs(totalPnl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                         sub={`${isProfit ? '+' : ''}${pnlPercent.toFixed(2)}%`}
                         accent={isProfit ? 'green' : 'red'}
                     />

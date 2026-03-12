@@ -11,18 +11,17 @@ interface RegistryUser {
 
 export async function GET(request: NextRequest) {
   try {
-    const cacheKey = 'github_registry';
+    const cacheKey = 'github_registry_csv';
 
     // Try to get from cache first
     const cached = await cacheManager.get(cacheKey);
     if (cached) {
-      console.log('[v0] Registry served from cache');
+      console.log('[v0] Registry (CSV) served from cache');
       return NextResponse.json({ data: cached, fromCache: true });
     }
 
-    console.log('[STRICT-ID] Fetching registry from GitHub, token available:', !!GITHUB_TOKEN);
+    console.log('[STRICT-ID] Fetching registry CSV from GitHub');
 
-    // Fetch from GitHub with token for better rate limits
     const headers: Record<string, string> = {
       'Accept': 'application/vnd.github.v3.raw',
       'User-Agent': 'Sodex-Tracker',
@@ -33,7 +32,7 @@ export async function GET(request: NextRequest) {
     }
 
     const response = await fetch(
-      'https://raw.githubusercontent.com/Eliasdegemu61/Sodex-Tracker-new-v1/refs/heads/main/registry.json',
+      'https://raw.githubusercontent.com/Eliasdegemu61/Registory/refs/heads/main/registry.csv',
       {
         headers,
         cache: 'no-store'
@@ -48,10 +47,27 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const data: RegistryUser[] = await response.json();
-    console.log('[v0] Registry fetched successfully, entries:', data.length);
+    const csvText = await response.text();
+    const lines = csvText.split('\n');
+    const data: RegistryUser[] = [];
 
-    // Cache the result
+    // Parse CSV (skip header)
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      const [address, userId] = line.split(',');
+      if (address && userId) {
+        data.push({
+          address: address.trim(),
+          userId: userId.trim()
+        });
+      }
+    }
+
+    console.log('[v0] Registry CSV fetched and parsed, entries:', data.length);
+
+    // Cache the parsed result
     await cacheManager.set(cacheKey, data, CACHE_DURATION);
 
     return NextResponse.json({ data, fromCache: false });

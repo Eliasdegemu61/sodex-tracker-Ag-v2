@@ -25,44 +25,62 @@ export async function POST(request: NextRequest) {
 
     console.log('[v0] Looking up wallet address:', normalizedAddress);
 
-    // Try to get from cache first
-    const cached = await cacheManager.get(cacheKey);
-    if (cached) {
+    // 1. Try to get from individual address cache first
+    const cachedId = await cacheManager.get(cacheKey);
+    if (cachedId) {
       console.log('[v0] Wallet lookup cache HIT:', normalizedAddress);
-      return NextResponse.json({ userId: cached, fromCache: true });
+      return NextResponse.json({ userId: cachedId, fromCache: true });
     }
 
-    console.log('[v0] Wallet lookup cache MISS, fetching registry from GitHub...');
+    // 2. Try to get from full registry cache
+    let registry: RegistryUser[] | null = await cacheManager.get('github_registry_csv');
 
-    // Fetch registry directly from GitHub
-    const headers: Record<string, string> = {
-      'Accept': 'application/vnd.github.v3.raw',
-      'User-Agent': 'Sodex-Tracker',
-    };
+    if (!registry) {
+      console.log('[v0] Wallet lookup cache MISS, fetching registry from GitHub CSV...');
 
-    if (GITHUB_TOKEN) {
-      headers['Authorization'] = `token ${GITHUB_TOKEN}`;
-    }
+      const headers: Record<string, string> = {
+        'Accept': 'application/vnd.github.v3.raw',
+        'User-Agent': 'Sodex-Tracker',
+      };
 
-    const registryResponse = await fetch(
-      'https://raw.githubusercontent.com/Eliasdegemu61/Sodex-Tracker-new-v1/main/registry.json',
-      {
-        headers,
-        cache: 'no-store'
+      if (GITHUB_TOKEN) {
+        headers['Authorization'] = `token ${GITHUB_TOKEN}`;
       }
-    );
 
-    if (!registryResponse.ok) {
-      console.error('[v0] GitHub API error:', registryResponse.status, registryResponse.statusText);
-      return NextResponse.json(
-        { error: `Failed to fetch registry: ${registryResponse.statusText}` },
-        { status: registryResponse.status }
+      const registryResponse = await fetch(
+        'https://raw.githubusercontent.com/Eliasdegemu61/Registory/refs/heads/main/registry.csv',
+        {
+          headers,
+          cache: 'no-store'
+        }
       );
+
+      if (!registryResponse.ok) {
+        console.error('[v0] GitHub API error:', registryResponse.status, registryResponse.statusText);
+        return NextResponse.json(
+          { error: `Failed to fetch registry: ${registryResponse.statusText}` },
+          { status: registryResponse.status }
+        );
+      }
+
+      const csvText = await registryResponse.text();
+      const lines = csvText.split('\n');
+      registry = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        const [addr, id] = line.split(',');
+        if (addr && id) {
+          registry.push({ address: addr.trim(), userId: id.trim() });
+        }
+      }
+
+      // Cache full registry
+      await cacheManager.set('github_registry_csv', registry, CACHE_DURATION);
     }
 
-    const registry: RegistryUser[] = await registryResponse.json();
-
-    console.log('[v0] Registry loaded, searching for address in', registry.length, 'entries');
+    console.log('[v0] Searching in', registry.length, 'entries for', normalizedAddress);
 
     const user = registry.find(
       (u) => u.address.toLowerCase() === normalizedAddress
@@ -71,14 +89,14 @@ export async function POST(request: NextRequest) {
     if (!user) {
       console.warn('[v0] Address not found in registry:', normalizedAddress);
       return NextResponse.json(
-        { error: `Address ${address} not found in registry. Please ensure you have the correct address.` },
+        { error: `Address ${address} not found in registry.` },
         { status: 404 }
       );
     }
 
     console.log('[v0] Address matched to userId:', user.userId);
 
-    // Cache the result
+    // Cache the individual result
     await cacheManager.set(cacheKey, user.userId, CACHE_DURATION);
 
     return NextResponse.json({ userId: user.userId, fromCache: false });

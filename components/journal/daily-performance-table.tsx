@@ -80,10 +80,10 @@ export function DailyPerformanceTable({ daily }: DailyPerformanceTableProps) {
                                         </span>
                                     </td>
                                     <td className={cn("py-3 px-3 text-right font-black", day.dailyPnl >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
-                                        {day.dailyPnl >= 0 ? '+' : ''}${Math.abs(day.dailyPnl).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                        {day.dailyPnl >= 0 ? '+' : ''}${Math.abs(day.dailyPnl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
                                     <td className={cn("py-3 px-3 text-right font-bold opacity-60", day.cumulativePnl >= 0 ? "text-green-600/70" : "text-red-600/70")}>
-                                        {day.cumulativePnl >= 0 ? '+' : ''}${Math.abs(day.cumulativePnl).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                        {day.cumulativePnl >= 0 ? '+' : ''}${Math.abs(day.cumulativePnl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
                                     <td className="py-3 px-3 text-center">
                                         {day.targetReached ? (
@@ -124,7 +124,7 @@ export function DailyPerformanceTable({ daily }: DailyPerformanceTableProps) {
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest">{formatDate(day.date)}</span>
                             <span className={cn("text-base font-black", day.dailyPnl >= 0 ? "text-green-500" : "text-red-500")}>
-                                {day.dailyPnl >= 0 ? '+' : ''}${Math.abs(day.dailyPnl).toLocaleString()}
+                                {day.dailyPnl >= 0 ? '+' : ''}${Math.abs(day.dailyPnl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                         </div>
                         <div className="flex items-center gap-2">

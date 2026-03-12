@@ -69,7 +69,7 @@ export function DailyPositionDetail({ dailyData, allPositions }: DailyPositionDe
                                 "text-sm font-black",
                                 selectedDayData.dailyPnl >= 0 ? "text-green-500" : "text-red-500"
                             )}>
-                                {selectedDayData.dailyPnl >= 0 ? "+" : ""}${selectedDayData.dailyPnl.toLocaleString()}
+                                {selectedDayData.dailyPnl >= 0 ? "+" : ""}${selectedDayData.dailyPnl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                         </div>
                         <div className="flex flex-col">
@@ -146,7 +146,7 @@ export function DailyPositionDetail({ dailyData, allPositions }: DailyPositionDe
                                                         "text-xs font-black",
                                                         isWin ? "text-green-500" : "text-red-500"
                                                     )}>
-                                                        {isWin ? "+" : ""}${pos.realizedPnlValue.toLocaleString()}
+                                                        {isWin ? "+" : ""}${pos.realizedPnlValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                     </span>
                                                     <span className={cn(
                                                         "text-[9px] font-bold",
