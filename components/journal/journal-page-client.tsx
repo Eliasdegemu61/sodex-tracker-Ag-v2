@@ -108,7 +108,18 @@ export function JournalPageClient() {
     const [view, setView] = useState<View>('list');
     const [plans, setPlans] = useState<TradingPlan[]>([]);
     const [selectedPlan, setSelectedPlan] = useState<TradingPlan | null>(null);
-    const [isAddressPromptFinished, setIsAddressPromptFinished] = useState(false);
+    const [isAddressPromptFinished, setIsAddressPromptFinished] = useState(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const cached = localStorage.getItem(IDENTITY_STORAGE_KEY);
+                if (cached) {
+                    const { address, userId } = JSON.parse(cached);
+                    return !!(address && userId);
+                }
+            } catch (e) { return false; }
+        }
+        return false;
+    });
 
     // Data state
     const [planPositions, setPlanPositions] = useState<EnrichedPosition[]>([]);
@@ -116,32 +127,30 @@ export function JournalPageClient() {
     const [isDataLoading, setIsDataLoading] = useState(false);
 
     // Identity state initialized from local cache (prevents prompt on refresh)
-    const [tempAddress, setTempAddress] = useState<string | null>(null);
-    const [manualUserId, setManualUserId] = useState<string | null>(null);
-
-    // Effect to hydration identity from localStorage on client-side
-    useEffect(() => {
-        try {
-            const cached = localStorage.getItem(IDENTITY_STORAGE_KEY);
-            if (cached) {
-                const { address, userId } = JSON.parse(cached);
-                if (address && userId) {
-                    console.log('[Journal] Restored identity from cache:', address);
-                    setTempAddress(address);
-                    setManualUserId(userId);
-                    setIsAddressPromptFinished(true);
-                }
-            }
-        } catch (e) {
-            console.warn('[Journal] Failed to restore identity from cache', e);
+    const [tempAddress, setTempAddress] = useState<string | null>(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const cached = localStorage.getItem(IDENTITY_STORAGE_KEY);
+                if (cached) return JSON.parse(cached).address || null;
+            } catch (e) { return null; }
         }
-    }, []);
+        return null;
+    });
+    const [manualUserId, setManualUserId] = useState<string | null>(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const cached = localStorage.getItem(IDENTITY_STORAGE_KEY);
+                if (cached) return JSON.parse(cached).userId || null;
+            } catch (e) { return null; }
+        }
+        return null;
+    });
 
     // Auth state
     const [user, setUser] = useState<any>(null);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
-    const [isInitialLoading, setIsInitialLoading] = useState(true);
+    const [isBackgroundSyncing, setIsBackgroundSyncing] = useState(false);
 
     const loadPlans = useCallback(async (autoBypassIfNotEmpty = false) => {
         const p = await getPlans();
@@ -187,51 +196,39 @@ export function JournalPageClient() {
         loadPlans(false);
     }, [loadPlans]);
 
-    // Track auth session
+    // 2. Background Auth & Cloud Sync Tracker
     useEffect(() => {
         let isActuallyMounted = true;
-        
-        // Failsafe timer: No matter what, stop showing "Synchronizing" after 7 seconds
-        // (Slightly longer is safer for slow DB connects)
-        const failsafe = setTimeout(() => {
-            if (isActuallyMounted && isInitialLoading) {
-                console.warn('[Journal] Sync failsafe triggered: forcing loading to false.');
-                setIsInitialLoading(false);
-            }
-        }, 7000);
 
         const initAuth = async () => {
-            console.log('[Journal] initAuth starting...');
+            console.log('[Journal] Background sync starting...');
+            setIsBackgroundSyncing(true);
+            
             try {
                 const { data: { session }, error } = await supabase.auth.getSession();
                 if (error) throw error;
                 
                 const currentUser = session?.user ?? null;
                 setUser(currentUser);
-                console.log('[Journal] getSession returned:', currentUser ? 'User logged in' : 'Guest mode');
                 
                 if (currentUser) {
+                    // Logged in: Sync and fetch cloud data in the background
                     try {
-                        // 1. Sync any stray local plans
                         await syncLocalPlansToCloud();
-                        // 2. Load the definitive plan list
-                        await loadPlans(true); // pass true for "autoBypass"
-                        console.log('[Journal] Cloud plans loaded successfully');
+                        await loadPlans(true); // Update from cloud and potentially sync identity
+                        console.log('[Journal] Background cloud sync complete.');
                     } catch (err) {
-                        console.error('[Journal] Cloud data fetch failed:', err);
-                        await loadPlans(false);
+                        console.error('[Journal] Background sync failed:', err);
                     }
                 } else {
+                    // Not logged in: Just ensure local plans are loaded
                     await loadPlans(false);
-                    console.log('[Journal] Local plans loaded successfully');
                 }
             } catch (err) {
-                console.error('[Journal] CRITICAL: initAuth failed:', err);
+                console.error('[Journal] Auth check failed:', err);
             } finally {
                 if (isActuallyMounted) {
-                    console.log('[Journal] initAuth finished, clearing spinner.');
-                    setIsInitialLoading(false);
-                    clearTimeout(failsafe);
+                    setIsBackgroundSyncing(false);
                 }
             }
         };
@@ -239,18 +236,15 @@ export function JournalPageClient() {
         initAuth();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log('[Journal] Auth event:', event);
             setUser(session?.user ?? null);
             if (session?.user) {
                 setIsAuthModalOpen(false);
-                setIsInitialLoading(true); // Show spinner during login sync
+                setIsBackgroundSyncing(true);
                 try {
                     await syncLocalPlansToCloud();
                     await loadPlans(true);
-                } catch (err) {
-                    console.error('[Journal] Auth change sync failed:', err);
                 } finally {
-                    setIsInitialLoading(false);
+                    setIsBackgroundSyncing(false);
                 }
             } else {
                 await loadPlans(false);
@@ -264,7 +258,6 @@ export function JournalPageClient() {
 
         return () => {
             isActuallyMounted = false;
-            clearTimeout(failsafe);
             subscription.unsubscribe();
         };
     }, [loadPlans]);
@@ -483,6 +476,12 @@ export function JournalPageClient() {
                                         <span>Live</span>
                                     </div>
                                 )}
+                                {isBackgroundSyncing && (
+                                    <div className="flex items-center gap-1 text-[10px] font-bold text-blue-500/40 uppercase tracking-tighter">
+                                        <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                                        <span>Syncing</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -534,11 +533,16 @@ export function JournalPageClient() {
                 </div>
 
                 {/* Content Area */}
-                {isInitialLoading ? (
-                    <div className="flex flex-col items-center justify-center py-40 gap-4">
-                        <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
-                        <p className="text-sm font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">Synchronizing...</p>
-                    </div>
+                {isAddressPromptFinished ? (
+                    null // Main views handled below
+                ) : isBackgroundSyncing ? (
+                    /* Only show a blocker IF we have no local identity yet */
+                    !walletAddress && (
+                        <div className="flex flex-col items-center justify-center py-40 gap-4">
+                            <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+                            <p className="text-sm font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">Synchronizing Identity...</p>
+                        </div>
+                    )
                 ) : !isAddressPromptFinished ? (
                     <AddressPrompt
                         onSetAddress={handleSetAddress}
