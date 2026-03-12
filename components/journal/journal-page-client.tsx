@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { ArrowLeft, BookOpen, Plus, Loader2, RefreshCcw, Cloud, CloudOff, LogOut } from 'lucide-react';
+import { ArrowLeft, BookOpen, Plus, Loader2, RefreshCcw, Cloud, CloudOff, LogOut, Home } from 'lucide-react';
+import Link from 'next/link';
 import { getPlans, deletePlan, syncLocalPlansToCloud } from '@/lib/journal-store';
 import { supabase } from '@/lib/supabase-client';
 import { AuthModal } from './auth-modal';
@@ -164,6 +165,20 @@ export function JournalPageClient() {
     useEffect(() => {
         loadPlans();
     }, [loadPlans]);
+
+    // Auto-bypass address prompt if user is logged in and HAS plans
+    useEffect(() => {
+        if (user && plans.length > 0 && !isAddressPromptFinished) {
+            console.log('[Journal] Auto-bypassing prompt for authenticated user with plans');
+            // Use the address from the most recent plan
+            const mostRecentAddress = plans[0].walletAddress;
+            if (mostRecentAddress) {
+                setTempAddress(mostRecentAddress);
+                setManualUserId(plans[0].userId || null);
+                setIsAddressPromptFinished(true);
+            }
+        }
+    }, [user, plans, isAddressPromptFinished]);
 
     // Fetch initial balance if prompt is finished
     useEffect(() => {
@@ -331,6 +346,14 @@ export function JournalPageClient() {
             <div className="max-w-7xl mx-auto px-4 py-6 pb-16">
                 {/* Page Header */}
                 <div className="flex items-center gap-3 mb-8">
+                    <Link 
+                        href="/"
+                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-secondary/20 hover:bg-secondary/40 text-muted-foreground/60 hover:text-foreground transition-all mr-2"
+                        title="Back to Home"
+                    >
+                        <Home className="w-4 h-4" />
+                    </Link>
+
                     {walletAddress && view !== 'list' && (
                         <button
                             onClick={handleBack}
