@@ -237,7 +237,7 @@ export function JournalPageClient() {
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             setUser(session?.user ?? null);
-            if (session?.user) {
+            if (event === 'SIGNED_IN') {
                 setIsAuthModalOpen(false);
                 setIsBackgroundSyncing(true);
                 try {
@@ -246,9 +246,9 @@ export function JournalPageClient() {
                 } finally {
                     setIsBackgroundSyncing(false);
                 }
-            } else {
+            } else if (event === 'SIGNED_OUT') {
                 await loadPlans(false);
-                // Clear identity on logout
+                // Clear identity ONLY on explicit logout
                 localStorage.removeItem(IDENTITY_STORAGE_KEY);
                 setTempAddress(null);
                 setManualUserId(null);
