@@ -149,13 +149,33 @@ export function JournalPageClient() {
     // Track auth session
     useEffect(() => {
         const initAuth = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            setUser(session?.user ?? null);
-            if (session?.user) {
-                await syncLocalPlansToCloud();
-                await loadPlans();
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                setUser(session?.user ?? null);
+                
+                if (session?.user) {
+                    console.log('[Journal] Refresh: Identified user, attempting cloud sync...');
+                    // Don't let a slow sync hang the entire UI forever
+                    await Promise.race([
+                        (async () => {
+                            await syncLocalPlansToCloud();
+                            await loadPlans();
+                        })(),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 8000))
+                    ]).catch(err => {
+                        console.warn('[Journal] Refresh sync timed out or failed:', err);
+                        // Still try to load whatever we can
+                    });
+                } else {
+                    // Not logged in, just load local plans
+                    await loadPlans();
+                }
+            } catch (err) {
+                console.error('[Journal] initAuth failed:', err);
+            } finally {
+                // ALWAYS finish loading so user isn't stuck
+                setIsInitialLoading(false);
             }
-            setIsInitialLoading(false);
         };
 
         initAuth();
@@ -165,12 +185,13 @@ export function JournalPageClient() {
             if (session?.user) {
                 console.log('[Journal] User logged in, triggering sync...');
                 setIsAuthModalOpen(false);
-                // 1. First sync any local plans to cloud
-                await syncLocalPlansToCloud();
-                // 2. Then reload the master plan list from cloud
-                await loadPlans();
+                try {
+                    await syncLocalPlansToCloud();
+                    await loadPlans();
+                } catch (err) {
+                    console.error('[Journal] Auth change sync failed:', err);
+                }
             } else {
-                // If user logged out, refresh plans (to show local ones if any)
                 await loadPlans();
             }
         });
