@@ -23,6 +23,8 @@ import { cn } from '@/lib/utils';
 
 type View = 'list' | 'create' | 'edit' | 'dashboard' | 'address_prompt';
 
+const IDENTITY_STORAGE_KEY = 'sodex_journal_active_identity';
+
 function AddressPrompt({
     onSetAddress
 }: {
@@ -113,6 +115,28 @@ export function JournalPageClient() {
     const [planBalance, setPlanBalance] = useState<number>(0);
     const [isDataLoading, setIsDataLoading] = useState(false);
 
+    // Identity state initialized from local cache (prevents prompt on refresh)
+    const [tempAddress, setTempAddress] = useState<string | null>(null);
+    const [manualUserId, setManualUserId] = useState<string | null>(null);
+
+    // Effect to hydration identity from localStorage on client-side
+    useEffect(() => {
+        try {
+            const cached = localStorage.getItem(IDENTITY_STORAGE_KEY);
+            if (cached) {
+                const { address, userId } = JSON.parse(cached);
+                if (address && userId) {
+                    console.log('[Journal] Restored identity from cache:', address);
+                    setTempAddress(address);
+                    setManualUserId(userId);
+                    setIsAddressPromptFinished(true);
+                }
+            }
+        } catch (e) {
+            console.warn('[Journal] Failed to restore identity from cache', e);
+        }
+    }, []);
+
     // Auth state
     const [user, setUser] = useState<any>(null);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -127,17 +151,23 @@ export function JournalPageClient() {
         if (autoBypassIfNotEmpty && p.length > 0) {
             const mostRecent = p[0];
             if (mostRecent.walletAddress) {
-                console.log('[Journal] Recovering identity from plans for address:', mostRecent.walletAddress);
-                setTempAddress(mostRecent.walletAddress);
-                setManualUserId(mostRecent.userId || null);
+                console.log('[Journal] Auto-recovering identity from plans for address:', mostRecent.walletAddress);
+                const addr = mostRecent.walletAddress;
+                const uid = mostRecent.userId || null;
+                
+                setTempAddress(addr);
+                setManualUserId(uid);
                 setIsAddressPromptFinished(true);
+                
+                // Persist to local cache so refresh works next time
+                if (uid) {
+                    localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify({ address: addr, userId: uid }));
+                }
             }
         }
     }, []);
 
     // Initial setup state (for prompt)
-    const [tempAddress, setTempAddress] = useState<string | null>(null);
-    const [manualUserId, setManualUserId] = useState<string | null>(null);
     const [sessionBalance, setSessionBalance] = useState<number>(0);
 
     const walletAddress = isAddressPromptFinished ? tempAddress : null;
@@ -224,6 +254,11 @@ export function JournalPageClient() {
                 }
             } else {
                 await loadPlans(false);
+                // Clear identity on logout
+                localStorage.removeItem(IDENTITY_STORAGE_KEY);
+                setTempAddress(null);
+                setManualUserId(null);
+                setIsAddressPromptFinished(false);
             }
         });
 
@@ -262,6 +297,8 @@ export function JournalPageClient() {
             if (foundId) {
                 setManualUserId(foundId);
                 console.log('[STRICT-ID] Journal Identity Lock SUCCESS:', { address: addr, userId: foundId });
+                // Persist locally
+                localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify({ address: addr, userId: foundId }));
             } else {
                 throw new Error("Address not found in registry");
             }
@@ -454,7 +491,14 @@ export function JournalPageClient() {
                     <div className="ml-auto flex items-center gap-2">
                         {/* Auth Button */}
                         <button
-                            onClick={() => user ? supabase.auth.signOut() : setIsAuthModalOpen(true)}
+                            onClick={() => {
+                                if (user) {
+                                    supabase.auth.signOut();
+                                    // Local cleanup is handled in the auth state listener
+                                } else {
+                                    setIsAuthModalOpen(true);
+                                }
+                            }}
                             className={cn(
                                 "flex items-center gap-2 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all border",
                                 user 
