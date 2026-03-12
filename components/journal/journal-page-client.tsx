@@ -108,18 +108,7 @@ export function JournalPageClient() {
     const [view, setView] = useState<View>('list');
     const [plans, setPlans] = useState<TradingPlan[]>([]);
     const [selectedPlan, setSelectedPlan] = useState<TradingPlan | null>(null);
-    const [isAddressPromptFinished, setIsAddressPromptFinished] = useState(() => {
-        if (typeof window !== 'undefined') {
-            try {
-                const cached = localStorage.getItem(IDENTITY_STORAGE_KEY);
-                if (cached) {
-                    const { address } = JSON.parse(cached);
-                    return !!address;
-                }
-            } catch (e) { return false; }
-        }
-        return false;
-    });
+    const [isAddressPromptFinished, setIsAddressPromptFinished] = useState(false);
 
     // Data state
     const [planPositions, setPlanPositions] = useState<EnrichedPosition[]>([]);
@@ -127,24 +116,29 @@ export function JournalPageClient() {
     const [isDataLoading, setIsDataLoading] = useState(false);
 
     // Identity state initialized from local cache (prevents prompt on refresh)
-    const [tempAddress, setTempAddress] = useState<string | null>(() => {
-        if (typeof window !== 'undefined') {
-            try {
-                const cached = localStorage.getItem(IDENTITY_STORAGE_KEY);
-                if (cached) return JSON.parse(cached).address || null;
-            } catch (e) { return null; }
+    const [tempAddress, setTempAddress] = useState<string | null>(null);
+    const [manualUserId, setManualUserId] = useState<string | null>(null);
+    const [isMounted, setIsMounted] = useState(false);
+
+    // Hydrate strictly on client mount to avoid Next.js SSR mismatches
+    useEffect(() => {
+        try {
+            const cached = localStorage.getItem(IDENTITY_STORAGE_KEY);
+            if (cached) {
+                const { address, userId } = JSON.parse(cached);
+                if (address) {
+                    console.log('[Journal] Client Hydration: Restored identity', address);
+                    setTempAddress(address);
+                    setManualUserId(userId || null);
+                    setIsAddressPromptFinished(true);
+                }
+            }
+        } catch (e) {
+            console.warn('[Journal] Failed to hydrate identity', e);
+        } finally {
+            setIsMounted(true);
         }
-        return null;
-    });
-    const [manualUserId, setManualUserId] = useState<string | null>(() => {
-        if (typeof window !== 'undefined') {
-            try {
-                const cached = localStorage.getItem(IDENTITY_STORAGE_KEY);
-                if (cached) return JSON.parse(cached).userId || null;
-            } catch (e) { return null; }
-        }
-        return null;
-    });
+    }, []);
 
     // Auth state
     const [user, setUser] = useState<any>(null);
@@ -531,21 +525,24 @@ export function JournalPageClient() {
                 </div>
 
                 {/* Content Area */}
-                {isAddressPromptFinished ? (
+                {!isMounted ? (
+                    <div className="flex flex-col items-center justify-center py-40 gap-4">
+                        <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+                        <p className="text-sm font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">Loading Journal...</p>
+                    </div>
+                ) : isAddressPromptFinished ? (
                     null // Main views handled below
-                ) : isBackgroundSyncing ? (
+                ) : isBackgroundSyncing && !walletAddress ? (
                     /* Only show a blocker IF we have no local identity yet */
-                    !walletAddress && (
-                        <div className="flex flex-col items-center justify-center py-40 gap-4">
-                            <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
-                            <p className="text-sm font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">Synchronizing Identity...</p>
-                        </div>
-                    )
-                ) : !isAddressPromptFinished ? (
+                    <div className="flex flex-col items-center justify-center py-40 gap-4">
+                        <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+                        <p className="text-sm font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">Synchronizing Identity...</p>
+                    </div>
+                ) : (
                     <AddressPrompt
                         onSetAddress={handleSetAddress}
                     />
-                ) : null}
+                )}
 
                 {/* Main Views */}
                 {walletAddress && view === 'list' && (
