@@ -25,6 +25,43 @@ type View = 'list' | 'create' | 'edit' | 'dashboard' | 'address_prompt';
 
 const IDENTITY_STORAGE_KEY = 'sodex_journal_active_identity';
 
+const getLocalSupabaseUserId = () => {
+    if (typeof window === 'undefined') return 'guest';
+    try {
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+                const sessionStr = localStorage.getItem(key);
+                if (sessionStr) {
+                    const sessionData = JSON.parse(sessionStr);
+                    if (sessionData && sessionData.user && sessionData.user.id) {
+                        return sessionData.user.id;
+                    }
+                }
+            }
+        }
+    } catch (e) { }
+    return 'guest';
+};
+
+const saveIdentityLocal = (addr: string, uid: string | null) => {
+    if (typeof window === 'undefined') return;
+    try {
+        const currentSubId = getLocalSupabaseUserId();
+        const cacheStr = localStorage.getItem(IDENTITY_STORAGE_KEY);
+        let cache: any = {};
+        if (cacheStr) {
+            try { 
+                cache = JSON.parse(cacheStr); 
+                // Wipe old flat structure if present to prevent bugs
+                if (cache.address !== undefined) { cache = {}; } 
+            } catch (e) {}
+        }
+        cache[currentSubId] = { address: addr, userId: uid };
+        localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify(cache));
+    } catch (e) {}
+};
+
 function AddressPrompt({
     onSetAddress
 }: {
@@ -123,13 +160,24 @@ export function JournalPageClient() {
     // Hydrate strictly on client mount to avoid Next.js SSR mismatches
     useEffect(() => {
         try {
-            const cached = localStorage.getItem(IDENTITY_STORAGE_KEY);
-            if (cached) {
-                const { address, userId } = JSON.parse(cached);
-                if (address) {
-                    console.log('[Journal] Client Hydration: Restored identity', address);
-                    setTempAddress(address);
-                    setManualUserId(userId || null);
+            const currentSubId = getLocalSupabaseUserId();
+            const cacheStr = localStorage.getItem(IDENTITY_STORAGE_KEY);
+            if (cacheStr) {
+                const cache = JSON.parse(cacheStr);
+                
+                // Backwards compatibility migration
+                let identity = cache[currentSubId];
+                if (!identity && cache.address) {
+                    identity = { address: cache.address, userId: cache.userId };
+                    cache[currentSubId] = identity;
+                    delete cache.address; delete cache.userId;
+                    localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify(cache));
+                }
+                
+                if (identity && identity.address) {
+                    console.log(`[Journal] Client Hydration: Restored identity for ${currentSubId}`);
+                    setTempAddress(identity.address);
+                    setManualUserId(identity.userId || null);
                     setIsAddressPromptFinished(true);
                 }
             }
@@ -162,8 +210,8 @@ export function JournalPageClient() {
                 setManualUserId(uid);
                 setIsAddressPromptFinished(true);
                 
-                // Persist to local cache so refresh works next time
-                localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify({ address: addr, userId: uid }));
+                // Persist to local cache explicitly for the current auth entity
+                saveIdentityLocal(addr, uid);
             }
         }
     }, []);
@@ -240,7 +288,7 @@ export function JournalPageClient() {
                 }
             } else if (event === 'SIGNED_OUT') {
                 await loadPlans(false);
-                // Clear identity ONLY on explicit logout
+                // Clear the whole map on explicit logout for privacy
                 localStorage.removeItem(IDENTITY_STORAGE_KEY);
                 setTempAddress(null);
                 setManualUserId(null);
@@ -282,8 +330,8 @@ export function JournalPageClient() {
             if (foundId) {
                 setManualUserId(foundId);
                 console.log('[STRICT-ID] Journal Identity Lock SUCCESS:', { address: addr, userId: foundId });
-                // Persist locally
-                localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify({ address: addr, userId: foundId }));
+                // Persist locally for current auth entity
+                saveIdentityLocal(addr, foundId);
             } else {
                 throw new Error("Address not found in registry");
             }
