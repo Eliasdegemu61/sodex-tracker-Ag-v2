@@ -148,14 +148,28 @@ export async function syncLocalPlansToCloud(): Promise<void> {
     const localPlans = await getLocalPlans();
     if (localPlans.length === 0) return;
 
+    console.log(`[STORE] Syncing ${localPlans.length} local plans to cloud for user ${user.id}...`);
+
+    let successCount = 0;
     for (const plan of localPlans) {
-        await supabase.from('journal_plans').insert({
+        const { error } = await supabase.from('journal_plans').insert({
             owner_id: user.id,
             name: plan.name,
             plan_data: plan
         });
+        
+        if (error) {
+            console.error('[STORE] Failed to sync plan to cloud:', plan.name, error);
+        } else {
+            successCount++;
+        }
     }
 
-    // Clear local storage after successful sync to prevent duplicates
-    localStorage.removeItem(STORAGE_KEY);
+    // ONLY Clear local storage after ALL plans have been successfully synced
+    if (successCount === localPlans.length) {
+        console.log('[STORE] Cloud sync complete. Clearing local storage.');
+        localStorage.removeItem(STORAGE_KEY);
+    } else {
+        console.warn(`[STORE] Cloud sync partial: ${successCount}/${localPlans.length} succeeded. Keeping local storage for safety.`);
+    }
 }

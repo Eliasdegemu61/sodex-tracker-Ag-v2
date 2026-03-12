@@ -119,9 +119,20 @@ export function JournalPageClient() {
     const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
     const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-    const loadPlans = useCallback(async () => {
+    const loadPlans = useCallback(async (autoBypassIfNotEmpty = false) => {
         const p = await getPlans();
         setPlans(p);
+
+        // If we want to bypass the prompt and we have plans...
+        if (autoBypassIfNotEmpty && p.length > 0) {
+            const mostRecent = p[0];
+            if (mostRecent.walletAddress) {
+                console.log('[Journal] Recovering identity from plans for address:', mostRecent.walletAddress);
+                setTempAddress(mostRecent.walletAddress);
+                setManualUserId(mostRecent.userId || null);
+                setIsAddressPromptFinished(true);
+            }
+        }
     }, []);
 
     // Initial setup state (for prompt)
@@ -143,20 +154,21 @@ export function JournalPageClient() {
 
     // Load plans on mount
     useEffect(() => {
-        loadPlans();
+        loadPlans(false);
     }, [loadPlans]);
 
     // Track auth session
     useEffect(() => {
         let isActuallyMounted = true;
         
-        // Failsafe timer: No matter what, stop showing "Synchronizing" after 5 seconds
+        // Failsafe timer: No matter what, stop showing "Synchronizing" after 7 seconds
+        // (Slightly longer is safer for slow DB connects)
         const failsafe = setTimeout(() => {
             if (isActuallyMounted && isInitialLoading) {
                 console.warn('[Journal] Sync failsafe triggered: forcing loading to false.');
                 setIsInitialLoading(false);
             }
-        }, 5000);
+        }, 7000);
 
         const initAuth = async () => {
             console.log('[Journal] initAuth starting...');
@@ -164,19 +176,23 @@ export function JournalPageClient() {
                 const { data: { session }, error } = await supabase.auth.getSession();
                 if (error) throw error;
                 
-                setUser(session?.user ?? null);
-                console.log('[Journal] getSession returned:', session?.user ? 'User logged in' : 'Guest mode');
+                const currentUser = session?.user ?? null;
+                setUser(currentUser);
+                console.log('[Journal] getSession returned:', currentUser ? 'User logged in' : 'Guest mode');
                 
-                if (session?.user) {
+                if (currentUser) {
                     try {
+                        // 1. Sync any stray local plans
                         await syncLocalPlansToCloud();
-                        await loadPlans();
+                        // 2. Load the definitive plan list
+                        await loadPlans(true); // pass true for "autoBypass"
                         console.log('[Journal] Cloud plans loaded successfully');
                     } catch (err) {
                         console.error('[Journal] Cloud data fetch failed:', err);
+                        await loadPlans(false);
                     }
                 } else {
-                    await loadPlans();
+                    await loadPlans(false);
                     console.log('[Journal] Local plans loaded successfully');
                 }
             } catch (err) {
@@ -197,14 +213,17 @@ export function JournalPageClient() {
             setUser(session?.user ?? null);
             if (session?.user) {
                 setIsAuthModalOpen(false);
+                setIsInitialLoading(true); // Show spinner during login sync
                 try {
                     await syncLocalPlansToCloud();
-                    await loadPlans();
+                    await loadPlans(true);
                 } catch (err) {
                     console.error('[Journal] Auth change sync failed:', err);
+                } finally {
+                    setIsInitialLoading(false);
                 }
             } else {
-                await loadPlans();
+                await loadPlans(false);
             }
         });
 
@@ -216,19 +235,6 @@ export function JournalPageClient() {
     }, [loadPlans]);
 
 
-    // Auto-bypass address prompt if user is logged in and HAS plans
-    useEffect(() => {
-        if (user && plans.length > 0 && !isAddressPromptFinished) {
-            console.log('[Journal] Auto-bypassing prompt for authenticated user with plans');
-            // Use the address from the most recent plan
-            const mostRecentAddress = plans[0].walletAddress;
-            if (mostRecentAddress) {
-                setTempAddress(mostRecentAddress);
-                setManualUserId(plans[0].userId || null);
-                setIsAddressPromptFinished(true);
-            }
-        }
-    }, [user, plans, isAddressPromptFinished]);
 
     // Fetch initial balance if prompt is finished
     useEffect(() => {
