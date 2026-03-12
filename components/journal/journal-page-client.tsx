@@ -148,42 +148,54 @@ export function JournalPageClient() {
 
     // Track auth session
     useEffect(() => {
+        let isActuallyMounted = true;
+        
+        // Failsafe timer: No matter what, stop showing "Synchronizing" after 5 seconds
+        const failsafe = setTimeout(() => {
+            if (isActuallyMounted && isInitialLoading) {
+                console.warn('[Journal] Sync failsafe triggered: forcing loading to false.');
+                setIsInitialLoading(false);
+            }
+        }, 5000);
+
         const initAuth = async () => {
+            console.log('[Journal] initAuth starting...');
             try {
-                const { data: { session } } = await supabase.auth.getSession();
+                const { data: { session }, error } = await supabase.auth.getSession();
+                if (error) throw error;
+                
                 setUser(session?.user ?? null);
+                console.log('[Journal] getSession returned:', session?.user ? 'User logged in' : 'Guest mode');
                 
                 if (session?.user) {
-                    console.log('[Journal] Refresh: Identified user, attempting cloud sync...');
-                    // Don't let a slow sync hang the entire UI forever
-                    await Promise.race([
-                        (async () => {
-                            await syncLocalPlansToCloud();
-                            await loadPlans();
-                        })(),
-                        new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 8000))
-                    ]).catch(err => {
-                        console.warn('[Journal] Refresh sync timed out or failed:', err);
-                        // Still try to load whatever we can
-                    });
+                    try {
+                        await syncLocalPlansToCloud();
+                        await loadPlans();
+                        console.log('[Journal] Cloud plans loaded successfully');
+                    } catch (err) {
+                        console.error('[Journal] Cloud data fetch failed:', err);
+                    }
                 } else {
-                    // Not logged in, just load local plans
                     await loadPlans();
+                    console.log('[Journal] Local plans loaded successfully');
                 }
             } catch (err) {
-                console.error('[Journal] initAuth failed:', err);
+                console.error('[Journal] CRITICAL: initAuth failed:', err);
             } finally {
-                // ALWAYS finish loading so user isn't stuck
-                setIsInitialLoading(false);
+                if (isActuallyMounted) {
+                    console.log('[Journal] initAuth finished, clearing spinner.');
+                    setIsInitialLoading(false);
+                    clearTimeout(failsafe);
+                }
             }
         };
 
         initAuth();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log('[Journal] Auth event:', event);
             setUser(session?.user ?? null);
             if (session?.user) {
-                console.log('[Journal] User logged in, triggering sync...');
                 setIsAuthModalOpen(false);
                 try {
                     await syncLocalPlansToCloud();
@@ -196,7 +208,11 @@ export function JournalPageClient() {
             }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            isActuallyMounted = false;
+            clearTimeout(failsafe);
+            subscription.unsubscribe();
+        };
     }, [loadPlans]);
 
 
