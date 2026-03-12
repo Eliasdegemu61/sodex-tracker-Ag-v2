@@ -113,8 +113,8 @@ export function JournalPageClient() {
             try {
                 const cached = localStorage.getItem(IDENTITY_STORAGE_KEY);
                 if (cached) {
-                    const { address, userId } = JSON.parse(cached);
-                    return !!(address && userId);
+                    const { address } = JSON.parse(cached);
+                    return !!address;
                 }
             } catch (e) { return false; }
         }
@@ -169,9 +169,7 @@ export function JournalPageClient() {
                 setIsAddressPromptFinished(true);
                 
                 // Persist to local cache so refresh works next time
-                if (uid) {
-                    localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify({ address: addr, userId: uid }));
-                }
+                localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify({ address: addr, userId: uid }));
             }
         }
     }, []);
