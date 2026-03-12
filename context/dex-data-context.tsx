@@ -62,20 +62,37 @@ export function DexDataProvider({ children }: { children: ReactNode }) {
         setIsLoading(true)
         setError(null)
 
-        const response = await fetch(
-          'https://raw.githubusercontent.com/Eliasdegemu61/sodex-finalised-raw-data/main/overall_stats.json'
-        )
+        const response = await fetch('/api/dex-status/cached')
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
 
-        const data = await response.json()
-        console.log('[v0] Fetched overall_stats.json once for all DEX data')
-        setOverallStats(data)
+        const raw = await response.json()
+        
+        // Map internal API response to the interface expected by components
+        const mappedData: OverallStatsData = {
+          summary: {
+            total_users: raw.totalUsers,
+            active_users: raw.totalUsers, // Approximation
+            profitable_percent: raw.totalUsers > 0 ? (raw.usersInProfit / raw.totalUsers) * 100 : 0,
+            loss_percent: raw.totalUsers > 0 ? (raw.usersInLoss / raw.totalUsers) * 100 : 0,
+          },
+          chart_data: Object.entries(raw.avgPnlByVolumeRange || {}).map(([range, avg]) => ({
+            range,
+            avg_pnl: avg as number
+          })),
+          top_5_gainers: raw.topGainers || [],
+          top_5_losers: raw.topLoserPerps || [],
+          top_5_futures_vol: raw.topTradersPerps || [],
+          top_5_spot_vol: raw.topTradersSpot || []
+        }
+
+        console.log('[SUPABASE] DEX Data loaded via Server API')
+        setOverallStats(mappedData)
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error'
-        console.error('[v0] Error fetching overall stats:', errorMessage)
+        console.error('[SUPABASE] Error fetching DEX stats:', errorMessage)
         setError(errorMessage)
       } finally {
         setIsLoading(false)

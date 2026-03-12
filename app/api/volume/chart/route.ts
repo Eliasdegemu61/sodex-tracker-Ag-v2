@@ -18,37 +18,44 @@ export async function GET() {
   try {
     const now = Date.now();
 
-    // Check cache
+    // Check in-memory cache
     if (cachedData && now - lastCacheTime < CACHE_DURATION * 1000) {
-      return NextResponse.json(cachedData, {
-        headers: {
-          'Cache-Control': `public, s-maxage=${CACHE_DURATION}, stale-while-revalidate=${CACHE_DURATION * 2}`,
-        },
-      });
+      return NextResponse.json(cachedData);
     }
 
-    // Fetch from GitHub with GITHUB_TOKEN
+    // Try Supabase first
+    try {
+      const { supabase } = await import('@/lib/supabase-client');
+      const { data: dbData, error: dbError } = await supabase
+        .from('site_data')
+        .select('data')
+        .eq('key', 'volume_chart')
+        .single();
+      
+      if (!dbError && dbData) {
+        cachedData = dbData.data as any;
+        lastCacheTime = now;
+        console.log('[SUPABASE] Volume Chart fetched from DB');
+        return NextResponse.json(cachedData);
+      }
+    } catch (e) {
+      console.warn('[SUPABASE] Volume Chart DB fetch failed, falling back to GitHub:', e);
+    }
+
+    // Fallback: Fetch from GitHub
     const token = process.env.GITHUB_TOKEN;
     const response = await fetch(VOLUME_CHART_URL, {
       headers: token ? { Authorization: `token ${token}` } : {},
-      next: { revalidate: CACHE_DURATION },
+      cache: 'no-store'
     });
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
+    if (!response.ok) throw new Error(`API error: ${response.status}`);
     const data: ChartDataPoint[] = await response.json();
 
-    // Update cache
     cachedData = data;
     lastCacheTime = now;
 
-    return NextResponse.json(data, {
-      headers: {
-        'Cache-Control': `public, s-maxage=${CACHE_DURATION}, stale-while-revalidate=${CACHE_DURATION * 2}`,
-      },
-    });
+    return NextResponse.json(data);
   } catch (error) {
     console.error('[v0] Failed to fetch volume chart:', error);
     return NextResponse.json(

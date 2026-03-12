@@ -41,19 +41,17 @@ export function VolumeDataProvider({ children }: { children: ReactNode }) {
       try {
         setIsLoading(true)
         setError(null)
-        const response = await fetch(
-          'https://raw.githubusercontent.com/Eliasdegemu61/sodex-tracker-new-v1-data-2/main/volume_summary.json'
-        )
+        const response = await fetch('/api/volume/summary')
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
         const fetchedData: VolumeData = await response.json()
-        console.log('[v0] Fetched volume data from context:', fetchedData)
+        console.log('[SUPABASE] Volume data loaded via Server API')
         setVolumeData(fetchedData)
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Unknown error'
         setError(errorMsg)
-        console.error('[v0] Error fetching volume data:', err)
+        console.error('[SUPABASE] Error fetching volume data:', err)
       } finally {
         setIsLoading(false)
       }

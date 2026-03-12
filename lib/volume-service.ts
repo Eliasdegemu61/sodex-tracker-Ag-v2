@@ -56,14 +56,14 @@ function getTodayDate(): string {
   return today.toISOString().split('T')[0]
 }
 
-// Fetch real data directly from GitHub
+// Fetch real data from our server API (pulls from Supabase)
 async function fetchVolumeFromApi(): Promise<VolumeApiResponse | null> {
   try {
-    const response = await fetch(API_URL);
+    const response = await fetch('/api/volume/summary');
     if (!response.ok) throw new Error(`API error: ${response.status}`);
     return await response.json();
   } catch (error) {
-    console.error('[v0] Failed to fetch volume data from GitHub, falling back to mock data');
+    console.error('[SUPABASE] Failed to fetch volume data from server API, falling back to mock data');
     return null;
   }
 }

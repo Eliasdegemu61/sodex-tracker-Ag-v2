@@ -34,17 +34,17 @@ export function FundFlowChart() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await fetch('https://raw.githubusercontent.com/Eliasdegemu61/Fund-flow-sodex/main/daily_net_flows.csv')
-                const csvText = await response.text()
+                const response = await fetch('/api/db/site-data?key=daily_net_flows')
+                const rows: string[][] = await response.json()
 
-                const lines = csvText.trim().split('\n')
-                if (lines.length < 2) return
+                if (!rows || rows.length < 2) return
 
                 const parsedData: FlowData[] = []
                 const tokenSet = new Set<string>()
 
-                for (let i = 1; i < lines.length; i++) {
-                    const values = lines[i].split(',')
+                // Assuming first row is header
+                for (let i = 1; i < rows.length; i++) {
+                    const values = rows[i]
                     if (values.length >= 4) {
                         const date = values[0].trim()
                         const token = values[1].trim()

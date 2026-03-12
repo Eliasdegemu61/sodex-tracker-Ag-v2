@@ -60,17 +60,28 @@ function calculateAvgPnlByVolumeRange(traders: TraderData[]): Record<string, num
   return result
 }
 
-/**
- * Fetch and calculate all DEX statistics
- */
 async function fetchAndCalculateDexStats(): Promise<DexStatusResponse> {
-  console.log('[v0] Fetching fresh DEX Status data from GitHub')
+  console.log('[SUPABASE] Fetching DEX Status from Database');
 
   try {
-    const response = await fetch(GITHUB_TRADERS_URL, { cache: 'no-store' })
-    if (!response.ok) throw new Error(`Failed to fetch traders: ${response.status}`)
+    const { supabase } = await import('@/lib/supabase-client');
+    const { data: dbData, error: dbError } = await supabase
+      .from('site_data')
+      .select('data')
+      .eq('key', 'live_stats')
+      .single();
 
-    const traders: TraderData[] = await response.json()
+    let traders: TraderData[] = [];
+
+    if (!dbError && dbData) {
+      traders = dbData.data as TraderData[];
+      console.log('[SUPABASE] DEX data fetched from DB');
+    } else {
+      console.warn('[SUPABASE] DB fetch failed, falling back to GitHub:', dbError?.message);
+      const response = await fetch(GITHUB_TRADERS_URL, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`Failed to fetch traders: ${response.status}`);
+      traders = await response.json();
+    }
 
     const totalUsers = traders.length
     const usersInProfit = traders.filter((t) => parseFloat(t.pnl) > 0).length

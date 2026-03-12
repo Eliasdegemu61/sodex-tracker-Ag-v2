@@ -13,8 +13,10 @@ import type {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function toDateStr(ts: number): string {
-    return new Date(ts).toISOString().slice(0, 10);
+function toDateStr(ts: number | string | Date): string {
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return '0000-00-00';
+    return d.toISOString().slice(0, 10);
 }
 
 function daysBetween(a: string, b: string): number {
@@ -173,6 +175,7 @@ export function computeEquityCurve(
         date: plan.startDate,
         balance: plan.startingBalance,
         cumulativePnl: 0,
+        dailyPnl: 0,
         winRate: 0
     };
 

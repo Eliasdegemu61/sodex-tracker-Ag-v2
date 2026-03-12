@@ -47,9 +47,8 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
     if (!reversePrefix && !reverseSuffix) return
     setIsLoadingReverse(true)
     try {
-      const response = await fetch('https://raw.githubusercontent.com/Eliasdegemu61/Sodex-Tracker-new-v1/refs/heads/main/registry.json')
-      if (!response.ok) throw new Error('Failed to fetch registry')
-      const registry: any[] = await response.json()
+      const { fetchRegistryFromServer } = await import('@/lib/client-api')
+      const registry = await fetchRegistryFromServer()
 
       const prefix = reversePrefix.toLowerCase()
       const suffix = reverseSuffix.toLowerCase()

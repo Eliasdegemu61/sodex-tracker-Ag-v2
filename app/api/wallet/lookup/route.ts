@@ -32,74 +32,63 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ userId: cachedId, fromCache: true });
     }
 
-    // 2. Try to get from full registry cache
+    // 2. Try to get from Supabase
+    try {
+      const { supabase } = await import('@/lib/supabase-client');
+      const { data, error } = await supabase
+        .from('registry')
+        .select('user_id')
+        .eq('address', normalizedAddress)
+        .single();
+      
+      if (!error && data) {
+        console.log('[SUPABASE] Wallet lookup HIT:', normalizedAddress);
+        await cacheManager.set(cacheKey, data.user_id, CACHE_DURATION);
+        return NextResponse.json({ userId: data.user_id, fromCache: false, source: 'supabase' });
+      }
+    } catch (e) {
+      console.warn('[SUPABASE] Lookup failed, falling back to GitHub:', e);
+    }
+
+    // 3. Fallback: Try to get from full registry cache or GitHub
     let registry: RegistryUser[] | null = await cacheManager.get('github_registry_csv');
 
     if (!registry) {
       console.log('[v0] Wallet lookup cache MISS, fetching registry from GitHub CSV...');
-
-      const headers: Record<string, string> = {
-        'Accept': 'application/vnd.github.v3.raw',
-        'User-Agent': 'Sodex-Tracker',
-      };
-
-      if (GITHUB_TOKEN) {
-        headers['Authorization'] = `token ${GITHUB_TOKEN}`;
-      }
-
+      // ... existing github fetch logic ...
       const registryResponse = await fetch(
         'https://raw.githubusercontent.com/Eliasdegemu61/Registory/refs/heads/main/registry.csv',
-        {
-          headers,
-          cache: 'no-store'
-        }
+        { cache: 'no-store' }
       );
 
-      if (!registryResponse.ok) {
-        console.error('[v0] GitHub API error:', registryResponse.status, registryResponse.statusText);
-        return NextResponse.json(
-          { error: `Failed to fetch registry: ${registryResponse.statusText}` },
-          { status: registryResponse.status }
-        );
-      }
-
-      const csvText = await registryResponse.text();
-      const lines = csvText.split('\n');
-      registry = [];
-
-      for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-        const [addr, id] = line.split(',');
-        if (addr && id) {
-          registry.push({ address: addr.trim(), userId: id.trim() });
+      if (registryResponse.ok) {
+        const csvText = await registryResponse.text();
+        const lines = csvText.split('\n');
+        registry = [];
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+          const [addr, id] = line.split(',');
+          if (addr && id) {
+            registry.push({ address: addr.trim(), userId: id.trim() });
+          }
         }
+        await cacheManager.set('github_registry_csv', registry, CACHE_DURATION);
       }
-
-      // Cache full registry
-      await cacheManager.set('github_registry_csv', registry, CACHE_DURATION);
     }
 
-    console.log('[v0] Searching in', registry.length, 'entries for', normalizedAddress);
+    if (registry) {
+      const user = registry.find((u) => u.address.toLowerCase() === normalizedAddress);
+      if (user) {
+        await cacheManager.set(cacheKey, user.userId, CACHE_DURATION);
+        return NextResponse.json({ userId: user.userId, fromCache: false, source: 'github' });
+      }
+    }
 
-    const user = registry.find(
-      (u) => u.address.toLowerCase() === normalizedAddress
+    return NextResponse.json(
+      { error: `Address ${address} not found in registry.` },
+      { status: 404 }
     );
-
-    if (!user) {
-      console.warn('[v0] Address not found in registry:', normalizedAddress);
-      return NextResponse.json(
-        { error: `Address ${address} not found in registry.` },
-        { status: 404 }
-      );
-    }
-
-    console.log('[v0] Address matched to userId:', user.userId);
-
-    // Cache the individual result
-    await cacheManager.set(cacheKey, user.userId, CACHE_DURATION);
-
-    return NextResponse.json({ userId: user.userId, fromCache: false });
   } catch (error) {
     console.error('[v0] Wallet lookup error:', error);
     return NextResponse.json(

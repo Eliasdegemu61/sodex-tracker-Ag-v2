@@ -100,23 +100,20 @@ export function AssetIntelligenceDashboard() {
                 // 1. Fetch current prices
                 const prices: TokenPriceMap = await fetchTokenPrices()
 
-                // 2. Fetch CSV data
-                const [response, dailyResponse] = await Promise.all([
-                    fetch('https://raw.githubusercontent.com/Eliasdegemu61/Fund-flow-sodex/main/overall_sodex_totals.csv'),
-                    fetch('https://raw.githubusercontent.com/Eliasdegemu61/Fund-flow-sodex/main/daily_net_flows.csv')
-                ])
-                const csvText = await response.text()
-                const dailyText = await dailyResponse.text()
+                // 2. Fetch data from Supabase via our generic API
+                const [totalsData, dailyData] = await Promise.all([
+                    fetch('/api/db/site-data?key=overall_sodex_totals').then(res => res.json()),
+                    fetch('/api/db/site-data?key=daily_net_flows').then(res => res.json())
+                ]);
 
-                const lines = csvText.trim().split('\n')
-                const dailyLines = dailyText.trim().split('\n')
+                if (!totalsData || !dailyData) return;
 
-                if (lines.length < 2) return
-
-                // Process daily flows
+                // Process daily flows (dailyData is string[][] from Supabase)
                 const dailyFlowsByToken: Record<string, { date: string, net: number, depo: number, wth: number }[]> = {}
-                for (let i = 1; i < dailyLines.length; i++) {
-                    const values = dailyLines[i].split(',')
+                
+                // Assuming first row is header, skip it
+                for (let i = 1; i < dailyData.length; i++) {
+                    const values = dailyData[i]
                     if (values.length >= 4) {
                         const date = values[0].trim()
                         const token = values[1].trim()
@@ -143,8 +140,9 @@ export function AssetIntelligenceDashboard() {
                 }
 
                 const parsed: TokenFlow[] = []
-                for (let i = 1; i < lines.length; i++) {
-                    const values = lines[i].split(',')
+                // Process totals (totalsData is string[][] from Supabase)
+                for (let i = 1; i < totalsData.length; i++) {
+                    const values = totalsData[i]
                     if (values.length >= 3) {
                         const token = values[0].trim()
                         const overall_deposit = parseFloat(values[1].trim())

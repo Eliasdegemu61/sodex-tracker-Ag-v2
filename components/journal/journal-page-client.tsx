@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { ArrowLeft, BookOpen, Plus, Loader2, RefreshCcw } from 'lucide-react';
-import { getPlans, deletePlan } from '@/lib/journal-store';
+import { ArrowLeft, BookOpen, Plus, Loader2, RefreshCcw, Cloud, CloudOff, LogOut } from 'lucide-react';
+import { getPlans, deletePlan, syncLocalPlansToCloud } from '@/lib/journal-store';
+import { supabase } from '@/lib/supabase-client';
+import { AuthModal } from './auth-modal';
 import { computePlanMetrics } from '@/lib/journal-engine';
 import type { TradingPlan, PlanMetrics } from '@/lib/journal-types';
 import { PlanForm } from './plan-form';
@@ -109,7 +111,29 @@ export function JournalPageClient() {
     const [planPositions, setPlanPositions] = useState<EnrichedPosition[]>([]);
     const [planBalance, setPlanBalance] = useState<number>(0);
     const [isDataLoading, setIsDataLoading] = useState(false);
+
+    // Auth state
+    const [user, setUser] = useState<any>(null);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+
+    // Track auth session
+    useEffect(() => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setUser(session?.user ?? null);
+        });
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+            if (session?.user) {
+                // Refresh plans on login
+                loadPlans();
+                syncLocalPlansToCloud();
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
 
     // Initial setup state (for prompt)
     const [tempAddress, setTempAddress] = useState<string | null>(null);
@@ -128,10 +152,15 @@ export function JournalPageClient() {
         return manualUserId;
     }, [isAddressPromptFinished, tempAddress, manualUserId]);
 
-    // Load plans from localStorage
-    useEffect(() => {
-        setPlans(getPlans());
+    const loadPlans = useCallback(async () => {
+        const p = await getPlans();
+        setPlans(p);
     }, []);
+
+    // Load plans
+    useEffect(() => {
+        loadPlans();
+    }, [loadPlans]);
 
     // Fetch initial balance if prompt is finished
     useEffect(() => {
@@ -193,7 +222,7 @@ export function JournalPageClient() {
 
                 // Update persistent store immediately
                 const { updatePlan } = await import('@/lib/journal-store');
-                const updatedPlan = updatePlan(activePlan.id, { userId: freshId });
+                const updatedPlan = await updatePlan(activePlan.id, { userId: freshId });
                 if (updatedPlan) {
                     setSelectedPlan(updatedPlan);
                     setPlans(prev => prev.map(p => p.id === updatedPlan.id ? updatedPlan : p));
@@ -266,7 +295,7 @@ export function JournalPageClient() {
     }, [selectedPlan, planPositions, planBalance]);
 
     const handleSavePlan = (plan: TradingPlan) => {
-        setPlans(getPlans());
+        loadPlans();
         setSelectedPlan(plan);
         setView('dashboard');
     };
@@ -280,10 +309,9 @@ export function JournalPageClient() {
         setView('edit');
     };
 
-    const handleDeletePlan = (id: string) => {
-        deletePlan(id);
-        const updated = getPlans();
-        setPlans(updated);
+    const handleDeletePlan = async (id: string) => {
+        await deletePlan(id);
+        await loadPlans();
         if (selectedPlan?.id === id) {
             setSelectedPlan(null);
             setView('list');
@@ -342,6 +370,21 @@ export function JournalPageClient() {
 
                     {/* Actions */}
                     <div className="ml-auto flex items-center gap-2">
+                        {/* Auth Button */}
+                        <button
+                            onClick={() => user ? supabase.auth.signOut() : setIsAuthModalOpen(true)}
+                            className={cn(
+                                "flex items-center gap-2 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all border",
+                                user 
+                                    ? "bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500/20" 
+                                    : "bg-secondary/20 border-border/20 text-muted-foreground/60 hover:text-foreground hover:bg-secondary/40"
+                            )}
+                        >
+                            {user ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}
+                            <span className="hidden sm:inline">{user ? 'Cloud Sync On' : 'Guest Mode'}</span>
+                            {user && <LogOut className="w-3 h-3 ml-1 opacity-40" />}
+                        </button>
+
                         {view === 'dashboard' && (
                             <button
                                 onClick={handleRefreshManual}
@@ -437,6 +480,11 @@ export function JournalPageClient() {
                     </div>
                 )}
             </div>
+
+            <AuthModal 
+                isOpen={isAuthModalOpen} 
+                onClose={() => setIsAuthModalOpen(false)} 
+            />
         </div>
     );
 }
