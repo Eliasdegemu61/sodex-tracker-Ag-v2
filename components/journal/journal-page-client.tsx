@@ -117,26 +117,11 @@ export function JournalPageClient() {
     const [user, setUser] = useState<any>(null);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-    // Track auth session
-    useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setUser(session?.user ?? null);
-        });
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-            setUser(session?.user ?? null);
-            if (session?.user) {
-                console.log('[Journal] User logged in, triggering sync...');
-                setIsAuthModalOpen(false);
-                // 1. First sync any local plans to cloud
-                await syncLocalPlansToCloud();
-                // 2. Then reload the master plan list from cloud
-                await loadPlans();
-            }
-        });
-
-        return () => subscription.unsubscribe();
+    const loadPlans = useCallback(async () => {
+        const p = await getPlans();
+        setPlans(p);
     }, []);
 
     // Initial setup state (for prompt)
@@ -156,15 +141,43 @@ export function JournalPageClient() {
         return manualUserId;
     }, [isAddressPromptFinished, tempAddress, manualUserId]);
 
-    const loadPlans = useCallback(async () => {
-        const p = await getPlans();
-        setPlans(p);
-    }, []);
-
-    // Load plans
+    // Load plans on mount
     useEffect(() => {
         loadPlans();
     }, [loadPlans]);
+
+    // Track auth session
+    useEffect(() => {
+        const initAuth = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            setUser(session?.user ?? null);
+            if (session?.user) {
+                await syncLocalPlansToCloud();
+                await loadPlans();
+            }
+            setIsInitialLoading(false);
+        };
+
+        initAuth();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            setUser(session?.user ?? null);
+            if (session?.user) {
+                console.log('[Journal] User logged in, triggering sync...');
+                setIsAuthModalOpen(false);
+                // 1. First sync any local plans to cloud
+                await syncLocalPlansToCloud();
+                // 2. Then reload the master plan list from cloud
+                await loadPlans();
+            } else {
+                // If user logged out, refresh plans (to show local ones if any)
+                await loadPlans();
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, [loadPlans]);
+
 
     // Auto-bypass address prompt if user is logged in and HAS plans
     useEffect(() => {
@@ -433,12 +446,17 @@ export function JournalPageClient() {
                     </div>
                 </div>
 
-                {/* Prompt if no confirmed address */}
-                {!isAddressPromptFinished && (
+                {/* Content Area */}
+                {isInitialLoading ? (
+                    <div className="flex flex-col items-center justify-center py-40 gap-4">
+                        <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+                        <p className="text-sm font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">Synchronizing...</p>
+                    </div>
+                ) : !isAddressPromptFinished ? (
                     <AddressPrompt
                         onSetAddress={handleSetAddress}
                     />
-                )}
+                ) : null}
 
                 {/* Main Views */}
                 {walletAddress && view === 'list' && (
