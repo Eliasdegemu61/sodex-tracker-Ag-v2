@@ -329,11 +329,6 @@ export default function Dashboard() {
           <Suspense fallback={<div className="w-full h-screen flex items-center justify-center"><div className="text-muted-foreground">Loading SoDex Status...</div></div>}>
           <div className="flex flex-col w-full overflow-y-auto overflow-x-hidden">
               <div className="flex flex-col lg:flex-row w-full">
-                {/* Top Stats - Mobile Only */}
-                <div className="w-full lg:hidden p-1 pt-1 pb-0 order-0">
-                  <DashboardStats variant="compact" />
-                </div>
-
                 {/* Left Sidebar - Desktop Only */}
                 {!isMobile && (
                   <div className="hidden lg:block lg:w-64 p-3 md:p-4 space-y-4 lg:flex-shrink-0 lg:order-1">
@@ -375,47 +370,48 @@ export default function Dashboard() {
                   </div>
                 )}
 
-                {/* Center Content */}
-                <div className="flex-1 p-1 pt-0 md:p-6 space-y-2 md:space-y-4 lg:flex-shrink-0 order-1 lg:order-2">
+                {/* Main Content Area */}
+                <div className="flex-1 p-2 md:p-6 space-y-3 md:space-y-4 lg:flex-shrink-0 order-1 lg:order-2">
+                  {/* Top Stats - Mobile Only (Now part of the same space-y stack) */}
+                  <div className="lg:hidden">
+                    <DashboardStats variant="compact" />
+                  </div>
+
                   <VolumeChart />
                   <TodayTopPairs />
                   <FundFlowChart />
 
-                  {/* Key Metrics: Top Spot Traders, Top Gainers, Top Losers */}</div>
+                  {/* Extra Mobile Cards - Integrated here to maintain spacing */}
+                  <div className="lg:hidden space-y-3">
+                    <TVLCard />
+                    <AnnouncementsPanel />
 
-                {/* Mobile Cards Section - Correct order for mobile */}
-                <div className="lg:hidden order-2 p-2 space-y-3 w-full">
-                  {/* Total Value Locked */}
-                  <TVLCard />
-                  {/* Announcements */}
-                  <AnnouncementsPanel />
-
-                  {/* Trade on SoDex Promo at bottom */}
-                  <div className="relative overflow-hidden rounded-lg border border-border hover:border-accent/50 transition-all duration-300 group">
-                    <img
-                      src="https://sodex.com/_next/image?url=%2Fimg%2Fhome%2Fcontent1-inner.webp&w=1920&q=75"
-                      alt="Trade on SoDex"
-                      className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                    <div className="absolute inset-0 flex flex-col items-center justify-end p-4">
-                      <a
-                        href="https://sodex.com/join/TRADING"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full"
-                      >
-                        <button
-                          type="button"
-                          className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 font-sans"
+                    {/* Trade on SoDex Promo at bottom */}
+                    <div className="relative overflow-hidden rounded-lg border border-border hover:border-accent/50 transition-all duration-300 group">
+                      <img
+                        src="https://sodex.com/_next/image?url=%2Fimg%2Fhome%2Fcontent1-inner.webp&w=1920&q=75"
+                        alt="Trade on SoDex"
+                        className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                      <div className="absolute inset-0 flex flex-col items-center justify-end p-4">
+                        <a
+                          href="https://sodex.com/join/TRADING"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full"
                         >
-                          Trade on SoDex
-                        </button>
-                      </a>
+                          <button
+                            type="button"
+                            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 font-sans"
+                          >
+                            Trade on SoDex
+                          </button>
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </div>
-
               </div>
 
               {/* Full Width Bottom Content */}

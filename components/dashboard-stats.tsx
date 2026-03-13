@@ -156,9 +156,13 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
     );
   };
 
+  if (variant === 'compact') {
+    return <StatsHeader />;
+  }
+
   // Default variant - show all cards
   return (
-    <div className="space-y-1 lg:space-y-3 mb-1 lg:mb-6">
+    <div className="space-y-1 lg:space-y-3 mb-0 lg:mb-6">
       <StatsHeader />
 
       {/* Spot vs Futures Volume */}
