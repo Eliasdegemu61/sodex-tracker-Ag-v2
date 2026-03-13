@@ -318,12 +318,16 @@ export default function Dashboard() {
           </div>
         </div>
       </header>
+      
+      {/* Spacer to push content down naturally */}
+      <div className="h-16 w-full flex-shrink-0" />
+
 
       {/* Main Content - Only render active tab */}
       {
         currentPage === 'dex-status' && (
           <Suspense fallback={<div className="w-full h-screen flex items-center justify-center"><div className="text-muted-foreground">Loading SoDex Status...</div></div>}>
-          <div className="flex flex-col w-full overflow-y-auto overflow-x-hidden pt-16 md:pt-20">
+          <div className="flex flex-col w-full overflow-y-auto overflow-x-hidden">
               <div className="flex flex-col lg:flex-row w-full">
                 {/* Top Stats - Mobile Only */}
                 <div className="w-full lg:hidden p-2 pt-1 order-0">
@@ -427,7 +431,7 @@ export default function Dashboard() {
       {
         currentPage === 'tracker' && (
           <Suspense fallback={<LoadingCard />}>
-            <div className="p-4 md:p-6 overflow-y-auto w-full pt-16 md:pt-20">
+            <div className="p-4 md:p-6 overflow-y-auto w-full">
               <TrackerSection initialSearchAddress={trackerSearchAddress} />
             </div>
           </Suspense>
@@ -437,7 +441,7 @@ export default function Dashboard() {
       {
         currentPage === 'portfolio' && (
           <Suspense fallback={<LoadingCard />}>
-            <div className="p-4 md:p-6 overflow-y-auto w-full space-y-6 pt-16 md:pt-20">
+            <div className="p-4 md:p-6 overflow-y-auto w-full space-y-6">
               <PortfolioSection />
             </div>
           </Suspense>
@@ -447,7 +451,7 @@ export default function Dashboard() {
       {
         currentPage === 'leaderboard' && (
           <Suspense fallback={<LoadingCard />}>
-            <div className="pt-16 md:pt-20">
+            <div className="">
               <LeaderboardPage onBack={() => setCurrentPage('dex-status')} />
             </div>
           </Suspense>
@@ -457,7 +461,7 @@ export default function Dashboard() {
       {
         currentPage === 'analyzer' && (
           <Suspense fallback={<LoadingCard />}>
-            <div className="p-4 md:p-6 pt-16 md:pt-20">
+            <div className="p-4 md:p-6">
               <DistributionAnalyzerPage onBack={() => setCurrentPage('dex-status')} />
             </div>
           </Suspense>
@@ -468,7 +472,7 @@ export default function Dashboard() {
       {
         currentPage === 'about' && (
           <Suspense fallback={<LoadingCard />}>
-            <div className="pt-16 md:pt-20">
+            <div className="">
               <AboutSodex />
             </div>
           </Suspense>
@@ -478,7 +482,7 @@ export default function Dashboard() {
       {
         currentPage === 'assets' && (
           <Suspense fallback={<LoadingCard />}>
-            <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto w-full pt-20 md:pt-24">
+            <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto w-full">
               <div className="flex flex-col gap-1 mb-8">
                 <h1 className="text-3xl font-black text-foreground tracking-tight">SoDex Tokens Analysis</h1>
                 <p className="text-sm text-muted-foreground/60 font-medium tracking-tight">analyze deposits and withdrawals of all availalbe tokens on SoDex</p>
