@@ -318,12 +318,16 @@ export default function Dashboard() {
           </div>
         </div>
       </header>
+      
+      {/* Spacer to push content down naturally */}
+      <div className="h-16 w-full flex-shrink-0" />
+
 
       {/* Main Content - Only render active tab */}
       {
         currentPage === 'dex-status' && (
           <Suspense fallback={<div className="w-full h-screen flex items-center justify-center"><div className="text-muted-foreground">Loading SoDex Status...</div></div>}>
-            <div className="flex flex-col w-full overflow-y-auto overflow-x-hidden">
+          <div className="flex flex-col w-full overflow-y-auto overflow-x-hidden">
               <div className="flex flex-col lg:flex-row w-full">
                 {/* Top Stats - Mobile Only */}
                 <div className="w-full lg:hidden p-2 pt-1 order-0">
@@ -447,7 +451,9 @@ export default function Dashboard() {
       {
         currentPage === 'leaderboard' && (
           <Suspense fallback={<LoadingCard />}>
-            <LeaderboardPage onBack={() => setCurrentPage('dex-status')} />
+            <div className="">
+              <LeaderboardPage onBack={() => setCurrentPage('dex-status')} />
+            </div>
           </Suspense>
         )
       }
@@ -466,7 +472,9 @@ export default function Dashboard() {
       {
         currentPage === 'about' && (
           <Suspense fallback={<LoadingCard />}>
-            <AboutSodex />
+            <div className="">
+              <AboutSodex />
+            </div>
           </Suspense>
         )
       }
