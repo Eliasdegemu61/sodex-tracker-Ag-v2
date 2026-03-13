@@ -33,17 +33,12 @@ export function MobileNavMenu({ currentPage, onNavigate }: MobileNavMenuProps) {
     { id: 'tracker', label: 'Address Tracker', icon: TrendingUp },
     { id: 'portfolio', label: 'Portfolio', icon: Wallet },
     { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
-    { id: 'journal', label: 'Journal', icon: BookOpen },
     { id: 'assets', label: 'Assets', icon: Compass },
     { id: 'analyzer', label: 'Reverse Search', icon: Zap },
   ];
 
   const handleNavClick = (pageId: string) => {
-    if (pageId === 'journal') {
-      window.location.href = '/journal';
-    } else {
-      onNavigate(pageId);
-    }
+    onNavigate(pageId);
     setIsOpen(false);
   };
 

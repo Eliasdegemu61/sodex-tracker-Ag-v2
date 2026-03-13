@@ -4,7 +4,7 @@
 import React from "react"
 
 import { Suspense, useState, lazy, useEffect } from 'react'
-import { Search, Bell, ChevronDown, Lock, Unlock, MessageCircle, MoreVertical, Moon, Sun } from 'lucide-react'
+import { Moon, Sun, Activity, TrendingUp, Wallet, Trophy, Zap, Compass } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -161,11 +161,30 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
 
 export default function Dashboard() {
   const { theme, toggleTheme, mounted } = useTheme()
-  const [currentPage, setCurrentPage] = useState<'dex-status' | 'tracker' | 'portfolio' | 'leaderboard' | 'analyzer' | 'about' | 'whale-tracker' | 'assets' | 'journal'>('dex-status')
+  const [currentPage, setCurrentPage] = useState<'dex-status' | 'tracker' | 'portfolio' | 'leaderboard' | 'analyzer' | 'about' | 'whale-tracker' | 'assets'>('dex-status')
   const [searchAddressInput, setSearchAddressInput] = useState('')
   const [trackerSearchAddress, setTrackerSearchAddress] = useState('')
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+
+  const navItems = [
+    { id: 'dex-status', label: 'SoDex Status', icon: Activity },
+    { id: 'tracker', label: 'Tracker', icon: TrendingUp },
+    { id: 'portfolio', label: 'Portfolio', icon: Wallet },
+    { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
+    { id: 'analyzer', label: 'Reverse Search', icon: Zap },
+    { id: 'assets', label: 'Assets', icon: Compass },
+  ] as const;
+
+  // Handle scroll for liquid design
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   // Handle tab parameter from URL - lazy load only when user navigates
   useEffect(() => {
@@ -213,111 +232,86 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="border-b border-border bg-card/50 sticky top-0 z-50">
-        <div className="flex items-center justify-between h-16 px-3 md:px-6 gap-2 md:gap-4">
-          <div className="flex items-center gap-2 flex-shrink-0">
+      <header 
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out flex justify-center py-2 ${
+          isScrolled 
+            ? 'px-4' 
+            : 'px-0'
+        }`}
+      >
+        <div 
+          className={`flex items-center justify-between transition-all duration-300 ease-in-out gap-2 md:gap-4 ${
+            isScrolled 
+              ? 'bg-card/70 dark:bg-black/40 backdrop-blur-xl border border-white/10 dark:border-white/5 rounded-full px-6 py-2 shadow-2xl max-w-fit' 
+              : 'w-full h-16 px-3 md:px-6 border-b border-border bg-card/50'
+          }`}
+        >
+          <div className={`flex items-center gap-2 flex-shrink-0 transition-all duration-300 ${isScrolled ? 'mr-4' : ''}`}>
             <img
               src={theme === 'dark' ? 'https://sodex.com/_next/image?url=%2Flogo%2Flogo.webp&w=256&q=75' : 'https://testnet.sodex.com/assets/SoDEX-Dh5Mk-Pl.svg'}
               alt="Sodex Logo"
-              className="h-7 w-auto object-contain"
+              className={`transition-all duration-300 object-contain ${isScrolled ? 'h-6 w-6' : 'h-7 w-auto'}`}
               loading="eager"
               decoding="async"
             />
-            <span className="text-xs md:text-sm font-semibold text-foreground">Tracker</span>
+            {!isScrolled && <span className="text-xs md:text-sm font-semibold text-foreground">Tracker</span>}
           </div>
 
 
-          <div className="hidden md:flex items-center gap-8">
-            <button
-              onClick={() => setCurrentPage('dex-status')}
-              className={`text-xs md:text-sm border-b-2 transition-all pb-1 font-semibold ${currentPage === 'dex-status'
-                ? 'text-foreground border-b-orange-400'
-                : 'text-foreground border-transparent hover:text-orange-400 hover:border-b-orange-400'
-                }`}
-            >
-              SoDex Status
-            </button>
-            <button
-              onClick={() => setCurrentPage('tracker')}
-              className={`text-xs md:text-sm border-b-2 transition-all pb-1 ${currentPage === 'tracker'
-                ? 'text-foreground border-b-orange-400'
-                : 'text-foreground border-transparent hover:text-orange-400 hover:border-b-orange-400'
-                }`}
-            >
-              Tracker
-            </button>
-            <button
-              onClick={() => setCurrentPage('portfolio')}
-              className={`text-xs md:text-sm border-b-2 transition-all pb-1 ${currentPage === 'portfolio'
-                ? 'text-foreground border-b-orange-400'
-                : 'text-foreground border-transparent hover:text-orange-400 hover:border-b-orange-400'
-                }`}
-            >
-              Portfolio
-            </button>
-            <button
-              onClick={() => setCurrentPage('leaderboard')}
-              className={`text-xs md:text-sm border-b-2 transition-all pb-1 ${currentPage === 'leaderboard'
-                ? 'text-foreground border-b-orange-400'
-                : 'text-foreground border-transparent hover:text-orange-400 hover:border-b-orange-400'
-                }`}
-            >
-              Leaderboard
-            </button>
-            <button
-              onClick={() => window.location.href = '/journal'}
-              className={`text-xs md:text-sm border-b-2 transition-all pb-1 ${currentPage === 'journal'
-                ? 'text-foreground border-b-orange-400'
-                : 'text-foreground border-transparent hover:text-orange-400 hover:border-b-orange-400'
-                }`}
-            >
-              Journal
-            </button>
-            <button
-              onClick={() => setCurrentPage('analyzer')}
-              className={`text-xs md:text-sm border-b-2 transition-all pb-1 ${currentPage === 'analyzer'
-                ? 'text-foreground border-b-orange-400'
-                : 'text-foreground border-transparent hover:text-orange-400 hover:border-b-orange-400'
-                }`}
-            >
-              Reverse Search
-            </button>
-            <button
-              onClick={() => setCurrentPage('assets')}
-              className={`text-xs md:text-sm border-b-2 transition-all pb-1 ${currentPage === 'assets'
-                ? 'text-foreground border-b-orange-400'
-                : 'text-foreground border-transparent hover:text-orange-400 hover:border-b-orange-400'
-                }`}
-            >
-              Assets
-            </button>
+          <div className={`hidden md:flex items-center transition-all duration-300 ${isScrolled ? 'gap-4' : 'gap-8'}`}>
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = currentPage === item.id;
+              
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setCurrentPage(item.id)}
+                  title={isScrolled ? item.label : undefined}
+                  className={`relative flex items-center gap-2 transition-all duration-300 group ${
+                    isScrolled ? 'p-2 rounded-full hover:bg-white/5' : 'pb-1 border-b-2'
+                  } ${
+                    isActive 
+                      ? (isScrolled ? 'text-orange-400 bg-white/5' : 'text-foreground border-b-orange-400')
+                      : (isScrolled ? 'text-muted-foreground' : 'text-foreground border-transparent hover:text-orange-400 hover:border-b-orange-400')
+                  }`}
+                >
+                  <Icon className={`transition-all duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'} ${isScrolled ? 'w-5 h-5' : 'w-4 h-4'}`} />
+                  {!isScrolled && <span className="text-xs md:text-sm font-semibold whitespace-nowrap">{item.label}</span>}
+                  
+                  {isScrolled && isActive && (
+                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-orange-400 rounded-full" />
+                  )}
+                </button>
+              );
+            })}
           </div>
 
 
 
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className={`flex items-center transition-all duration-300 ${isScrolled ? 'gap-2 ml-4' : 'gap-2 md:gap-4'}`}>
             {mounted && (
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
-                className="text-muted-foreground hover:text-foreground h-9 w-9"
+                className={`text-muted-foreground hover:text-foreground transition-all duration-300 ${isScrolled ? 'h-8 w-8' : 'h-9 w-9'}`}
               >
                 {theme === 'light' ? (
-                  <Moon className="w-5 h-5" />
+                  <Moon className={isScrolled ? "w-4 h-4" : "w-5 h-5"} />
                 ) : (
-                  <Sun className="w-5 h-5" />
+                  <Sun className={isScrolled ? "w-4 h-4" : "w-5 h-5"} />
                 )}
               </Button>
             )}
-            <a href="https://sodex.com/join/TRADING" target="_blank" rel="noopener noreferrer">
-              <Button variant="ghost" className="hidden md:flex items-center gap-2 text-foreground hover:bg-secondary px-3 h-9">
+            <a href="https://sodex.com/join/TRADING" target="_blank" rel="noopener noreferrer" className={isScrolled ? "hidden lg:block" : ""}>
+              <Button variant="ghost" className={`hidden md:flex items-center gap-2 text-foreground hover:bg-secondary transition-all duration-300 ${isScrolled ? 'px-2 h-8' : 'px-3 h-9'}`}>
                 <img
                   src="https://ssi.sosovalue.com/_next/image?url=%2Fimages%2Fwhat-is-soso%2F%24soso.png&w=256&q=75"
                   alt="SOSO"
-                  className="w-5 h-5"
+                  className={isScrolled ? "w-4 h-4" : "w-5 h-5"}
                 />
-                <span className="text-sm font-semibold text-accent">Trade</span>
+                {!isScrolled && <span className="text-sm font-semibold text-accent">Trade</span>}
               </Button>
             </a>
             <MobileNavMenu currentPage={currentPage} onNavigate={(page: any) => setCurrentPage(page)} />
