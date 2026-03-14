@@ -10,12 +10,15 @@ import {
     BarChart3, 
     Settings, 
     MessageSquare,
-    User,
+    User as UserIcon,
     Plus,
     X,
-    ChevronRight
+    ChevronRight,
+    Cloud,
+    CloudOff,
+    LogOut
 } from 'lucide-react';
-import { getPlans, deletePlan } from '@/lib/journal-store';
+import { getPlans, deletePlan, syncLocalPlansToCloud } from '@/lib/journal-store';
 import { computePlanMetrics } from '@/lib/journal-engine';
 import type { TradingPlan, PlanMetrics } from '@/lib/journal-types';
 import { PlanForm } from './plan-form';
@@ -24,6 +27,8 @@ import { PlanDashboard } from './plan-dashboard';
 import { fetchTotalBalance, fetchAllPositions, enrichPositions, type EnrichedPosition } from '@/lib/sodex-api';
 import { cn } from '@/lib/utils';
 import { CyberCard, GlowLine, CyberButton } from './cyber-elements';
+import { supabase } from '@/lib/supabase-client';
+import { AuthModal } from './auth-modal';
 
 type View = 'list' | 'create' | 'edit' | 'dashboard' | 'address_prompt';
 
@@ -105,19 +110,14 @@ export function JournalPageClient() {
     const [manualUserId, setManualUserId] = useState<string | null>(null);
     const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
-    // Initial hydration
+    // Auth state
+    const [user, setUser] = useState<any>(null);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    // 1. Immediate Hydration
     useEffect(() => {
-        try {
-            const cacheStr = localStorage.getItem(IDENTITY_STORAGE_KEY);
-            if (cacheStr) {
-                const identity = JSON.parse(cacheStr);
-                if (identity?.address) {
-                    setTempAddress(identity.address);
-                    setManualUserId(identity.userId || null);
-                    setIsAddressPromptFinished(true);
-                }
-            }
-        } catch (e) {} finally { setIsMounted(true); }
+        setIsMounted(true);
     }, []);
 
     const loadPlans = useCallback(async () => {
@@ -125,7 +125,67 @@ export function JournalPageClient() {
         setPlans(p);
     }, []);
 
-    useEffect(() => { loadPlans(); }, [loadPlans]);
+    useEffect(() => { if (isMounted) loadPlans(); }, [loadPlans, isMounted]);
+
+    // 2. Data & Auth Initialization
+    useEffect(() => {
+        if (!isMounted) return;
+
+        const init = async () => {
+            try {
+                // Initial local identity
+                const cacheStr = localStorage.getItem(IDENTITY_STORAGE_KEY);
+                if (cacheStr) {
+                    const identity = JSON.parse(cacheStr);
+                    if (identity?.address) {
+                        setTempAddress(identity.address);
+                        setManualUserId(identity.userId || null);
+                        setIsAddressPromptFinished(true);
+                    }
+                }
+
+                // Auth session
+                const { data: { session } } = await supabase.auth.getSession();
+                setUser(session?.user ?? null);
+
+                if (session?.user) {
+                    setIsSyncing(true);
+                    try {
+                        await syncLocalPlansToCloud();
+                        await loadPlans();
+                    } catch (e) {
+                        console.error('[Journal] Cloud sync error:', e);
+                    } finally {
+                        setIsSyncing(false);
+                    }
+                }
+            } catch (e) {
+                console.error('[Journal] Init failed:', e);
+            }
+        };
+
+        init();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            setUser(session?.user ?? null);
+            if (session?.user) {
+                setIsAuthModalOpen(false);
+                setIsSyncing(true);
+                try {
+                    await syncLocalPlansToCloud();
+                    await loadPlans();
+                } catch (e) {
+                    console.error('[Journal] Auth change sync error:', e);
+                } finally {
+                    setIsSyncing(false);
+                }
+            } else {
+                await loadPlans();
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, [isMounted, loadPlans]);
 
     const handleSetAddress = async (addr: string) => {
         if (!addr) return;
@@ -178,7 +238,16 @@ export function JournalPageClient() {
         return computePlanMetrics(selectedPlan, planPositions, planBalance || undefined);
     }, [selectedPlan, planPositions, planBalance]);
 
-    if (!isMounted) return null;
+    if (!isMounted) {
+        return (
+            <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-8">
+                <div className="flex flex-col items-center gap-4 animate-pulse">
+                    <Loader2 className="w-10 h-10 text-white/20 animate-spin" />
+                    <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em]">Booting Terminal...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-[#050505] text-white flex flex-col font-sans selection:bg-white selection:text-black">
@@ -194,6 +263,29 @@ export function JournalPageClient() {
                 </div>
 
                 <div className="flex items-center gap-4">
+                    {/* Cloud Sync Status */}
+                    <button
+                        onClick={() => user ? supabase.auth.signOut() : setIsAuthModalOpen(true)}
+                        className={cn(
+                            "flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all text-[10px] font-black uppercase tracking-widest",
+                            user 
+                                ? "bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500/20" 
+                                : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10 hover:text-white"
+                        )}
+                    >
+                        {isSyncing ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : user ? (
+                            <Cloud className="w-3 h-3" />
+                        ) : (
+                            <CloudOff className="w-3 h-3" />
+                        )}
+                        <span className="hidden sm:inline">
+                            {isSyncing ? 'Syncing...' : user ? 'Cloud Sync On' : 'Guest Mode'}
+                        </span>
+                        {user && <LogOut className="w-2.5 h-2.5 ml-1 opacity-40" />}
+                    </button>
+
                     {isAddressPromptFinished && (
                         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-white/40">
                             <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
@@ -259,6 +351,11 @@ export function JournalPageClient() {
                     )}
                 </div>
             </main>
+
+            <AuthModal 
+                isOpen={isAuthModalOpen} 
+                onClose={() => setIsAuthModalOpen(false)} 
+            />
 
             <style jsx global>{`
                 .no-scrollbar::-webkit-scrollbar { display: none; }
