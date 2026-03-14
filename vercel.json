@@ -1,12 +1,2 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/stats",
-      "schedule": "0 0 * * *"
-    },
-    {
-      "path": "/api/sync/github",
-      "schedule": "*/30 * * * *"
-    }
-  ]
 }
