@@ -48,12 +48,22 @@ export async function POST(req: Request) {
           }
         }
 
-        // Batch upsert to registry table
-        const { error } = await supabaseAdmin
-          .from('registry')
-          .upsert(entries, { onConflict: 'address' })
+        // Batch upsert to registry table to prevent statement timeouts
+        let hasError = false;
+        let errorMessage = null;
+        for (let i = 0; i < entries.length; i += 1000) {
+          const chunk = entries.slice(i, i + 1000);
+          const { error } = await supabaseAdmin
+            .from('registry')
+            .upsert(chunk, { onConflict: 'address' });
+          if (error) {
+            hasError = true;
+            errorMessage = error.message;
+            break;
+          }
+        }
 
-        results.push({ key: target.key, status: error ? 'error' : 'success', error: error?.message })
+        results.push({ key: target.key, status: hasError ? 'error' : 'success', error: errorMessage })
       } 
       else if (target.type === 'json') {
         const data = await response.json()
