@@ -1,0 +1,7 @@
+node_modules
+.next
+TRHWH_CLEAN
+TRHWH_LATEST
+scripts
+test-sync.ts
+test-prices.js
