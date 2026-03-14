@@ -4,7 +4,7 @@
 import React from "react"
 
 import { Suspense, useState, lazy, useEffect } from 'react'
-import { Moon, Sun, Activity, TrendingUp, Wallet, Trophy, Zap, Compass } from 'lucide-react'
+import { Moon, Sun, Activity, TrendingUp, Wallet, Trophy, Zap, Compass, BookOpen } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'

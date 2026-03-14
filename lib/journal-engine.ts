@@ -330,6 +330,18 @@ export function computePlanMetrics(
 
     const allViolations = daily.flatMap((d) => d.violations);
 
+    const totalGains = wins.reduce((s, p) => s + p.realizedPnlValue, 0);
+    const totalLosses = Math.abs(losses.reduce((s, p) => s + p.realizedPnlValue, 0));
+    const profitFactor = totalLosses > 0 ? totalGains / totalLosses : totalGains > 0 ? 100 : 0;
+
+    let maxDrawdown = 0;
+    let peak = plan.startingBalance;
+    for (const point of equityCurve) {
+        if (point.balance > peak) peak = point.balance;
+        const dd = peak > 0 ? (peak - point.balance) / peak * 100 : 0;
+        if (dd > maxDrawdown) maxDrawdown = dd;
+    }
+
     return {
         plan,
         totalTrades: positions.length,
@@ -343,6 +355,8 @@ export function computePlanMetrics(
         avgLoss: losses.length > 0 ? losses.reduce((s, p) => s + p.realizedPnlValue, 0) / losses.length : 0,
         largestWin: wins.length > 0 ? Math.max(...wins.map((p) => p.realizedPnlValue)) : 0,
         largestLoss: losses.length > 0 ? Math.min(...losses.map((p) => p.realizedPnlValue)) : 0,
+        profitFactor,
+        maxDrawdown,
         avgHoldingTimeMs,
         daysCompleted,
         totalDays,
@@ -352,6 +366,7 @@ export function computePlanMetrics(
         symbolAnalytics,
         disciplineScore,
         violations: allViolations,
+        allPositions: positions, // Pass filtered positions for history grid
     };
 }
 

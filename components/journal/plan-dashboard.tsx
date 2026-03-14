@@ -1,11 +1,15 @@
 'use client';
 
 import React from 'react';
-import { CalendarDays, Trophy, BookOpen, Settings2 } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { CalendarDays, Trophy, BookOpen, Settings2, Zap, Target, Activity, ArrowUpRight, ArrowDownRight, ChevronRight, ChevronLeft, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatHoldingTime } from '@/lib/journal-engine';
 import type { PlanMetrics } from '@/lib/journal-types';
+import { CyberCard, GlowLine } from './cyber-elements';
+import { PerformanceCalendar } from './performance-calendar';
+import { PerformanceStreak } from './performance-streak';
+import { DailyPerformanceHistory } from './daily-performance-history';
+import { EquityChart } from './equity-chart';
 
 interface PlanDashboardProps {
     metrics: PlanMetrics;
@@ -14,204 +18,308 @@ interface PlanDashboardProps {
 }
 
 function StatCard({ label, value, sub, accent }: { label: string; value: string; sub?: string; accent?: 'green' | 'red' | 'orange' }) {
-    const accentClass =
-        accent === 'green' ? 'text-green-600 dark:text-green-400' :
-            accent === 'red' ? 'text-red-600 dark:text-red-400' :
-                accent === 'orange' ? 'text-orange-600 dark:text-orange-400' :
-                    'text-foreground';
-
     return (
-        <div className="flex flex-col gap-1 p-4 rounded-2xl bg-secondary/30 dark:bg-secondary/10 border border-border/10">
-            <span className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-widest">{label}</span>
-            <span className={`text-xl font-black ${accentClass}`}>{value}</span>
-            {sub && <span className="text-[10px] text-muted-foreground/40">{sub}</span>}
+        <div className="flex flex-col gap-0.5 p-3 md:p-4 rounded-2xl bg-white/[0.03] border border-white/5">
+            <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest">{label}</span>
+            <div className="flex items-baseline gap-1.5">
+                <span className={cn(
+                    "text-xl font-bold tracking-tight",
+                    accent === 'green' ? 'text-green-400' :
+                    accent === 'red' ? 'text-red-400' :
+                    'text-white'
+                )}>
+                    {value}
+                </span>
+                {sub && <span className="text-[9px] text-white/20 font-medium">{sub}</span>}
+            </div>
         </div>
     );
 }
 
-function CreativeProgressBar({ percent, label, sub }: { percent: number, label: string, sub: string }) {
-    const segments = 10;
-    const activeSegments = Math.round((percent / 100) * segments);
+function MiniProgressBar({ percent, label, value, subValue, color = "white" }: { 
+    percent: number, 
+    label: string, 
+    value: string, 
+    subValue?: string,
+    color?: "white" | "green" | "blue"
+}) {
+    const barColor = color === 'green' ? 'bg-green-400' : color === 'blue' ? 'bg-blue-400' : 'bg-white/40';
+    const glowColor = color === 'green' ? 'shadow-[0_0_8px_rgba(74,222,128,0.4)]' : color === 'blue' ? 'shadow-[0_0_8px_rgba(96,165,250,0.4)]' : 'shadow-[0_0_8px_rgba(255,255,255,0.1)]';
 
     return (
-        <div className="w-full">
-            <div className="flex justify-between items-end mb-2">
-                <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">{label}</span>
-                <span className="text-[11px] font-black text-orange-500">{sub}</span>
+        <div className="space-y-3">
+            <div className="flex justify-between items-baseline">
+                <div className="flex flex-col gap-0.5">
+                    <span className="text-[9px] font-bold text-white/20 uppercase tracking-[0.15em]">{label}</span>
+                    <span className="text-sm font-bold text-white tracking-tight">{value}</span>
+                </div>
+                <div className="text-right flex flex-col items-end gap-0.5">
+                    <span className="text-lg font-mono font-bold text-white/80 leading-none">{Math.round(percent)}%</span>
+                    {subValue && <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest">{subValue}</span>}
+                </div>
             </div>
-            <div className="flex gap-1 h-2 w-full">
-                {Array.from({ length: segments }).map((_, i) => (
-                    <div
-                        key={i}
-                        className={cn(
-                            "flex-1 rounded-sm transition-all duration-500",
-                            i < activeSegments
-                                ? "bg-gradient-to-t from-orange-600 to-orange-400 shadow-[0_0_10px_rgba(249,115,22,0.3)]"
-                                : "bg-secondary/20 dark:bg-secondary/10"
-                        )}
-                    />
-                ))}
-            </div>
-            <div className="flex justify-between mt-1 text-[8px] font-bold text-muted-foreground/20 uppercase tracking-tighter">
-                <span>START</span>
-                <span>TARGET REACHED</span>
+            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden p-[1px] border border-white/5">
+                <div 
+                    className={cn(
+                        "h-full rounded-full transition-all duration-1000 ease-out relative",
+                        barColor,
+                        glowColor
+                    )} 
+                    style={{ width: `${Math.min(100, percent)}%` }} 
+                >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+                </div>
             </div>
         </div>
     );
 }
 
 export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps) {
-    const { plan, totalPnl, pnlPercent, winRate, totalTrades, currentBalance } = metrics;
+    const { plan, totalPnl, pnlPercent, winRate, totalTrades, currentBalance, profitFactor, maxDrawdown, allPositions } = metrics;
     const isProfit = totalPnl >= 0;
 
-    const profitProgressPercent = plan.dailyProfitTarget > 0
-        ? Math.min(100, (totalPnl / (plan.dailyProfitTarget * metrics.totalDays)) * 100)
+    const [historyPage, setHistoryPage] = React.useState(0);
+
+    const goalTarget = plan.overallProfitTarget > 0 
+        ? plan.overallProfitTarget 
+        : (plan.dailyProfitTarget * metrics.totalDays);
+
+    const profitProgressPercent = goalTarget > 0
+        ? Math.max(0, (totalPnl / goalTarget) * 100)
         : 0;
 
     const timeProgressPercent = Math.min(100, (metrics.daysCompleted / metrics.totalDays) * 100);
 
     return (
-        <div className="space-y-6">
-            {/* Plan Header */}
-            <Card className="p-6 bg-card dark:bg-card/95 border border-border/20 shadow-xl rounded-[2.5rem] overflow-hidden relative">
-                <div className="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-[0.05] pointer-events-none">
-                    <BookOpen className="w-32 h-32 rotate-12" />
+        <div className="space-y-8 md:space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Header section */}
+            <div className="pb-4 md:pb-8 border-b border-white/5 space-y-3 md:space-y-6">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 md:gap-4">
+                        <h2 className="text-2xl md:text-4xl font-bold tracking-tight text-white">{plan.name}</h2>
+                        <div className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-bold uppercase tracking-widest text-white/40">
+                            Live
+                        </div>
+                    </div>
+                    {onEdit && (
+                        <button
+                            onClick={onEdit}
+                            className="p-1.5 rounded-xl text-white/20 hover:text-white hover:bg-white/5 transition-all"
+                        >
+                            <Settings2 className="w-3.5 h-3.5" />
+                        </button>
+                    )}
+                </div>
+                
+                <div className="flex items-center gap-3 text-[9px] font-bold text-white/20 uppercase tracking-widest">
+                    <span>{new Date(plan.startDate).toLocaleDateString()}</span>
+                    <ChevronRight className="w-2.5 h-2.5" />
+                    <span>{new Date(plan.endDate).toLocaleDateString()}</span>
+                </div>
+            </div>
+
+            {/* Performance Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                <StatCard 
+                    label="Current Balance" 
+                    value={`$${currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} 
+                    accent={currentBalance >= plan.startingBalance ? 'green' : 'red'}
+                />
+                <StatCard 
+                    label="Total PnL" 
+                    value={`${isProfit ? '+' : ''}$${Math.abs(totalPnl).toLocaleString(undefined, { minimumFractionDigits: 2 })}`} 
+                    sub={`${isProfit ? '+' : ''}${pnlPercent.toFixed(2)}%`}
+                    accent={isProfit ? 'green' : 'red'}
+                />
+                <StatCard 
+                    label="Profit Factor" 
+                    value={profitFactor.toFixed(2)} 
+                />
+                <StatCard 
+                    label="Drawdown" 
+                    value={`${maxDrawdown.toFixed(1)}%`} 
+                    accent={maxDrawdown > 5 ? 'red' : undefined}
+                />
+            </div>
+
+            {/* Progress Bars */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 bg-white/[0.02] border border-white/5 rounded-3xl p-8 md:p-10">
+                <MiniProgressBar
+                    percent={timeProgressPercent}
+                    label="Current Cycle"
+                    value={`${metrics.daysCompleted} / ${metrics.totalDays} Days`}
+                    subValue="Time Elapsed"
+                    color="blue"
+                />
+                <MiniProgressBar
+                    percent={profitProgressPercent}
+                    label="Goal Progress"
+                    value={`$${totalPnl.toFixed(0)} / $${goalTarget.toFixed(0)}`}
+                    subValue={plan.overallProfitTarget > 0 ? "Fixed Target" : "Aggregated Target"}
+                    color={totalPnl > 0 ? "green" : "white"}
+                />
+            </div>
+
+            {/* Balance Chart */}
+            <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 md:p-8">
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] mb-1">Account Balance</h3>
+                        <p className="text-xl font-bold text-white tracking-tight">${currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                    </div>
+                    <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-bold uppercase tracking-widest text-white/40">
+                        Equity Curve
+                    </div>
+                </div>
+                <EquityChart data={metrics.equityCurve} />
+            </div>
+
+            {/* Streak & Calendar Section */}
+            <div className="space-y-12">
+                <PerformanceStreak days={metrics.dailyPerformance} />
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <PerformanceCalendar days={metrics.dailyPerformance} />
+                    <DailyPerformanceHistory days={metrics.dailyPerformance} />
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
-                    <div className="space-y-1">
-                        <div className="flex items-center gap-3">
-                            <h2 className="text-2xl font-black text-foreground tracking-tight">{plan.name}</h2>
-                            <span className="px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-500 text-[9px] font-bold uppercase tracking-wider border border-orange-500/20">
-                                Active Plan
-                            </span>
-                            {accountId && (
-                                <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 text-[9px] font-bold uppercase tracking-wider border border-blue-500/20 flex items-center gap-1">
-                                    <span className="opacity-50">ID:</span> {accountId}
-                                </span>
-                            )}
-                            {onEdit && (
-                                <button
-                                    onClick={onEdit}
-                                    className="p-1.5 rounded-lg bg-secondary/50 hover:bg-orange-500/20 hover:text-orange-500 text-muted-foreground/30 transition-all flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest border border-transparent hover:border-orange-500/20"
-                                >
-                                    <Settings2 className="w-3.5 h-3.5" />
-                                    Edit
-                                </button>
-                            )}
-                        </div>
-                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground/50">
-                            <CalendarDays className="w-3.5 h-3.5" />
-                            <span>{new Date(plan.startDate).toLocaleDateString()}</span>
-                            <span className="opacity-30">—</span>
-                            <span>{new Date(plan.endDate).toLocaleDateString()}</span>
-                            <div className="ml-2 px-2 py-0.5 rounded-md bg-secondary text-foreground/60 font-medium">
-                                Day {metrics.daysCompleted} of {metrics.totalDays}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+                    <div>
+                        <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] mb-4">Daily Consistency</h3>
+                        <div className="p-6 md:p-8 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col items-center justify-center text-center space-y-4 h-full">
+                            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full border border-white/10 flex items-center justify-center">
+                                <BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-white/20" />
+                            </div>
+                            <div>
+                                <p className="text-xl md:text-2xl font-bold text-white">{metrics.disciplineScore.overall}%</p>
+                                <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mt-0.5">Discipline Score</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <div className="flex flex-col items-end">
-                            <span className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest">Discipline Score</span>
-                            <div className="flex items-center gap-2 mt-1">
-                                <div className="h-2 w-24 bg-secondary rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-green-500 transition-all duration-1000"
-                                        style={{ width: `${metrics.disciplineScore.overall}%` }}
-                                    />
+                    <div className="flex flex-col">
+                        <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] mb-4">Efficiency Metrics</h3>
+                        <div className="p-6 md:p-8 rounded-2xl bg-white/[0.03] border border-white/5 space-y-4 flex-1 flex flex-col justify-center">
+                            <div className="space-y-5 md:space-y-6">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Profit Factor</span>
+                                    <span className="text-[13px] font-bold text-white tracking-tight">{metrics.profitFactor.toFixed(2)}</span>
                                 </div>
-                                <span className="text-sm font-black text-foreground">{metrics.disciplineScore.overall}%</span>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Avg Win</span>
+                                    <span className="text-[13px] font-bold text-green-400 tracking-tight">+${metrics.avgWin.toFixed(0)}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Avg Loss</span>
+                                    <span className="text-[13px] font-bold text-red-400 tracking-tight">-${Math.abs(metrics.avgLoss).toFixed(0)}</span>
+                                </div>
                             </div>
-                        </div>
-                        <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
-                            <Trophy className="w-6 h-6 text-orange-500" />
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-                    <CreativeProgressBar
-                        percent={timeProgressPercent}
-                        label="Time Elapsed"
-                        sub={`${metrics.daysCompleted}/${metrics.totalDays} Days`}
-                    />
-                    <CreativeProgressBar
-                        percent={profitProgressPercent}
-                        label="Profit Progress"
-                        sub={plan.dailyProfitTarget > 0 ? `${profitProgressPercent.toFixed(1)}%` : 'N/A'}
-                    />
+            {/* Detailed States */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+                <div className="p-3 md:p-4 rounded-xl border border-white/5 space-y-0.5 md:space-y-1">
+                    <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest">Win Rate</p>
+                    <p className="text-[13px] font-bold text-white tracking-tight tabular-nums">{winRate.toFixed(1)}%</p>
                 </div>
-            </Card>
+                <div className="p-3 md:p-4 rounded-xl border border-white/5 space-y-0.5 md:space-y-1">
+                    <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest">Avg Win</p>
+                    <p className="text-[13px] font-bold text-green-400">+${metrics.avgWin.toFixed(0)}</p>
+                </div>
+                <div className="p-3 md:p-4 rounded-xl border border-white/5 space-y-0.5 md:space-y-1">
+                    <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest">Avg Loss</p>
+                    <p className="text-[13px] font-bold text-red-400">-${Math.abs(metrics.avgLoss).toFixed(0)}</p>
+                </div>
+                <div className="p-3 md:p-4 rounded-xl border border-white/5 space-y-0.5 md:space-y-1">
+                    <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest">Total Trades</p>
+                    <p className="text-[13px] font-bold text-white/60">{totalTrades}</p>
+                </div>
+                <div className="p-3 md:p-4 rounded-xl border border-white/5 space-y-0.5 md:space-y-1">
+                    <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest">Avg Time</p>
+                    <p className="text-[13px] font-bold text-white/60">{formatHoldingTime(metrics.avgHoldingTimeMs)}</p>
+                </div>
+                <div className="p-3 md:p-4 rounded-xl border border-white/5 space-y-0.5 md:space-y-1">
+                    <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest">Violations</p>
+                    <p className={cn("text-[13px] font-bold", metrics.violations.length > 0 ? "text-red-400" : "text-white/20")}>
+                        {metrics.violations.length}
+                    </p>
+                </div>
+            </div>
 
-            {/* Overview Stats */}
-            <Card className="p-6 bg-card dark:bg-card/95 border border-border/20 shadow-lg rounded-[2.5rem]">
-                <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-4">Plan Overview</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                    <StatCard
-                        label="Starting"
-                        value={`$${plan.startingBalance.toLocaleString()}`}
-                    />
-                    <StatCard
-                        label="Current"
-                        value={`$${currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                        accent={currentBalance >= plan.startingBalance ? 'green' : 'red'}
-                    />
-                    <StatCard
-                        label="Total P&L"
-                        value={`${isProfit ? '+' : ''}$${Math.abs(totalPnl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                        sub={`${isProfit ? '+' : ''}${pnlPercent.toFixed(2)}%`}
-                        accent={isProfit ? 'green' : 'red'}
-                    />
-                    <StatCard label="Trades" value={String(totalTrades)} />
-                    <StatCard
-                        label="Win Rate"
-                        value={`${winRate.toFixed(1)}%`}
-                        accent={winRate >= 50 ? 'green' : 'red'}
-                    />
-                    <StatCard
-                        label="Remaining"
-                        value={String(metrics.daysRemaining)}
-                        accent="orange"
-                    />
+            {/* Position History */}
+            <div className="space-y-4 md:space-y-6">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Position History</h3>
+                    <div className="flex gap-2">
+                        <button 
+                            disabled={historyPage === 0}
+                            onClick={() => setHistoryPage(p => Math.max(0, p - 1))}
+                            className="p-1 px-2 rounded-lg border border-white/5 hover:bg-white/5 disabled:opacity-20 transition-all"
+                        >
+                            <ChevronLeft className="w-3.5 h-3.5 text-white" />
+                        </button>
+                        <button 
+                            disabled={(historyPage + 1) * 5 >= allPositions.length}
+                            onClick={() => setHistoryPage(p => p + 1)}
+                            className="p-1 px-2 rounded-lg border border-white/5 hover:bg-white/5 disabled:opacity-20 transition-all"
+                        >
+                            <ChevronRight className="w-3.5 h-3.5 text-white" />
+                        </button>
+                    </div>
                 </div>
-            </Card>
-
-            {/* Performance Metrics */}
-            <Card className="p-6 bg-card dark:bg-card/95 border border-border/20 shadow-lg rounded-[2.5rem]">
-                <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-4">Detailed Performance</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                    <StatCard
-                        label="Avg Win"
-                        value={metrics.avgWin > 0 ? `+$${metrics.avgWin.toFixed(2)}` : '$0'}
-                        accent="green"
-                    />
-                    <StatCard
-                        label="Avg Loss"
-                        value={metrics.avgLoss < 0 ? `-$${Math.abs(metrics.avgLoss).toFixed(2)}` : '$0'}
-                        accent="red"
-                    />
-                    <StatCard
-                        label="Best Trade"
-                        value={metrics.largestWin > 0 ? `+$${metrics.largestWin.toFixed(2)}` : '$0'}
-                        accent="green"
-                    />
-                    <StatCard
-                        label="Worst Trade"
-                        value={metrics.largestLoss < 0 ? `-$${Math.abs(metrics.largestLoss).toFixed(2)}` : '$0'}
-                        accent="red"
-                    />
-                    <StatCard
-                        label="Avg Hold"
-                        value={formatHoldingTime(metrics.avgHoldingTimeMs)}
-                    />
-                    <StatCard
-                        label="Violations"
-                        value={String(metrics.violations.length)}
-                        accent={metrics.violations.length > 0 ? 'red' : 'green'}
-                    />
+                <div className="overflow-x-auto rounded-2xl border border-white/5 bg-white/[0.01]">
+                    <table className="w-full text-left text-[11px]">
+                        <thead>
+                            <tr className="border-b border-white/5 text-white/20 uppercase font-bold tracking-widest">
+                                <th className="px-6 py-4">Symbol</th>
+                                <th className="px-6 py-4">Status</th>
+                                <th className="px-6 py-4">Size</th>
+                                <th className="px-6 py-4 text-right">Result</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                            {allPositions.slice(historyPage * 5, (historyPage + 1) * 5).map((pos, i) => (
+                                <tr key={i} className="group hover:bg-white/[0.02] transition-colors">
+                                    <td className="px-4 md:px-6 py-3 md:py-4">
+                                        <div className="font-bold text-white text-[11px] md:text-xs">{pos.pairName}</div>
+                                        <div className="text-[9px] text-white/20">{new Date(pos.created_at).toLocaleDateString()}</div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className={cn(
+                                            "font-bold",
+                                            pos.positionSideLabel === 'LONG' ? "text-green-500/60" : "text-red-500/60"
+                                        )}>
+                                            {pos.positionSideLabel}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-white/40">{pos.closedSize}</td>
+                                    <td className={cn(
+                                        "px-6 py-4 text-right font-bold",
+                                        pos.realizedPnlValue > 0 ? "text-green-400" : "text-red-400"
+                                    )}>
+                                        {pos.realizedPnlValue > 0 ? '+' : ''}{pos.realizedPnlValue.toFixed(2)}
+                                    </td>
+                                </tr>
+                            ))}
+                            {allPositions.length === 0 && (
+                                <tr>
+                                    <td colSpan={4} className="px-6 py-12 text-center text-white/10 uppercase font-bold tracking-widest">
+                                        No executions logged
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
-            </Card>
+                <div className="flex justify-center mt-2">
+                    <p className="text-[9px] font-bold text-white/10 uppercase tracking-widest">
+                        Page {historyPage + 1} of {Math.ceil(allPositions.length / 5) || 1}
+                    </p>
+                </div>
+            </div>
         </div>
     );
 }

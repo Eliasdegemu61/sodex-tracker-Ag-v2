@@ -1,4 +1,4 @@
-// Trading Journal Types
+import type { EnrichedPosition } from './sodex-api';
 
 export interface TradingPlan {
     id: string;
@@ -8,6 +8,7 @@ export interface TradingPlan {
     startingBalance: number;
     allocatedBalance: number;
     dailyProfitTarget: number;
+    overallProfitTarget: number;
     dailyLossLimit: number;
     maxLossPerTrade: number;
     maxTradesPerDay: number;
@@ -84,9 +85,12 @@ export interface PlanMetrics {
     daysCompleted: number;
     totalDays: number;
     daysRemaining: number;
+    profitFactor: number;
+    maxDrawdown: number;
     dailyPerformance: DayPerformance[];
-    equityCurve: { date: string; balance: number; cumulativePnl: number; dailyPnl: number }[];
+    equityCurve: { date: string; balance: number; cumulativePnl: number; dailyPnl: number; winRate: number }[];
     symbolAnalytics: SymbolAnalytics[];
     disciplineScore: DisciplineScore;
     violations: RuleViolation[];
+    allPositions: EnrichedPosition[];
 }

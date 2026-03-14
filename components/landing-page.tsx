@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
-import { BarChart3, MapPin, LineChart, Compass, PieChart, Trophy, Flashlight, Zap, Send, Twitter, Shield } from 'lucide-react';
+import { BarChart3, MapPin, LineChart, Compass, PieChart, Trophy, Flashlight, Zap, Send, Twitter, Shield, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -208,6 +208,7 @@ export function LandingPage() {
             {tabs.map((tab, index) => {
               const Icon = tab.icon;
               const isGlowing = index === glowingTabIndex;
+              
               return (
                 <Link key={tab.id} href={`/dashboard?tab=${tab.id}`}>
                   <Button
