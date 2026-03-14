@@ -47,15 +47,28 @@ function AddressPrompt({ onSetAddress }: { onSetAddress: (addr: string) => void 
     const [error, setError] = useState<string | null>(null);
 
     const handleManualLink = async () => {
-        const addr = input.trim();
-        if (!addr) return;
+        const addrOrId = input.trim();
+        if (!addrOrId) return;
         setIsLoading(true);
         setError(null);
         try {
+            // 1. Detect if it's a numeric User ID
+            const isNumericId = /^\d+$/.test(addrOrId);
+            
+            if (isNumericId) {
+                // Bypass registry phase
+                onSetAddress(addrOrId);
+                return; // Early return, setIsLoading(false) not needed as component will unmount
+            }
+
+            // 2. Otherwise treatment as address with registry lookup
             const { lookupWalletAddress } = await import('@/lib/client-api');
-            const foundId = await lookupWalletAddress(addr);
-            if (foundId) onSetAddress(addr);
-            else setError('Authorization failed');
+            const foundId = await lookupWalletAddress(addrOrId);
+            if (foundId) {
+                onSetAddress(addrOrId);
+            } else {
+                setError('Authorization failed');
+            }
         } catch (err) {
             setError('Registry error');
         } finally {
@@ -64,33 +77,30 @@ function AddressPrompt({ onSetAddress }: { onSetAddress: (addr: string) => void 
     };
 
     return (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 animate-in fade-in zoom-in duration-500">
-            <CyberCard className="max-w-md w-full text-center space-y-6 py-12 border-white/10 bg-black/60">
-                <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto">
-                    <Shield className="w-8 h-8 text-white/40" />
-                </div>
+        <div className="flex-1 flex flex-col items-center justify-center p-8 min-h-[60vh] animate-in fade-in duration-1000">
+            <div className="max-w-md w-full space-y-8 text-center">
                 <div>
-                    <h2 className="text-2xl font-bold text-white tracking-tight mb-1">Access Terminal</h2>
-                    <p className="text-xs text-white/40 font-medium uppercase tracking-widest">Identify yourself to continue</p>
+                    <h2 className="text-xl font-bold text-white tracking-tight mb-2">Connect Journal</h2>
+                    <p className="text-xs text-white/40 font-medium leading-relaxed">Enter your wallet address to sync your trading history.</p>
                 </div>
                 <div className="space-y-4">
                     <input
                         type="text"
-                        placeholder="Wallet Address"
+                        placeholder="0x..."
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 font-mono text-sm outline-none focus:border-white/20 transition-all placeholder:text-white/20"
+                        className="w-full h-11 bg-white/5 border border-white/10 rounded-xl px-4 font-mono text-sm outline-none focus:border-white/20 transition-all placeholder:text-white/20 text-center"
                     />
                     {error && <p className="text-xs text-red-400 font-medium">{error}</p>}
-                    <CyberButton 
+                    <button 
                         onClick={handleManualLink} 
-                        className="w-full"
+                        className="w-full h-11 bg-white text-black rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                         disabled={!input.trim() || isLoading}
                     >
-                        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Continue'}
-                    </CyberButton>
+                        {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Continue'}
+                    </button>
                 </div>
-            </CyberCard>
+            </div>
         </div>
     );
 }
@@ -187,16 +197,29 @@ export function JournalPageClient() {
         return () => subscription.unsubscribe();
     }, [isMounted, loadPlans]);
 
-    const handleSetAddress = async (addr: string) => {
-        if (!addr) return;
-        setTempAddress(addr);
+    const handleSetAddress = async (addrOrId: string) => {
+        if (!addrOrId) return;
+        
+        const isNumericId = /^\d+$/.test(addrOrId);
+        
+        if (isNumericId) {
+            // Bypass registry flow
+            setTempAddress(`ID: ${addrOrId}`);
+            setManualUserId(addrOrId);
+            setIsAddressPromptFinished(true);
+            saveIdentityLocal(`ID: ${addrOrId}`, addrOrId);
+            return;
+        }
+
+        // Standard address flow
+        setTempAddress(addrOrId);
         setIsAddressPromptFinished(true);
         try {
             const { lookupWalletAddress } = await import('@/lib/client-api');
-            const foundId = await lookupWalletAddress(addr);
+            const foundId = await lookupWalletAddress(addrOrId);
             if (foundId) {
                 setManualUserId(foundId);
-                saveIdentityLocal(addr, foundId);
+                saveIdentityLocal(addrOrId, foundId);
             } else throw new Error("Not found");
         } catch (e) {
             setIsAddressPromptFinished(false);
@@ -238,6 +261,17 @@ export function JournalPageClient() {
         return computePlanMetrics(selectedPlan, planPositions, planBalance || undefined);
     }, [selectedPlan, planPositions, planBalance]);
 
+    const handleDisconnect = () => {
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem(IDENTITY_STORAGE_KEY);
+        }
+        setTempAddress(null);
+        setManualUserId(null);
+        setIsAddressPromptFinished(false);
+        setSelectedPlan(null);
+        setView('list');
+    };
+
     if (!isMounted) {
         return (
             <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-8">
@@ -255,19 +289,40 @@ export function JournalPageClient() {
             <header className="h-12 md:h-16 border-b border-white/5 flex items-center justify-between px-4 md:px-6 shrink-0 sticky top-0 bg-[#050505]/80 backdrop-blur-xl z-50">
                 <div className="flex items-center gap-4">
                     <div 
-                        className="text-sm font-bold tracking-tight cursor-pointer hover:text-white/80 transition-colors"
+                        className="text-xs font-black tracking-widest cursor-pointer hover:text-white/80 transition-colors opacity-50"
                         onClick={() => setView('list')}
                     >
                         JOURNAL
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                    {/* Identity Status */}
+                    {isAddressPromptFinished && (
+                        <div className="flex items-center gap-3 mr-1">
+                            <div className="flex flex-col items-end">
+                                <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest leading-none mb-0.5">Connected</span>
+                                <span className="text-[10px] font-mono text-white/60 leading-none">
+                                    {tempAddress?.slice(0, 6)}...{tempAddress?.slice(-4)}
+                                </span>
+                            </div>
+                            <button 
+                                onClick={handleDisconnect}
+                                className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-white/40 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all group"
+                                title="Disconnect Address"
+                            >
+                                <X className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="w-px h-4 bg-white/10 mx-1" />
+
                     {/* Cloud Sync Status */}
                     <button
                         onClick={() => user ? supabase.auth.signOut() : setIsAuthModalOpen(true)}
                         className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all text-[10px] font-black uppercase tracking-widest",
+                            "flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all text-[10px] font-black uppercase tracking-widest shadow-sm",
                             user 
                                 ? "bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500/20" 
                                 : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10 hover:text-white"
@@ -281,17 +336,10 @@ export function JournalPageClient() {
                             <CloudOff className="w-3 h-3" />
                         )}
                         <span className="hidden sm:inline">
-                            {isSyncing ? 'Syncing...' : user ? 'Cloud Sync On' : 'Guest Mode'}
+                            {isSyncing ? 'Syncing' : user ? 'Cloud' : 'Guest'}
                         </span>
-                        {user && <LogOut className="w-2.5 h-2.5 ml-1 opacity-40" />}
+                        {user && <LogOut className="w-2.5 h-2.5 ml-0.5 opacity-40 hover:opacity-100" />}
                     </button>
-
-                    {isAddressPromptFinished && (
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-white/40">
-                            <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                            {tempAddress?.slice(0, 6)}...{tempAddress?.slice(-4)}
-                        </div>
-                    )}
                 </div>
             </header>
 

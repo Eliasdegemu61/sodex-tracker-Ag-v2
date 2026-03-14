@@ -169,14 +169,23 @@ export async function syncLocalPlansToCloud(): Promise<void> {
     const localPlans = await getLocalPlans();
     if (localPlans.length === 0) return;
 
-    for (const plan of localPlans) {
-        await supabase.from('journal_plans').insert({
-            owner_id: user.id,
-            name: plan.name,
-            plan_data: plan
-        });
-    }
+    // Bulk map to Supabase schema
+    const rowsToInsert = localPlans.map(plan => ({
+        owner_id: user.id,
+        name: plan.name,
+        plan_data: plan
+    }));
 
-    // Clear local storage after successful sync to prevent duplicates
-    localStorage.removeItem(STORAGE_KEY);
+    const { error } = await supabase
+        .from('journal_plans')
+        .insert(rowsToInsert);
+
+    if (!error) {
+        // Clear local storage ONLY after successful sync
+        localStorage.removeItem(STORAGE_KEY);
+        console.log('[JOURNAL-STORE] Bulk sync successful:', localPlans.length, 'plans');
+    } else {
+        console.error('[JOURNAL-STORE] Bulk sync failed:', error);
+        throw error; // Rethrow to let caller handle it
+    }
 }
