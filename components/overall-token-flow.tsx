@@ -100,15 +100,21 @@ export function AssetIntelligenceDashboard() {
                 // 1. Fetch current prices
                 const prices: TokenPriceMap = await fetchTokenPrices()
 
-                // 2. Fetch data from Supabase via our generic API
-                const [totalsData, dailyData] = await Promise.all([
-                    fetch('/api/db/site-data?key=overall_sodex_totals').then(res => res.json()),
-                    fetch('/api/db/site-data?key=daily_net_flows').then(res => res.json())
+                // 2. Fetch data directly from GitHub CSVs
+                const [totalsRes, dailyRes] = await Promise.all([
+                    fetch('https://raw.githubusercontent.com/Eliasdegemu61/Fund-flow-sodex/main/overall_sodex_totals.csv', { cache: 'no-store' }),
+                    fetch('https://raw.githubusercontent.com/Eliasdegemu61/Fund-flow-sodex/main/daily_net_flows.csv', { cache: 'no-store' })
                 ]);
 
-                if (!totalsData || !dailyData) return;
+                if (!totalsRes.ok || !dailyRes.ok) throw new Error('Failed to fetch from GitHub');
 
-                // Process daily flows (dailyData is string[][] from Supabase)
+                const totalsText = await totalsRes.text();
+                const dailyText = await dailyRes.text();
+
+                const totalsData = totalsText.split('\n').filter(l => l.trim()).map(l => l.split(','));
+                const dailyData = dailyText.split('\n').filter(l => l.trim()).map(l => l.split(','));
+
+                // Process daily flows
                 const dailyFlowsByToken: Record<string, { date: string, net: number, depo: number, wth: number }[]> = {}
                 
                 // Assuming first row is header, skip it

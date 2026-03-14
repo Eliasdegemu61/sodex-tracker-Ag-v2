@@ -18,9 +18,9 @@ export function VolumeChart() {
     const fetchData = async () => {
       try {
         setIsLoading(true)
-        const response = await fetch('/api/volume/chart')
+        const response = await fetch('https://raw.githubusercontent.com/Eliasdegemu61/sodex-tracker-new-v1-data-2/main/volume_chart.json', { cache: 'no-store' })
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
+          throw new Error(`GitHub error! status: ${response.status}`)
         }
         const data: ChartDataPoint[] = await response.json()
         console.log('[v0] Fetched volume chart data:', data.length, 'records')

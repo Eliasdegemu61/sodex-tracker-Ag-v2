@@ -1,71 +1,62 @@
-// Client-side API wrapper for server-side endpoints
+// Client-side API directly hitting GitHub
+const REGISTRY_URL = 'https://raw.githubusercontent.com/Eliasdegemu61/Registory/refs/heads/main/registry.csv'
 
-interface CachedResponse {
-  data?: unknown;
-  fromCache?: boolean;
-  error?: string;
-}
+let cachedRegistry: Array<{ userId: string; address: string }> | null = null;
 
 export async function fetchRegistryFromServer(): Promise<Array<{ userId: string; address: string }>> {
+  if (cachedRegistry) return cachedRegistry;
+
   try {
-    console.log('[v0] Fetching registry from server');
-    const response = await fetch('/api/wallet/registry');
+    console.log('[GITHUB] Fetching registry directly from GitHub');
+    const response = await fetch(REGISTRY_URL, { cache: 'no-store' });
 
     if (!response.ok) {
-      console.error('[v0] Registry fetch failed with status:', response.status);
       throw new Error(`Registry fetch failed: ${response.status}`);
     }
 
-    const result: CachedResponse = await response.json();
+    const csvText = await response.text();
+    const lines = csvText.split('\n');
+    const data: Array<{ userId: string; address: string }> = [];
 
-    if (result.error) {
-      console.error('[v0] Registry error:', result.error);
-      throw new Error(result.error);
+    // Parse CSV (skip header)
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      const [address, userId] = line.split(',');
+      if (address && userId) {
+        data.push({
+          address: address.trim(),
+          userId: userId.trim()
+        });
+      }
     }
 
-    console.log('[v0] Registry fetched from server', {
-      fromCache: result.fromCache,
-      entries: (result.data as any[])?.length
-    });
-    return result.data as Array<{ userId: string; address: string }>;
+    console.log('[GITHUB] Registry fetched and parsed client-side, entries:', data.length);
+    cachedRegistry = data;
+    return data;
   } catch (error) {
-    console.error('[v0] Failed to fetch registry:', error);
+    console.error('[GITHUB] Failed to fetch registry:', error);
     throw error;
   }
 }
 
 export async function lookupWalletAddress(address: string): Promise<string> {
   try {
-    console.log('[STRICT-ID] Looking up wallet address via server API:', address);
-
-    const response = await fetch('/api/wallet/lookup', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ address }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        console.error('[STRICT-ID] Address not found in registry:', address);
-        throw new Error('Address not found in registry');
-      }
-      console.error('[STRICT-ID] Registry lookup failed with status:', response.status);
-      throw new Error(`Registry fetch failed: ${response.status}`);
+    const registry = await fetchRegistryFromServer();
+    const normalizedAddress = address.toLowerCase().trim();
+    
+    const user = registry.find(u => u.address.toLowerCase() === normalizedAddress);
+    
+    if (!user) {
+      console.error('[GITHUB] Address not found in registry:', address);
+      throw new Error('Address not found in registry');
     }
 
-    const { userId } = await response.json();
-
-    if (!userId) {
-      console.error('[STRICT-ID] Server returned success but no ID present for', address);
-      throw new Error('Registry entry malformed: missing ID');
-    }
-
-    console.log('[STRICT-ID] Wallet lookup successful:', { address, userId });
-    return String(userId);
+    console.log('[GITHUB] Wallet lookup successful (Client-Side):', { address, userId: user.userId });
+    return String(user.userId);
   } catch (error) {
-    console.error('[STRICT-ID] Failed to lookup wallet:', error);
+    console.error('[GITHUB] Failed to lookup wallet:', error);
     throw error;
   }
 }

@@ -56,14 +56,14 @@ function getTodayDate(): string {
   return today.toISOString().split('T')[0]
 }
 
-// Fetch real data from our server API (pulls from Supabase)
+// Fetch real data directly from GitHub (client-side)
 async function fetchVolumeFromApi(): Promise<VolumeApiResponse | null> {
   try {
-    const response = await fetch('/api/volume/summary');
-    if (!response.ok) throw new Error(`API error: ${response.status}`);
+    const response = await fetch(API_URL, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`GitHub error: ${response.status}`);
     return await response.json();
   } catch (error) {
-    console.error('[SUPABASE] Failed to fetch volume data from server API, falling back to mock data');
+    console.error('[GITHUB] Failed to fetch volume data from GitHub:', error);
     return null;
   }
 }
@@ -315,11 +315,11 @@ export function getTodayTopPairs(data: CachedVolumeData): {
 export async function fetchChartData(): Promise<ChartDataPoint[]> {
   return cacheManager.deduplicate(CHART_CACHE_KEY, async () => {
     try {
-      const response = await fetch('/api/volume/chart');
-      if (!response.ok) throw new Error(`Chart API error: ${response.status}`);
+      const response = await fetch(CHART_API_URL, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`GitHub Chart error: ${response.status}`);
       return await response.json();
     } catch (error) {
-      console.error('[v0] Failed to fetch chart data from API, using mock data');
+      console.error('[GITHUB] Failed to fetch chart data from GitHub, using mock data');
       return generateMockChartData();
     }
   });

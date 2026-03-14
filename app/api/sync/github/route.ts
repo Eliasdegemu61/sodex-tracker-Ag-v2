@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-client'
 
-export const maxDuration = 600; // Set max duration to 10 minutes (Vercel Pro/Enterprise or Hobby max)
+export const maxDuration = 300; // 5 minutes
 export const dynamic = 'force-dynamic';
 
 // Configuration for GitHub fetching
@@ -10,23 +10,14 @@ const TARGETS = [
   { key: 'volume_summary', url: 'https://raw.githubusercontent.com/Eliasdegemu61/sodex-tracker-new-v1-data-2/main/volume_summary.json', type: 'json' },
   { key: 'volume_chart', url: 'https://raw.githubusercontent.com/Eliasdegemu61/sodex-tracker-new-v1-data-2/main/volume_chart.json', type: 'json' },
   { key: 'daily_net_flows', url: 'https://raw.githubusercontent.com/Eliasdegemu61/Fund-flow-sodex/main/daily_net_flows.csv', type: 'csv_raw' },
-  { key: 'overall_sodex_totals', url: 'https://raw.githubusercontent.com/Eliasdegemu61/Fund-flow-sodex/main/overall_sodex_totals.csv', type: 'csv_raw' },
-  { key: 'live_stats', url: 'https://raw.githubusercontent.com/Eliasdegemu61/Sodex-Tracker-new-v1/main/live_stats.json', type: 'json' }
+  { key: 'overall_sodex_totals', url: 'https://raw.githubusercontent.com/Eliasdegemu61/Fund-flow-sodex/main/overall_sodex_totals.csv', type: 'csv_raw' }
 ]
 
 export async function POST(req: Request) {
   try {
-    // Optional: Add secret token check for security (cron only)
-    const authHeader = req.headers.get('Authorization')
-    if (process.env.CACHE_REFRESH_SECRET && authHeader !== `Bearer ${process.env.CACHE_REFRESH_SECRET}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Supabase Admin client not initialized' }, { status: 500 })
     }
-
-    const supabase = supabaseAdmin!
 
     const results = await Promise.all(TARGETS.map(async (target) => {
       try {
@@ -47,16 +38,16 @@ export async function POST(req: Request) {
             if (!line) continue
             const [address, userId] = line.split(',')
             if (address && userId) {
-              entries.push({ address: address.trim(), user_id: parseInt(userId.trim(), 10) })
+              entries.push({ address: address.trim().toLowerCase(), user_id: parseInt(userId.trim(), 10) })
             }
           }
 
-          // Batch upsert to registry table to prevent statement timeouts
+          // Batch upsert to registry table
           let hasError = false;
           let errorMessage = null;
-          for (let i = 0; i < entries.length; i += 1000) {
-            const chunk = entries.slice(i, i + 1000);
-            const { error } = await supabase
+          for (let i = 0; i < entries.length; i += 500) {
+            const chunk = entries.slice(i, i + 500);
+            const { error } = await supabaseAdmin
               .from('registry')
               .upsert(chunk, { onConflict: 'address' });
             if (error) {
@@ -66,23 +57,22 @@ export async function POST(req: Request) {
             }
           }
 
-          return { key: target.key, status: hasError ? 'error' : 'success', error: errorMessage }
+          return { key: target.key, status: hasError ? 'error' : 'success', error: errorMessage, count: entries.length }
         } 
         else if (target.type === 'json') {
           const data = await response.json()
-          const { error } = await supabase
+          const { error } = await supabaseAdmin
             .from('site_data')
-            .upsert({ key: target.key, data }, { onConflict: 'key' })
+            .upsert({ key: target.key, data, updated_at: new Date().toISOString() }, { onConflict: 'key' })
           
           return { key: target.key, status: error ? 'error' : 'success', error: error?.message }
         }
         else if (target.type === 'csv_raw') {
           const text = await response.text()
-          // Store raw CSV as JSON string or array of rows
           const data = text.split('\n').filter(line => line.trim()).map(line => line.split(','))
-          const { error } = await supabase
+          const { error } = await supabaseAdmin
             .from('site_data')
-            .upsert({ key: target.key, data }, { onConflict: 'key' })
+            .upsert({ key: target.key, data, updated_at: new Date().toISOString() }, { onConflict: 'key' })
           
           return { key: target.key, status: error ? 'error' : 'success', error: error?.message }
         }
@@ -107,7 +97,6 @@ export async function POST(req: Request) {
   }
 }
 
-// Support GET for manual testing
 export async function GET(req: Request) {
     return POST(req)
 }

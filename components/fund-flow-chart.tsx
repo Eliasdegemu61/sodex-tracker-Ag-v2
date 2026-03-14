@@ -34,8 +34,11 @@ export function FundFlowChart() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await fetch('/api/db/site-data?key=daily_net_flows')
-                const rows: string[][] = await response.json()
+                const response = await fetch('https://raw.githubusercontent.com/Eliasdegemu61/Fund-flow-sodex/main/daily_net_flows.csv', { cache: 'no-store' })
+                if (!response.ok) throw new Error('Failed to fetch from GitHub');
+                
+                const csvText = await response.text()
+                const rows = csvText.split('\n').filter(l => l.trim()).map(l => l.split(','))
 
                 if (!rows || rows.length < 2) return
 
