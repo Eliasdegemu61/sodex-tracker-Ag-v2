@@ -275,7 +275,7 @@ export default function Dashboard() {
                   }`}
                 >
                   <Icon className={`transition-all duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'} ${isScrolled ? 'w-5 h-5' : 'w-4 h-4'}`} />
-                  {!isScrolled && <span className="text-xs md:text-sm font-semibold whitespace-nowrap">{item.label}</span>}
+                  {(!isScrolled || isActive) && <span className="text-xs md:text-sm font-semibold whitespace-nowrap">{item.label}</span>}
                   
                   {isScrolled && isActive && (
                     <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-orange-400 rounded-full" />
@@ -302,16 +302,18 @@ export default function Dashboard() {
                 )}
               </Button>
             )}
-            <a href="https://sodex.com/join/TRADING" target="_blank" rel="noopener noreferrer" className={isScrolled ? "hidden lg:block" : ""}>
-              <Button variant="ghost" className={`hidden md:flex items-center gap-2 text-foreground hover:bg-secondary transition-all duration-300 ${isScrolled ? 'px-2 h-8' : 'px-3 h-9'}`}>
-                <img
-                  src="https://ssi.sosovalue.com/_next/image?url=%2Fimages%2Fwhat-is-soso%2F%24soso.png&w=256&q=75"
-                  alt="SOSO"
-                  className={isScrolled ? "w-4 h-4" : "w-5 h-5"}
-                />
-                {!isScrolled && <span className="text-sm font-semibold text-accent">Trade</span>}
-              </Button>
-            </a>
+            {!isScrolled && (
+              <a href="https://sodex.com/join/TRADING" target="_blank" rel="noopener noreferrer">
+                <Button variant="ghost" className="hidden md:flex items-center gap-2 text-foreground hover:bg-secondary transition-all duration-300 px-3 h-9">
+                  <img
+                    src="https://ssi.sosovalue.com/_next/image?url=%2Fimages%2Fwhat-is-soso%2F%24soso.png&w=256&q=75"
+                    alt="SOSO"
+                    className="w-5 h-5"
+                  />
+                  <span className="text-sm font-semibold text-accent">Trade</span>
+                </Button>
+              </a>
+            )}
             <MobileNavMenu currentPage={currentPage} onNavigate={(page: any) => setCurrentPage(page)} />
           </div>
         </div>
