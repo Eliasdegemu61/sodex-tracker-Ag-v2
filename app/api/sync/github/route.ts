@@ -15,7 +15,8 @@ const TARGETS = [
 
 export async function POST(req: Request) {
   try {
-    if (!supabaseAdmin) {
+    const admin = supabaseAdmin
+    if (!admin) {
       return NextResponse.json({ error: 'Supabase Admin client not initialized' }, { status: 500 })
     }
 
@@ -47,7 +48,7 @@ export async function POST(req: Request) {
           let errorMessage = null;
           for (let i = 0; i < entries.length; i += 500) {
             const chunk = entries.slice(i, i + 500);
-            const { error } = await supabaseAdmin
+            const { error } = await admin
               .from('registry')
               .upsert(chunk, { onConflict: 'address' });
             if (error) {
@@ -61,7 +62,7 @@ export async function POST(req: Request) {
         } 
         else if (target.type === 'json') {
           const data = await response.json()
-          const { error } = await supabaseAdmin
+          const { error } = await admin
             .from('site_data')
             .upsert({ key: target.key, data, updated_at: new Date().toISOString() }, { onConflict: 'key' })
           
@@ -70,7 +71,7 @@ export async function POST(req: Request) {
         else if (target.type === 'csv_raw') {
           const text = await response.text()
           const data = text.split('\n').filter(line => line.trim()).map(line => line.split(','))
-          const { error } = await supabaseAdmin
+          const { error } = await admin
             .from('site_data')
             .upsert({ key: target.key, data, updated_at: new Date().toISOString() }, { onConflict: 'key' })
           

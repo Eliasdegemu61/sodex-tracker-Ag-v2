@@ -4,7 +4,6 @@ import { Open_Sans } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Providers } from '@/app/providers'
 import { AnnouncementProvider } from '@/context/announcement-context'
-import { ThemeProvider } from '@/context/theme-context'
 import { FAVICON_DATA_URI } from '@/lib/image-constants'
 import './globals.css'
 
@@ -48,7 +47,7 @@ export default function RootLayout({
       </head>
       <body className={`${openSans.variable} font-sans antialiased bg-background text-foreground`}>
         <AnnouncementProvider>
-          <Providers attribute="class" defaultTheme="dark" enableSystem={false}>
+          <Providers>
             {children}
           </Providers>
         </AnnouncementProvider>

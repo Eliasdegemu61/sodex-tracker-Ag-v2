@@ -25,6 +25,7 @@ export interface ComprehensiveDexData {
     spotLeaderboard: Array<{ address: string; vol: number }>
   }
   lastUpdated: number
+  fromCache?: boolean
 }
 
 interface DexStatusContextType {

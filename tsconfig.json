@@ -36,6 +36,12 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "TRHWH_CLEAN",
+    "TRHWH_LATEST",
+    "scripts",
+    "test-sync.ts",
+    "test-prices.js",
+    "components/ui"
   ]
 }

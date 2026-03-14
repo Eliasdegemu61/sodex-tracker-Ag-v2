@@ -128,8 +128,8 @@ export function NewTradersTracker() {
       setErrorMessage('');
       setActiveTraders([]);
 
-      let startDateStr: string;
-      let endDateStr: string;
+      let startDateStr = '';
+      let endDateStr = '';
 
       if (timeRange === 'today') {
         startDateStr = getDateString(getDaysAgo(1));
