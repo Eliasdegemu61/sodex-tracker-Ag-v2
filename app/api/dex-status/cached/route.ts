@@ -2,14 +2,6 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { getCache, setCacheWithTTL, CACHE_KEYS, setCacheRefreshTime } from '@/lib/redis-service'
 
-const GITHUB_TRADERS_URL = 'https://raw.githubusercontent.com/Eliasdegemu61/Sodex-Tracker-new-v1/main/live_stats.json'
-
-interface TraderData {
-  userId: string
-  address: string
-  pnl: string
-  vol: string
-}
 
 interface DexStatusResponse {
   totalUsers: number
@@ -23,117 +15,41 @@ interface DexStatusResponse {
   fromCache: boolean
 }
 
-/**
- * Calculate average PnL by volume range
- */
-function calculateAvgPnlByVolumeRange(traders: TraderData[]): Record<string, number> {
-  const ranges = {
-    '0-10k': { min: 0, max: 10000, trades: [] as number[] },
-    '10k-50k': { min: 10000, max: 50000, trades: [] as number[] },
-    '50k-100k': { min: 50000, max: 100000, trades: [] as number[] },
-    '100k-500k': { min: 100000, max: 500000, trades: [] as number[] },
-    '500k+': { min: 500000, max: Infinity, trades: [] as number[] },
+async function fetchAndCalculateDexStats(): Promise<DexStatusResponse> {
+  // Traders data (live_stats.json) removed as per user request
+  const totalUsers = 0
+  const usersInProfit = 0
+  const usersInLoss = 0
+  const topTradersPerps: any[] = []
+  const topLoserPerps: any[] = []
+  const topGainers: any[] = []
+  const topTradersSpot: any[] = []
+  const avgPnlByVolumeRange: Record<string, number> = {}
+
+  const result: DexStatusResponse = {
+    totalUsers,
+    usersInProfit,
+    usersInLoss,
+    topTradersPerps,
+    topLoserPerps,
+    topGainers,
+    topTradersSpot,
+    avgPnlByVolumeRange,
+    fromCache: false,
   }
 
-  traders.forEach((trader) => {
-    const vol = parseFloat(trader.vol)
-    const pnl = parseFloat(trader.pnl)
-
-    for (const [key, range] of Object.entries(ranges)) {
-      if (vol >= range.min && vol < range.max) {
-        range.trades.push(pnl)
-        break
-      }
-    }
-  })
-
-  const result: Record<string, number> = {}
-  for (const [key, range] of Object.entries(ranges)) {
-    if (range.trades.length > 0) {
-      const avg = range.trades.reduce((a, b) => a + b, 0) / range.trades.length
-      result[key] = Math.round(avg * 100) / 100
-    } else {
-      result[key] = 0
-    }
-  }
+  // Cache individual values with defaults
+  await Promise.all([
+    setCacheWithTTL(CACHE_KEYS.DEX_TOTAL_USERS, totalUsers),
+    setCacheWithTTL(CACHE_KEYS.DEX_AVG_PNL_BY_VOLUME, avgPnlByVolumeRange),
+    setCacheWithTTL(CACHE_KEYS.DEX_TOP_TRADERS_PERPS, topTradersPerps),
+    setCacheWithTTL(CACHE_KEYS.DEX_TOP_LOSERS, topLoserPerps),
+    setCacheWithTTL(CACHE_KEYS.DEX_TOP_GAINERS, topGainers),
+    setCacheWithTTL(CACHE_KEYS.DEX_TOP_TRADERS_SPOT, topTradersSpot),
+    setCacheRefreshTime(),
+  ])
 
   return result
-}
-
-async function fetchAndCalculateDexStats(): Promise<DexStatusResponse> {
-  try {
-    const response = await fetch(GITHUB_TRADERS_URL, { cache: 'no-store' });
-    if (!response.ok) throw new Error(`Failed to fetch traders: ${response.status}`);
-    const traders: TraderData[] = await response.json();
-
-    const totalUsers = traders.length
-    const usersInProfit = traders.filter((t) => parseFloat(t.pnl) > 0).length
-    const usersInLoss = traders.filter((t) => parseFloat(t.pnl) < 0).length
-
-    // Sort by PnL for top traders and losers
-    const sortedByPnL = [...traders].sort((a, b) => parseFloat(b.pnl) - parseFloat(a.pnl))
-    const topTradersPerps = sortedByPnL.slice(0, 10).map((t, idx) => ({
-      rank: idx + 1,
-      userId: t.userId,
-      address: t.address,
-      pnl: parseFloat(t.pnl),
-      vol: parseFloat(t.vol),
-    }))
-
-    const topLoserPerps = sortedByPnL.slice(-5).reverse().map((t, idx) => ({
-      rank: idx + 1,
-      userId: t.userId,
-      address: t.address,
-      pnl: parseFloat(t.pnl),
-      vol: parseFloat(t.vol),
-    }))
-
-    const topGainers = sortedByPnL
-      .filter((t) => parseFloat(t.pnl) > 0)
-      .slice(0, 5)
-      .map((t, idx) => ({
-        rank: idx + 1,
-        userId: t.userId,
-        address: t.address,
-        pnl: parseFloat(t.pnl),
-        vol: parseFloat(t.vol),
-      }))
-
-    // For spot traders, we would fetch spot data if available
-    // For now, using empty array - update when spot data source is available
-    const topTradersSpot: Array<{ rank: number; address: string; vol: number }> = []
-
-    const avgPnlByVolumeRange = calculateAvgPnlByVolumeRange(traders)
-
-    const result: DexStatusResponse = {
-      totalUsers,
-      usersInProfit,
-      usersInLoss,
-      topTradersPerps,
-      topLoserPerps,
-      topGainers,
-      topTradersSpot,
-      avgPnlByVolumeRange,
-      fromCache: false,
-    }
-
-    // Cache all individual values
-    await Promise.all([
-      setCacheWithTTL(CACHE_KEYS.DEX_TOTAL_USERS, totalUsers),
-      setCacheWithTTL(CACHE_KEYS.DEX_AVG_PNL_BY_VOLUME, avgPnlByVolumeRange),
-      setCacheWithTTL(CACHE_KEYS.DEX_TOP_TRADERS_PERPS, topTradersPerps),
-      setCacheWithTTL(CACHE_KEYS.DEX_TOP_LOSERS, topLoserPerps),
-      setCacheWithTTL(CACHE_KEYS.DEX_TOP_GAINERS, topGainers),
-      setCacheWithTTL(CACHE_KEYS.DEX_TOP_TRADERS_SPOT, topTradersSpot),
-      setCacheRefreshTime(),
-    ])
-
-    console.log('[v0] DEX Status data cached successfully')
-    return result
-  } catch (error) {
-    console.error('[v0] Error fetching DEX data:', error)
-    throw error
-  }
 }
 
 export async function GET(request: NextRequest) {

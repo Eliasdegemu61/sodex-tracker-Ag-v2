@@ -17,8 +17,6 @@ import { TopPairsWidget } from '@/components/top-pairs-widget'
 import { TodayTopPairs } from '@/components/today-top-pairs'
 import { OverallDepositsCard, NetRemainingCard } from '@/components/overall-token-flow'
 import { LeaderboardPage } from '@/components/leaderboard-page'
-import { ProfitEfficiencyCard } from '@/components/profit-efficiency-card'
-import { OverallProfitEfficiencyCard } from '@/components/overall-profit-efficiency-card'
 import { TVLCard } from '@/components/tvl-card'
 import { VolumeRangeCard } from '@/components/volume-range-card'
 import { AnnouncementsPanel } from '@/components/announcements-panel'
@@ -381,7 +379,6 @@ export default function Dashboard() {
                   <TodayTopPairs />
                   <FundFlowChart />
 
-                  {/* Extra Mobile Cards - Integrated here to maintain spacing */}
                   <div className="lg:hidden space-y-3">
                     <TVLCard />
                     <AnnouncementsPanel />

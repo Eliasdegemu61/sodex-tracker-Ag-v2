@@ -54,28 +54,24 @@ async function calculateComprehensiveData(): Promise<CacheData> {
   console.log('[v0] Server: Calculating comprehensive DEX and Leaderboard data')
 
   try {
-    // Fetch all required data from GitHub
-    const [tradersRes, volumeRes] = await Promise.all([
-      fetch(GITHUB_URLS.traders, { cache: 'no-store' }),
-      fetch(GITHUB_URLS.volume, { cache: 'no-store' }),
-    ])
+    // Fetch only volume data as traders data (live_stats.json) is removed
+    const volumeRes = await fetch(GITHUB_URLS.volume, { cache: 'no-store' })
 
-    if (!tradersRes.ok || !volumeRes.ok) {
-      throw new Error('Failed to fetch GitHub data')
+    if (!volumeRes.ok) {
+      throw new Error('Failed to fetch volume data from GitHub')
     }
 
-    const traders: LeaderboardEntry[] = await tradersRes.json()
     const volumeData = await volumeRes.json()
 
     // --- DEX STATUS CALCULATIONS ---
+    // Trader stats removed as per user request to stop using live_stats.json
 
-    // Total users and stats
-    const totalUsers = traders.length
-    const usersInProfit = traders.filter(t => parseFloat(t.pnl) > 0).length
-    const usersInLoss = traders.filter(t => parseFloat(t.pnl) < 0).length
+    const totalUsers = 0
+    const usersInProfit = 0
+    const usersInLoss = 0
 
     // Volume calculations
-    const totalVolume = traders.reduce((sum, t) => sum + parseFloat(t.vol), 0)
+    const totalVolume = 0 // Adjust if needed
     const spotVolume = volumeData.all_time_stats.total_spot_volume || 0
     const perpVolume = volumeData.all_time_stats.total_futures_volume || 0
     const spotVsPerpsRatio = {
@@ -83,67 +79,14 @@ async function calculateComprehensiveData(): Promise<CacheData> {
       perps: perpVolume / (spotVolume + perpVolume),
     }
 
-    // Top Gainers and Losers
-    const topGainers = traders
-      .filter(t => parseFloat(t.pnl) > 0)
-      .sort((a, b) => parseFloat(b.pnl) - parseFloat(a.pnl))
-      .slice(0, 5)
-      .map(t => ({
-        userId: t.userId,
-        address: t.address,
-        pnl: parseFloat(t.pnl),
-        vol: parseFloat(t.vol),
-      }))
-
-    const topLosers = traders
-      .filter(t => parseFloat(t.pnl) < 0)
-      .sort((a, b) => parseFloat(a.pnl) - parseFloat(b.pnl))
-      .slice(0, 5)
-      .map(t => ({
-        userId: t.userId,
-        address: t.address,
-        pnl: parseFloat(t.pnl),
-        vol: parseFloat(t.vol),
-      }))
-
-    // PnL by Volume Range
-    const volumeRanges = [
-      { min: 0, max: 10000, label: '$0 - $10K' },
-      { min: 10000, max: 50000, label: '$10K - $50K' },
-      { min: 50000, max: 100000, label: '$50K - $100K' },
-      { min: 100000, max: 500000, label: '$100K - $500K' },
-      { min: 500000, max: Infinity, label: '$500K+' },
-    ]
-
-    const pnlByVolumeRange = volumeRanges.map(range => {
-      const inRange = traders.filter(t => {
-        const vol = parseFloat(t.vol)
-        return vol >= range.min && vol < range.max
-      })
-      const avgPnl = inRange.length > 0
-        ? inRange.reduce((sum, t) => sum + parseFloat(t.pnl), 0) / inRange.length
-        : 0
-      return {
-        range: range.label,
-        avgPnl,
-        count: inRange.length,
-      }
-    })
-
-    // Overall Profit Efficiency
-    const profitUsers = traders.filter(t => parseFloat(t.pnl) > 0)
-    const avgProfit = profitUsers.length > 0
-      ? profitUsers.reduce((sum, t) => sum + parseFloat(t.pnl), 0) / profitUsers.length
-      : 0
-    const lossUsers = traders.filter(t => parseFloat(t.pnl) < 0)
-    const avgLoss = lossUsers.length > 0
-      ? lossUsers.reduce((sum, t) => sum + parseFloat(t.pnl), 0) / lossUsers.length
-      : 0
-
+    // Empty stats for traders
+    const topGainers: any[] = []
+    const topLosers: any[] = []
+    const pnlByVolumeRange: any[] = []
     const overallProfitEfficiency = {
-      profitUsers: profitUsers.length,
-      avgProfit,
-      avgLoss,
+      profitUsers: 0,
+      avgProfit: 0,
+      avgLoss: 0,
     }
 
     // Top Pairs
@@ -157,30 +100,13 @@ async function calculateComprehensiveData(): Promise<CacheData> {
       volume: p.volume,
     })) || []
 
-    // Top Traders
-    const topTradersSpot = traders
-      .sort((a, b) => parseFloat(b.vol) - parseFloat(a.vol))
-      .slice(0, 10)
-      .map((t, idx) => ({
-        address: t.address,
-        volume: parseFloat(t.vol),
-        rank: idx + 1,
-      }))
-
-    const topTradersPrerps = traders
-      .sort((a, b) => parseFloat(b.vol) - parseFloat(a.vol))
-      .slice(0, 10)
-      .map((t, idx) => ({
-        address: t.address,
-        volume: parseFloat(t.vol),
-        rank: idx + 1,
-      }))
+    // Top Traders (Empty as they rely on traders data)
+    const topTradersSpot: any[] = []
+    const topTradersPrerps: any[] = []
 
     // --- LEADERBOARD CALCULATIONS ---
-
-    // Perps Leaderboard (sorted by volume)
-    const perpsLeaderboard = traders
-      .sort((a, b) => parseFloat(b.vol) - parseFloat(a.vol))
+    // Perps Leaderboard empty
+    const perpsLeaderboard: any[] = []
 
 
     // Compile all data
