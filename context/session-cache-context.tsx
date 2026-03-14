@@ -17,33 +17,6 @@ interface SessionCacheContextType {
 
 const SessionCacheContext = createContext<SessionCacheContextType | undefined>(undefined)
 
-const parseCSV = (csvText: string): any[] => {
-  const lines = csvText.trim().split('\n')
-  const entries: any[] = []
-
-  // Skip header
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i].trim()
-    if (!line) continue
-
-    const parts = line.split(',')
-    if (parts.length >= 4) {
-      try {
-        entries.push({
-          rank: parseInt(parts[0]),
-          userId: parts[1],
-          address: parts[2].trim(),
-          vol: parseFloat(parts[3]),
-          pnl: parts[4] ? parseFloat(parts[4]) : undefined,
-        })
-      } catch (e) {
-        console.error('[v0] Error parsing CSV line:', line)
-      }
-    }
-  }
-
-  return entries
-}
 
 export function SessionCacheProvider({ children }: { children: ReactNode }) {
   const [leaderboardCache, setLeaderboardCache] = useState<LeaderboardData | null>(null)
@@ -59,22 +32,14 @@ export function SessionCacheProvider({ children }: { children: ReactNode }) {
     setIsPreloadingLeaderboard(true)
     try {
       console.log('[v0] Preloading leaderboard data in background...')
-
-      // Fetch spot leaderboard data
-      const spotResponse = await fetch('https://raw.githubusercontent.com/Eliasdegemu61/sodex-finalised-raw-data/refs/heads/main/spot_leaderboard.csv')
-      const spotText = await spotResponse.text()
-
-      const spotData = parseCSV(spotText)
-
+      // spot_leaderboard.csv fetching removed as per user request
+      
       const cachedData: LeaderboardData = {
-        spotData,
+        spotData: [],
         lastFetched: Date.now(),
       }
 
       setLeaderboardCache(cachedData)
-      console.log('[v0] Leaderboard data preloaded successfully:', {
-        spotCount: spotData.length,
-      })
     } catch (error) {
       console.error('[v0] Error preloading leaderboard data:', error)
     } finally {

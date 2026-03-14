@@ -148,10 +148,10 @@ export function TopPairsWidget() {
 
           {/* Right Side: Tabs List & Content */}
           <div className="w-full z-10">
-            <TabsList className="grid grid-cols-3 bg-secondary/5 p-1 rounded-2xl border border-border/5 mb-6 w-full">
-              <TabsTrigger value="all" className="text-[10px] font-bold py-2 rounded-xl data-[state=active]:bg-orange-500 data-[state=active]:text-white transition-all">All</TabsTrigger>
-              <TabsTrigger value="spot" className="text-[10px] font-bold py-2 rounded-xl data-[state=active]:bg-orange-400 data-[state=active]:text-white transition-all">Spot</TabsTrigger>
-              <TabsTrigger value="futures" className="text-[10px] font-bold py-2 rounded-xl data-[state=active]:bg-orange-600 data-[state=active]:text-white transition-all">Futures</TabsTrigger>
+            <TabsList className="grid grid-cols-3 bg-secondary/5 dark:bg-white/[0.03] p-1 rounded-2xl border border-border/10 dark:border-white/10 mb-6 w-full shadow-sm">
+              <TabsTrigger value="all" className="text-[10px] font-bold py-2 rounded-xl data-[state=active]:bg-orange-500 data-[state=active]:text-white transition-all dark:text-muted-foreground/50 dark:data-[state=active]:text-white dark:hover:text-foreground/80">All</TabsTrigger>
+              <TabsTrigger value="spot" className="text-[10px] font-bold py-2 rounded-xl data-[state=active]:bg-orange-400 data-[state=active]:text-white transition-all dark:text-muted-foreground/50 dark:data-[state=active]:text-white dark:hover:text-foreground/80">Spot</TabsTrigger>
+              <TabsTrigger value="futures" className="text-[10px] font-bold py-2 rounded-xl data-[state=active]:bg-orange-600 data-[state=active]:text-white transition-all dark:text-muted-foreground/50 dark:data-[state=active]:text-white dark:hover:text-foreground/80">Futures</TabsTrigger>
             </TabsList>
 
             <TabsContent value="all" className="space-y-2 mt-0 outline-none">
