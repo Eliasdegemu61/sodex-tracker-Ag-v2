@@ -52,9 +52,13 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
     fetchUserData()
   }, [])
 
-  const isLoading = dexLoading || volumeLoading || userLoading
+  const isLoading = (dexLoading || volumeLoading || userLoading) && (!volumeData && userData.length === 0)
 
-  if (isLoading || !overallStats || !volumeData || userData.length === 0) {
+  useEffect(() => {
+    console.log('[DEBUG] DashboardStats:', { dexLoading, volumeLoading, userLoading, overallStats, volumeData, userDataLength: userData.length })
+  }, [dexLoading, volumeLoading, userLoading, overallStats, volumeData, userData])
+
+  if (isLoading || (!overallStats && dexLoading) || !volumeData) {
     return (
       <div className="space-y-2 mb-4">
         {variant === 'compact' ? (
