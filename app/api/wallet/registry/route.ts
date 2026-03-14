@@ -20,29 +20,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ data: cached, fromCache: true });
     }
 
-    // 2. Try Supabase
-    try {
-      const { supabase } = await import('@/lib/supabase-client');
-      const { data: dbData, error: dbError } = await supabase
-        .from('registry')
-        .select('*');
-      
-      if (!dbError && dbData && dbData.length > 0) {
-        // Map to expected interface
-        const mapped = dbData.map(item => ({
-          address: item.address,
-          userId: String(item.user_id)
-        }));
-        
-        console.log('[SUPABASE] Registry fetched from DB, entries:', mapped.length);
-        await cacheManager.set(cacheKey, mapped, CACHE_DURATION);
-        return NextResponse.json({ data: mapped, fromCache: false, source: 'supabase' });
-      }
-    } catch (e) {
-      console.warn('[SUPABASE] Registry DB fetch failed, falling back to GitHub:', e);
-    }
-
-    // 3. Fallback: Fetch from GitHub
+    // 2. Fetch from GitHub
     console.log('[STRICT-ID] Fetching registry CSV from GitHub');
     const response = await fetch(
       'https://raw.githubusercontent.com/Eliasdegemu61/Registory/refs/heads/main/registry.csv',

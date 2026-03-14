@@ -32,26 +32,7 @@ export async function GET() {
       return NextResponse.json(cachedData);
     }
 
-    // Try Supabase first
-    try {
-      const { supabase } = await import('@/lib/supabase-client');
-      const { data: dbData, error: dbError } = await supabase
-        .from('site_data')
-        .select('data')
-        .eq('key', 'volume_summary')
-        .single();
-      
-      if (!dbError && dbData) {
-        cachedData = dbData.data as any;
-        lastCacheTime = now;
-        console.log('[SUPABASE] Volume Summary fetched from DB');
-        return NextResponse.json(cachedData);
-      }
-    } catch (e) {
-      console.warn('[SUPABASE] Volume Summary DB fetch failed, falling back to GitHub:', e);
-    }
-
-    // Fallback: Fetch from GitHub
+    // Fetch from GitHub
     const token = process.env.GITHUB_TOKEN;
     const response = await fetch(VOLUME_SUMMARY_URL, {
       headers: token ? { Authorization: `token ${token}` } : {},
