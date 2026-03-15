@@ -36,7 +36,7 @@ export function PerformanceCalendar({ days }: PerformanceCalendarProps) {
         if (dayNumber <= 0 || dayNumber > totalDays) return null;
         
         const date = new Date(viewDate.getFullYear(), viewDate.getMonth(), dayNumber);
-        const dateStr = date.toISOString().slice(0, 10);
+        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
         return {
             dateStr,
             dayNumber,
@@ -81,7 +81,9 @@ export function PerformanceCalendar({ days }: PerformanceCalendarProps) {
                     
                     const isProfit = day.data && day.data.dailyPnl > 0;
                     const isLoss = day.data && day.data.dailyPnl < 0;
-                    const isToday = day.dateStr === new Date().toISOString().slice(0, 10);
+                    const now = new Date();
+                    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                    const isToday = day.dateStr === todayStr;
 
                     return (
                         <div 

@@ -16,7 +16,10 @@ import type {
 function toDateStr(ts: number | string | Date): string {
     const d = new Date(ts);
     if (isNaN(d.getTime())) return '0000-00-00';
-    return d.toISOString().slice(0, 10);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
 }
 
 function daysBetween(a: string, b: string): number {

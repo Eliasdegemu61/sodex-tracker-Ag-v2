@@ -102,7 +102,9 @@ export function ModernCalendar({ selectedDate, onSelect, onClose }: ModernCalend
             <div className="grid grid-cols-7 gap-1">
                 {calendarDays.map((item, idx) => {
                     const isSelected = item.date === selectedDate;
-                    const isToday = item.date === new Date().toISOString().slice(0, 10);
+                    const now = new Date();
+                    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                    const isToday = item.date === todayStr;
 
                     return (
                         <button
