@@ -20,9 +20,9 @@ export function CyberCard({
             className={cn(
                 "relative transition-all duration-300",
                 onClick && "cursor-pointer",
-                variant === 'default' && "p-6 rounded-2xl bg-[#111] border border-white/5",
-                variant === 'accent' && "p-6 rounded-2xl bg-[#111] border border-white/10",
-                variant === 'slim' && "p-4 rounded-xl bg-[#111] border border-white/5",
+                variant === 'default' && "p-6 rounded-2xl bg-black/40 border border-white/5",
+                variant === 'accent' && "p-6 rounded-2xl bg-black/60 border border-white/10",
+                variant === 'slim' && "p-4 rounded-xl bg-black/40 border border-white/5",
                 className
             )}>
             <div className="relative z-10">{children}</div>

@@ -10,6 +10,10 @@ import { PerformanceCalendar } from './performance-calendar';
 import { PerformanceStreak } from './performance-streak';
 import { DailyPerformanceHistory } from './daily-performance-history';
 import { EquityChart } from './equity-chart';
+import { OpenPositions } from '@/components/open-positions';
+import { TradeAnalytics } from './trade-analytics';
+import { DisciplineScore } from './discipline-score';
+import { RuleViolations } from './rule-violations';
 
 interface PlanDashboardProps {
     metrics: PlanMetrics;
@@ -19,7 +23,7 @@ interface PlanDashboardProps {
 
 function StatCard({ label, value, sub, accent }: { label: string; value: string; sub?: string; accent?: 'green' | 'red' | 'orange' }) {
     return (
-        <div className="flex flex-col gap-0.5 p-3 md:p-4 rounded-2xl bg-white/[0.03] border border-white/5">
+        <div className="flex flex-col gap-0.5 p-3 md:p-4 rounded-2xl bg-black/40 border border-white/5">
             <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest">{label}</span>
             <div className="flex items-baseline gap-1.5">
                 <span className={cn(
@@ -143,7 +147,7 @@ export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps
             </div>
 
             {/* Progress Bars */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 bg-white/[0.02] border border-white/5 rounded-3xl p-8 md:p-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 bg-black/20 border border-white/5 rounded-3xl p-8 md:p-10">
                 <MiniProgressBar
                     percent={timeProgressPercent}
                     label="Current Cycle"
@@ -161,7 +165,7 @@ export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps
             </div>
 
             {/* Balance Chart */}
-            <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 md:p-8">
+            <div className="bg-black/20 border border-white/5 rounded-3xl p-6 md:p-8">
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] mb-1">Account Balance</h3>
@@ -174,6 +178,12 @@ export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps
                 <EquityChart data={metrics.equityCurve} />
             </div>
 
+            {/* Active Positions Section */}
+            <div className="space-y-6">
+                <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Active Positions</h3>
+                <OpenPositions accountId={accountId} />
+            </div>
+
             {/* Streak & Calendar Section */}
             <div className="space-y-12">
                 <PerformanceStreak days={metrics.dailyPerformance} />
@@ -183,40 +193,16 @@ export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps
                     <DailyPerformanceHistory days={metrics.dailyPerformance} />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-                    <div>
-                        <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] mb-4">Daily Consistency</h3>
-                        <div className="p-6 md:p-8 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col items-center justify-center text-center space-y-4 h-full">
-                            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full border border-white/10 flex items-center justify-center">
-                                <BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-white/20" />
-                            </div>
-                            <div>
-                                <p className="text-xl md:text-2xl font-bold text-white">{metrics.disciplineScore.overall}%</p>
-                                <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mt-0.5">Discipline Score</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col">
-                        <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] mb-4">Efficiency Metrics</h3>
-                        <div className="p-6 md:p-8 rounded-2xl bg-white/[0.03] border border-white/5 space-y-4 flex-1 flex flex-col justify-center">
-                            <div className="space-y-5 md:space-y-6">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Profit Factor</span>
-                                    <span className="text-[13px] font-bold text-white tracking-tight">{metrics.profitFactor.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Avg Win</span>
-                                    <span className="text-[13px] font-bold text-green-400 tracking-tight">+${metrics.avgWin.toFixed(0)}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Avg Loss</span>
-                                    <span className="text-[13px] font-bold text-red-400 tracking-tight">-${Math.abs(metrics.avgLoss).toFixed(0)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+                    <DisciplineScore score={metrics.disciplineScore} />
+                    <RuleViolations violations={metrics.violations} />
                 </div>
+            </div>
+
+            {/* Trade Analytics Section */}
+            <div className="space-y-6">
+                <h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Asset Analytics</h3>
+                <TradeAnalytics analytics={metrics.symbolAnalytics} />
             </div>
 
             {/* Detailed States */}

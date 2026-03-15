@@ -15,7 +15,7 @@ export function TradeAnalytics({ analytics }: TradeAnalyticsProps) {
 
     if (analytics.length === 0) {
         return (
-            <Card className="p-5 bg-card/95 border border-border/20 rounded-3xl">
+            <Card className="p-5 bg-black/40 border border-border/20 rounded-3xl">
                 <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-4">Trade Analytics</h3>
                 <p className="text-sm text-muted-foreground/30 text-center py-8">No trades in this plan period</p>
             </Card>
@@ -47,22 +47,22 @@ export function TradeAnalytics({ analytics }: TradeAnalyticsProps) {
     );
 
     return (
-        <Card className="p-5 bg-card/95 border border-border/20 rounded-3xl">
+        <Card className="p-5 bg-black/40 border border-border/20 rounded-3xl">
             <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-4">Trade Analytics</h3>
 
             {/* Highlights */}
             <div className="grid grid-cols-3 gap-3 mb-5">
-                <div className="p-3 rounded-2xl bg-secondary/10 border border-border/10">
+                <div className="p-3 rounded-2xl bg-black/20 border border-border/10">
                     <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">Most Traded</p>
                     <p className="text-sm font-bold text-foreground mt-1">{mostTraded?.symbol ?? '—'}</p>
                     <p className="text-[10px] text-muted-foreground/40">{mostTraded?.trades ?? 0} trades</p>
                 </div>
-                <div className="p-3 rounded-2xl bg-green-500/5 border border-green-500/10">
+                <div className="p-3 rounded-2xl bg-black/20 border border-green-500/10">
                     <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">Best Asset</p>
                     <p className="text-sm font-bold text-green-400 mt-1">{bestSymbol?.symbol ?? '—'}</p>
                     <p className="text-[10px] text-green-400/60">+${bestSymbol?.totalPnl?.toFixed(2) ?? '0'}</p>
                 </div>
-                <div className="p-3 rounded-2xl bg-red-500/5 border border-red-500/10">
+                <div className="p-3 rounded-2xl bg-black/20 border border-red-500/10">
                     <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">Worst Asset</p>
                     <p className="text-sm font-bold text-red-400 mt-1">{worstSymbol?.symbol ?? '—'}</p>
                     <p className="text-[10px] text-red-400/60">${worstSymbol?.totalPnl?.toFixed(2) ?? '0'}</p>
@@ -87,7 +87,7 @@ export function TradeAnalytics({ analytics }: TradeAnalyticsProps) {
                     </thead>
                     <tbody>
                         {sorted.map((row) => (
-                            <tr key={row.symbol} className="bg-secondary/5 hover:bg-secondary/10 transition-colors rounded-xl">
+                            <tr key={row.symbol} className="bg-black/20 hover:bg-black/40 transition-colors rounded-xl">
                                 <td className="py-2.5 px-2 first:rounded-l-xl font-bold text-foreground/80">{row.symbol}</td>
                                 <td className="py-2.5 px-2 text-right text-muted-foreground/60">{row.trades}</td>
                                 <td className={`py-2.5 px-2 text-right font-bold ${row.winRate >= 50 ? 'text-green-400' : 'text-red-400'}`}>

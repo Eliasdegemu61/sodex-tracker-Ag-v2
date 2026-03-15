@@ -12,8 +12,9 @@ import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 import { getTokenLogo } from '@/lib/token-logos';
 import { Clock, Target, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
 
-export function OpenPositions() {
-  const { userId } = usePortfolio();
+export function OpenPositions({ accountId }: { accountId?: string | null }) {
+  const portfolio = usePortfolio();
+  const userId = accountId || portfolio?.userId;
   const [openPositions, setOpenPositions] = useState<OpenPositionData[]>([]);
   const [balanceData, setBalanceData] = useState<BalanceData | null>(null);
   const [openOrders, setOpenOrders] = useState<OpenOrderData[]>([]);
@@ -207,7 +208,7 @@ export function OpenPositions() {
   }
 
   return (
-    <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm overflow-hidden">
+    <Card className="p-5 bg-black/40 shadow-sm border border-border/20 rounded-3xl shadow-sm overflow-hidden">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
         <div className="flex items-center gap-3">
           <h3 className="text-xs font-semibold text-muted-foreground/60">Open Positions</h3>
@@ -225,17 +226,17 @@ export function OpenPositions() {
       {/* Balance Info */}
       {balanceData && (
         <div className="grid grid-cols-3 gap-2 mb-8">
-          <div className="p-2 md:p-4 rounded-2xl bg-secondary/5 border border-border/5 space-y-1">
+          <div className="p-2 md:p-4 rounded-2xl bg-black/20 border border-border/5 space-y-1">
             <p className="text-[7px] text-muted-foreground/30 font-bold">Wallet Balance</p>
             <p className="text-sm md:text-xl font-bold tracking-tight text-foreground/80">${parseFloat(balanceData.walletBalance).toFixed(2)}</p>
             <p className="text-[7px] text-muted-foreground/20 font-bold hidden sm:block">perpetuals (usdc)</p>
           </div>
-          <div className="p-2 md:p-4 rounded-2xl bg-secondary/5 border border-border/5 space-y-1">
+          <div className="p-2 md:p-4 rounded-2xl bg-black/20 border border-border/5 space-y-1">
             <p className="text-[7px] text-muted-foreground/30 font-bold">Liquidity</p>
             <p className="text-sm md:text-xl font-bold tracking-tight text-green-400">${parseFloat(balanceData.availableBalance).toFixed(2)}</p>
             <p className="text-[7px] text-muted-foreground/20 font-bold hidden sm:block">Available to trade</p>
           </div>
-          <div className="p-2 md:p-4 rounded-2xl bg-secondary/5 border border-border/5 space-y-1">
+          <div className="p-2 md:p-4 rounded-2xl bg-black/20 border border-border/5 space-y-1">
             <p className="text-[7px] text-muted-foreground/30 font-bold">Exposure</p>
             <p className="text-sm md:text-xl font-bold tracking-tight text-orange-400">${totalMarginInUse.toFixed(2)}</p>
             <p className="text-[7px] text-muted-foreground/20 font-bold hidden sm:block">Margin in use</p>
@@ -248,7 +249,7 @@ export function OpenPositions() {
         {paginatedPositions.map((pos) => {
           const isProfit = pos.unrealized >= 0;
           return (
-            <Card key={pos.id} className="group relative overflow-hidden bg-card/95 shadow-sm border border-border/20 rounded-3xl transition-all hover:border-accent/10">
+            <Card key={pos.id} className="group relative overflow-hidden bg-black/40 shadow-sm border border-border/20 rounded-3xl transition-all hover:border-accent/10">
               <div className={`absolute top-0 right-0 w-32 h-32 blur-[60px] opacity-10 transition-colors ${isProfit ? 'bg-green-500' : 'bg-red-500'}`} />
 
               <div className="p-4 md:p-5 space-y-3">
@@ -314,7 +315,7 @@ export function OpenPositions() {
                     { label: 'margin', val: `$${pos.margin.toFixed(2)}`, color: 'text-orange-400/80' },
                     { label: 'liq. price', val: `$${pos.liquidation.toFixed(2)}`, color: 'text-red-500/80' }
                   ].map((stat, i) => (
-                    <div key={i} className="p-2.5 rounded-2xl bg-secondary/10 border border-border/5">
+                    <div key={i} className="p-2.5 rounded-2xl bg-black/20 border border-border/5">
                       <p className="text-[7px] text-muted-foreground/40 uppercase font-bold mb-0.5">{stat.label}</p>
                       <p className={`text-[10px] font-bold truncate ${stat.color || ''}`}>{stat.val}</p>
                     </div>

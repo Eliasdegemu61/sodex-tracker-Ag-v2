@@ -50,7 +50,7 @@ export function DisciplineScore({ score }: DisciplineScoreProps) {
                 score.overall >= 50 ? 'text-orange-400' : 'text-red-400';
 
     return (
-        <Card className="p-5 bg-card/95 border border-border/20 rounded-3xl">
+        <Card className="p-5 bg-black/40 border border-border/20 rounded-3xl">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">
                     Discipline Score
