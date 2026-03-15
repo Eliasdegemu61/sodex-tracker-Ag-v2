@@ -51,7 +51,7 @@ export function DailyAnalysis({ allPositions, dailyPerformance }: DailyAnalysisP
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col gap-6">
                 <div className="flex items-center gap-3">
                     <div className="p-2 rounded-xl bg-white/5 border border-white/10">
                         <BarChart3 className="w-5 h-5 text-white/60" />
@@ -62,20 +62,50 @@ export function DailyAnalysis({ allPositions, dailyPerformance }: DailyAnalysisP
                     </div>
                 </div>
 
-                <div className="relative group">
-                    <select
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        className="appearance-none bg-white/5 border border-white/10 rounded-xl px-4 py-2 pr-10 text-xs font-bold text-white/80 outline-none focus:border-white/20 transition-all cursor-pointer w-full md:w-auto"
-                    >
-                        {availableDates.length === 0 && <option value={todayStr}>{todayStr}</option>}
-                        {availableDates.map(date => (
-                            <option key={date} value={date} className="bg-[#0f0f0f] text-white">
-                                {new Date(date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
-                            </option>
-                        ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20 pointer-events-none group-hover:text-white/40 transition-colors" />
+                <div className="relative">
+                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 mask-fade-right">
+                        {availableDates.length === 0 && (
+                            <div className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-white/20 uppercase tracking-widest">
+                                No data
+                            </div>
+                        )}
+                        {availableDates.map(date => {
+                            const isSelected = selectedDate === date;
+                            const d = new Date(date);
+                            const dayName = d.toLocaleDateString(undefined, { weekday: 'short' });
+                            const dayNum = d.toLocaleDateString(undefined, { day: 'numeric' });
+                            const monthName = d.toLocaleDateString(undefined, { month: 'short' });
+
+                            return (
+                                <button
+                                    key={date}
+                                    onClick={() => setSelectedDate(date)}
+                                    className={cn(
+                                        "flex flex-col items-center min-w-[64px] py-3 rounded-2xl border transition-all duration-300",
+                                        isSelected 
+                                            ? "bg-white border-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]" 
+                                            : "bg-white/5 border-white/5 text-white/40 hover:bg-white/10 hover:border-white/10"
+                                    )}
+                                >
+                                    <span className={cn(
+                                        "text-[9px] font-black uppercase tracking-widest mb-1",
+                                        isSelected ? "text-black/40" : "text-white/20"
+                                    )}>
+                                        {dayName}
+                                    </span>
+                                    <span className="text-sm font-black leading-none mb-1">
+                                        {dayNum}
+                                    </span>
+                                    <span className={cn(
+                                        "text-[9px] font-bold uppercase",
+                                        isSelected ? "text-black/60" : "text-white/20"
+                                    )}>
+                                        {monthName}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
 
