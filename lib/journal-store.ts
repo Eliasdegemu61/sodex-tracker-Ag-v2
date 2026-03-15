@@ -69,12 +69,13 @@ export async function savePlan(plan: Omit<TradingPlan, 'id' | 'createdAt'>): Pro
             .insert({
                 owner_id: user.id,
                 name: plan.name,
-                plan_data: newPlanData
+                plan_data: { ...newPlanData, owner_id: user.id }
             })
             .select()
             .single();
         
         if (!error && data) {
+            console.log('[JOURNAL-STORE] Plan saved to cloud:', plan.name);
             return {
                 ...newPlanData,
                 id: data.id,
@@ -169,11 +170,13 @@ export async function syncLocalPlansToCloud(): Promise<void> {
     const localPlans = await getLocalPlans();
     if (localPlans.length === 0) return;
 
+    console.log('[JOURNAL-STORE] Syncing', localPlans.length, 'local plans to cloud...');
+
     // Bulk map to Supabase schema
     const rowsToInsert = localPlans.map(plan => ({
         owner_id: user.id,
         name: plan.name,
-        plan_data: plan
+        plan_data: { ...plan, owner_id: user.id }
     }));
 
     const { error } = await supabase
@@ -183,9 +186,13 @@ export async function syncLocalPlansToCloud(): Promise<void> {
     if (!error) {
         // Clear local storage ONLY after successful sync
         localStorage.removeItem(STORAGE_KEY);
-        console.log('[JOURNAL-STORE] Bulk sync successful:', localPlans.length, 'plans');
+        console.log('[JOURNAL-STORE] Bulk sync successful');
     } else {
         console.error('[JOURNAL-STORE] Bulk sync failed:', error);
-        throw error; // Rethrow to let caller handle it
+        // If it's a duplication error (23505), we might want to clear local anyway or handle it
+        if ((error as any).code === '23505') {
+             localStorage.removeItem(STORAGE_KEY);
+        }
+        throw error;
     }
 }
