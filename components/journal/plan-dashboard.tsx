@@ -14,6 +14,7 @@ import { OpenPositions } from '@/components/open-positions';
 import { TradeAnalytics } from './trade-analytics';
 import { DisciplineScore } from './discipline-score';
 import { RuleViolations } from './rule-violations';
+import { DailyAnalysis } from './daily-analysis';
 
 interface PlanDashboardProps {
     metrics: PlanMetrics;
@@ -234,6 +235,12 @@ export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps
                     </p>
                 </div>
             </div>
+
+            {/* Daily Analysis */}
+            <DailyAnalysis 
+                allPositions={allPositions} 
+                dailyPerformance={metrics.dailyPerformance} 
+            />
 
             {/* Position History */}
             <div className="space-y-4 md:space-y-6">
