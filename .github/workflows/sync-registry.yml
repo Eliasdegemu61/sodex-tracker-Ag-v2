@@ -1,0 +1,14 @@
+name: Registry Sync
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Sync API
+        run: |
+          curl -X GET "https://sodex-tracker-ag-v2.vercel.app/api/sync/github"
