@@ -45,28 +45,21 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
     if (!reversePrefix && !reverseSuffix) return
     setIsLoadingReverse(true)
     try {
-      const { fetchRegistryFromServer } = await import('@/lib/client-api')
-      const registry = await fetchRegistryFromServer()
+      // Optimized: Fetching only matching results from server
+      const params = new URLSearchParams()
+      if (reversePrefix) params.append('prefix', reversePrefix.toLowerCase())
+      if (reverseSuffix) params.append('suffix', reverseSuffix.toLowerCase())
 
-      const prefix = reversePrefix.toLowerCase()
-      const suffix = reverseSuffix.toLowerCase()
+      const response = await fetch(`/api/wallet/reverse-search?${params.toString()}`)
+      if (!response.ok) throw new Error('Search failed')
 
-      const matched = registry.filter(entry => {
-        const addr = (entry.address || '').toLowerCase()
-        if (prefix && suffix) {
-          return addr.startsWith(prefix) && addr.endsWith(suffix)
-        } else if (prefix) {
-          return addr.startsWith(prefix)
-        } else if (suffix) {
-          return addr.endsWith(suffix)
-        }
-        return false
-      })
+      const { data } = await response.json()
+      const matched = data || []
 
       // Fetch volume for the first 20 matches to avoid overwhelming the API
       const limitedMatches = matched.slice(0, 20)
       const resultsWithVolume = await Promise.all(
-        limitedMatches.map(async (item) => {
+        limitedMatches.map(async (item: { address: string; userId: string | number }) => {
           try {
             const volResponse = await fetch(`https://mainnet-data.sodex.dev/api/v1/leaderboard/rank?window_type=ALL_TIME&sort_by=pnl&wallet_address=${item.address}`)
             if (volResponse.ok) {

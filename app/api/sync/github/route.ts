@@ -30,35 +30,46 @@ export async function POST(req: Request) {
         }
 
         if (target.type === 'csv_registry') {
-          const text = await response.text()
-          const lines = text.split('\n')
-          const entries = []
+          const text = await response.text();
+          const lines = text.split('\n');
+          const entries = [];
           
+          // Parse CSV (skip header)
           for (let i = 1; i < lines.length; i++) {
-            const line = lines[i].trim()
-            if (!line) continue
-            const [address, userId] = line.split(',')
+            const line = lines[i].trim();
+            if (!line) continue;
+            const [address, userId] = line.split(',');
             if (address && userId) {
-              entries.push({ address: address.trim().toLowerCase(), user_id: parseInt(userId.trim(), 10) })
+              const trimmedId = userId.trim();
+              entries.push({ 
+                address: address.trim().toLowerCase(), 
+                user_id: parseInt(trimmedId, 10) 
+              });
             }
           }
+
+          console.log(`[SYNC] Parsed ${entries.length} entries for ${target.key}`);
 
           // Batch upsert to registry table
           let hasError = false;
           let errorMessage = null;
-          for (let i = 0; i < entries.length; i += 500) {
-            const chunk = entries.slice(i, i + 500);
+          const CHUNK_SIZE = 1000;
+          
+          for (let i = 0; i < entries.length; i += CHUNK_SIZE) {
+            const chunk = entries.slice(i, i + CHUNK_SIZE);
             const { error } = await admin
               .from('registry')
               .upsert(chunk, { onConflict: 'address' });
+            
             if (error) {
+              console.error(`[SYNC] Batch upsert error at chunk ${i}:`, error.message);
               hasError = true;
               errorMessage = error.message;
               break;
             }
           }
 
-          return { key: target.key, status: hasError ? 'error' : 'success', error: errorMessage, count: entries.length }
+          return { key: target.key, status: hasError ? 'error' : 'success', error: errorMessage, count: entries.length };
         } 
         else if (target.type === 'json') {
           const data = await response.json()

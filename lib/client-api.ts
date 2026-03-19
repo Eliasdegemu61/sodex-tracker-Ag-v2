@@ -1,62 +1,72 @@
-// Client-side API directly hitting GitHub
-const REGISTRY_URL = 'https://raw.githubusercontent.com/Eliasdegemu61/Registory/refs/heads/main/registry.csv'
+/**
+ * Client-side API for wallet registry lookups.
+ * 
+ * Optimized to use the server-side lookup API instead of downloading 
+ * and parsing the 6MB CSV file in the browser.
+ */
 
-let cachedRegistry: Array<{ userId: string; address: string }> | null = null;
+interface LookupResponse {
+  userId?: string | number;
+  error?: string;
+  source?: string;
+  fromCache?: boolean;
+}
 
-export async function fetchRegistryFromServer(): Promise<Array<{ userId: string; address: string }>> {
-  if (cachedRegistry) return cachedRegistry;
+/**
+ * Looks up a wallet address to find the corresponding User ID.
+ * Calls the /api/wallet/lookup server endpoint.
+ */
+export async function lookupWalletAddress(address: string): Promise<string> {
+  if (!address) {
+    throw new Error('Address is required for lookup');
+  }
+
+  const normalizedAddress = address.toLowerCase().trim();
 
   try {
-    console.log('[GITHUB] Fetching registry directly from GitHub');
-    const response = await fetch(REGISTRY_URL, { cache: 'no-store' });
+    console.log('[REGISTRY] Looking up address via server API:', normalizedAddress);
+    
+    const response = await fetch('/api/wallet/lookup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ address: normalizedAddress }),
+    });
 
     if (!response.ok) {
-      throw new Error(`Registry fetch failed: ${response.status}`);
-    }
-
-    const csvText = await response.text();
-    const lines = csvText.split('\n');
-    const data: Array<{ userId: string; address: string }> = [];
-
-    // Parse CSV (skip header)
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-
-      const [address, userId] = line.split(',');
-      if (address && userId) {
-        data.push({
-          address: address.trim(),
-          userId: userId.trim()
-        });
+      if (response.status === 404) {
+        throw new Error(`Address ${address} not found in registry`);
       }
+      const errorData = await response.json();
+      throw new Error(errorData.error || `Server error: ${response.status}`);
     }
 
-    console.log('[GITHUB] Registry fetched and parsed client-side, entries:', data.length);
-    cachedRegistry = data;
-    return data;
+    const data: LookupResponse = await response.json();
+    
+    if (!data.userId) {
+      throw new Error('No User ID returned from registry');
+    }
+
+    console.log('[REGISTRY] Lookup successful:', { 
+      address: normalizedAddress, 
+      userId: data.userId,
+      source: data.source,
+      cached: data.fromCache 
+    });
+
+    return String(data.userId);
   } catch (error) {
-    console.error('[GITHUB] Failed to fetch registry:', error);
+    console.error('[REGISTRY] Failed to lookup wallet:', error);
     throw error;
   }
 }
 
-export async function lookupWalletAddress(address: string): Promise<string> {
-  try {
-    const registry = await fetchRegistryFromServer();
-    const normalizedAddress = address.toLowerCase().trim();
-    
-    const user = registry.find(u => u.address.toLowerCase() === normalizedAddress);
-    
-    if (!user) {
-      console.error('[GITHUB] Address not found in registry:', address);
-      throw new Error('Address not found in registry');
-    }
-
-    console.log('[GITHUB] Wallet lookup successful (Client-Side):', { address, userId: user.userId });
-    return String(user.userId);
-  } catch (error) {
-    console.error('[GITHUB] Failed to lookup wallet:', error);
-    throw error;
-  }
+/**
+ * DEPRECATED: Don't use this. It downloads a 6MB file.
+ * Kept only for backward compatibility during refactoring if needed.
+ */
+export async function fetchRegistryFromServer(): Promise<Array<{ userId: string; address: string }>> {
+  console.warn('[REGISTRY] fetchRegistryFromServer is DEPRECATED and very slow. Use lookupWalletAddress instead.');
+  return []; // Return empty to prevent 6MB download
 }
