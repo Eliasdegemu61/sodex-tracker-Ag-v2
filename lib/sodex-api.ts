@@ -28,7 +28,7 @@ interface PositionData {
   updated_at: number;
 }
 
-interface SymbolData {
+export interface SymbolData {
   symbolID: number;
   name: string;
   baseCoin: string;
@@ -49,9 +49,94 @@ interface SymbolsResponse {
   data: Record<string, SymbolData>;
 }
 
+export interface SpotTrade {
+  account_id: number;
+  symbol_id: number;
+  trade_id: number;
+  side: number; // 1 = Buy, 2 = Sell
+  user_id: number;
+  order_id: number;
+  cl_ord_id: string;
+  price: string;
+  quantity: string;
+  fee: string;
+  ts_ms: number;
+  is_maker: boolean;
+}
+
+export interface SpotMatchDetail {
+  buy_trade_id: number;
+  buy_price: number;
+  buy_qty: number;
+  buy_fee: number;
+  buy_ts: number;
+  sell_trade_id: number;
+  sell_price: number;
+  sell_qty: number;
+  sell_fee: number;
+  sell_ts: number;
+  pnl: number;
+}
+
+interface SpotTradesResponse {
+  code: number;
+  message: string;
+  data: SpotTrade[];
+  meta: {
+    next_cursor?: string;
+  };
+}
+
 // Use server-side endpoint for wallet lookup
 export async function getUserIdByAddress(address: string): Promise<string> {
   return lookupWalletAddress(address);
+}
+
+export async function fetchSpotTrades(
+  accountId: string | number,
+  cursor?: string
+): Promise<{ trades: SpotTrade[]; nextCursor?: string }> {
+  const url = new URL('https://mainnet-data.sodex.dev/api/v1/spot/trades');
+  url.searchParams.append('account_id', String(accountId));
+  url.searchParams.append('limit', '1000');
+  if (cursor) {
+    url.searchParams.append('cursor', cursor);
+  }
+
+  const response = await fetch(url.toString());
+  if (!response.ok) {
+    throw new Error(`Failed to fetch spot trades: ${response.statusText}`);
+  }
+
+  const data: SpotTradesResponse = await response.json();
+  if (data.code !== 0) {
+    throw new Error(`API error: ${data.message}`);
+  }
+
+  return {
+    trades: data.data || [],
+    nextCursor: data.meta?.next_cursor,
+  };
+}
+
+export async function fetchAllSpotTrades(
+  accountId: string | number
+): Promise<SpotTrade[]> {
+  const allTrades: SpotTrade[] = [];
+  let cursor: string | undefined;
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const { trades, nextCursor } = await fetchSpotTrades(accountId, cursor);
+    allTrades.push(...trades);
+
+    if (!nextCursor) {
+      break;
+    }
+    cursor = nextCursor;
+  }
+
+  return allTrades;
 }
 
 export async function fetchPositions(
@@ -129,6 +214,8 @@ export interface EnrichedPosition extends PositionData {
   tradingFee: number;
   closedSize: number;
   createdAtFormatted: string;
+  is_spot?: boolean;
+  matches?: SpotMatchDetail[];
 }
 
 export async function enrichPositions(

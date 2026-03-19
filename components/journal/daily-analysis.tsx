@@ -177,12 +177,18 @@ export function DailyAnalysis({ allPositions, dailyPerformance }: DailyAnalysisP
                                             <div className="text-[9px] text-white/20 font-mono">{new Date(pos.created_at).toLocaleTimeString()}</div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={cn(
-                                                "font-bold px-2 py-0.5 rounded-md text-[10px]",
-                                                pos.positionSideLabel === 'LONG' ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"
-                                            )}>
-                                                {pos.positionSideLabel}
-                                            </span>
+                                            {pos.is_spot ? (
+                                                <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest bg-orange-500/10 text-orange-500 border border-orange-500/20 shadow-[0_0_10px_rgba(249,115,22,0.1)]">
+                                                    SPOT
+                                                </span>
+                                            ) : (
+                                                <span className={cn(
+                                                    "font-bold px-2 py-0.5 rounded-md text-[10px]",
+                                                    pos.positionSideLabel === 'LONG' ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"
+                                                )}>
+                                                    {pos.positionSideLabel}
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 text-white/40 tabular-nums">{pos.closedSize}</td>
                                         <td className={cn(

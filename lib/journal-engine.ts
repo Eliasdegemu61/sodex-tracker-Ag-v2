@@ -224,6 +224,8 @@ export function computeSymbolAnalytics(positions: EnrichedPosition[]): SymbolAna
                 ? leverages.reduce((s, v) => s + v, 0) / leverages.length
                 : 1;
 
+        const isSpot = trades.every(t => t.is_spot);
+        
         analytics.push({
             symbol,
             trades: trades.length,
@@ -236,6 +238,7 @@ export function computeSymbolAnalytics(positions: EnrichedPosition[]): SymbolAna
             worstTrade: losses.length > 0 ? Math.min(...losses.map((t) => t.realizedPnlValue)) : 0,
             avgHoldingTimeMs,
             avgLeverage,
+            isSpot,
         });
     }
 
@@ -331,7 +334,10 @@ export function computePlanMetrics(
 
     const currentBalance = currentFuturesBalance ?? plan.startingBalance + totalPnl;
 
-    const allViolations = daily.flatMap((d) => d.violations);
+    const todayStr = toDateStr(today);
+    const todayPerformance = daily.find(d => d.date === todayStr);
+    const todayViolations = todayPerformance?.violations || [];
+    const allViolations = todayViolations;
 
     const totalGains = wins.reduce((s, p) => s + p.realizedPnlValue, 0);
     const totalLosses = Math.abs(losses.reduce((s, p) => s + p.realizedPnlValue, 0));

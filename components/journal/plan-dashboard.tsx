@@ -281,12 +281,18 @@ export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps
                                         <div className="text-[9px] text-white/20">{new Date(pos.created_at).toLocaleDateString()}</div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={cn(
-                                            "font-bold",
-                                            pos.positionSideLabel === 'LONG' ? "text-green-500/60" : "text-red-500/60"
-                                        )}>
-                                            {pos.positionSideLabel}
-                                        </span>
+                                        {pos.is_spot ? (
+                                            <span className="px-2 py-0.5 rounded-lg bg-orange-500/10 text-orange-500 text-[10px] font-black tracking-widest border border-orange-500/20">
+                                                SPOT
+                                            </span>
+                                        ) : (
+                                            <span className={cn(
+                                                "font-bold",
+                                                pos.positionSideLabel === 'LONG' ? "text-green-500/60" : "text-red-500/60"
+                                            )}>
+                                                {pos.positionSideLabel}
+                                            </span>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 text-white/40">{pos.closedSize}</td>
                                     <td className={cn(

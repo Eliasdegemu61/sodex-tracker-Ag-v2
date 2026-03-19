@@ -102,7 +102,9 @@ export function TradeAnalytics({ analytics }: TradeAnalyticsProps) {
                                 <td className="py-2.5 px-2 text-right text-green-400/70">+${row.bestTrade.toFixed(2)}</td>
                                 <td className="py-2.5 px-2 text-right text-red-400/70">${row.worstTrade.toFixed(2)}</td>
                                 <td className="py-2.5 px-2 text-right text-muted-foreground/50">{formatHoldingTime(row.avgHoldingTimeMs)}</td>
-                                <td className="py-2.5 px-2 last:rounded-r-xl text-right text-muted-foreground/50">{row.avgLeverage.toFixed(1)}x</td>
+                                <td className="py-2.5 px-2 last:rounded-r-xl text-right text-muted-foreground/50">
+                                    {row.isSpot ? '—' : `${row.avgLeverage.toFixed(1)}x`}
+                                </td>
                             </tr>
                         ))}
                     </tbody>

@@ -24,7 +24,8 @@ import type { TradingPlan, PlanMetrics } from '@/lib/journal-types';
 import { PlanForm } from './plan-form';
 import { PlanList } from './plan-list';
 import { PlanDashboard } from './plan-dashboard';
-import { fetchTotalBalance, fetchAllPositions, enrichPositions, type EnrichedPosition } from '@/lib/sodex-api';
+import { fetchTotalBalance, fetchAllPositions, enrichPositions, fetchAllSpotTrades, fetchSymbols, type EnrichedPosition } from '@/lib/sodex-api';
+import { processSpotTradesToPositions } from '@/lib/spot-pnl-engine';
 import { cn } from '@/lib/utils';
 import { CyberCard, GlowLine, CyberButton } from './cyber-elements';
 import { supabase } from '@/lib/supabase-client';
@@ -232,15 +233,25 @@ export function JournalPageClient() {
         if (!selectedPlan?.userId) return;
         if (!isAuto) setIsDataLoading(true);
         try {
-            const [raw, bal] = await Promise.all([
+            const [rawFutures, rawSpot, bal, symbols] = await Promise.all([
                 fetchAllPositions(selectedPlan.userId),
-                fetchTotalBalance(selectedPlan.userId)
+                fetchAllSpotTrades(selectedPlan.userId),
+                fetchTotalBalance(selectedPlan.userId),
+                fetchSymbols()
             ]);
-            const enriched = await enrichPositions(raw);
-            setPlanPositions(enriched);
-            setPlanBalance(bal.futuresBalance);
+            
+            const enrichedFutures = await enrichPositions(rawFutures);
+            const spotPositions = processSpotTradesToPositions(rawSpot, symbols);
+            
+            // Combine and sort by date descending
+            const allPos = [...enrichedFutures, ...spotPositions].sort((a, b) => b.created_at - a.created_at);
+            
+            setPlanPositions(allPos);
+            setPlanBalance(bal.totalBalance);
             setLastRefresh(new Date());
-        } catch (e) {} finally { if (!isAuto) setIsDataLoading(false); }
+        } catch (e) {
+            console.error('[Journal] Data fetch failed:', e);
+        } finally { if (!isAuto) setIsDataLoading(false); }
     }, [selectedPlan]);
 
     useEffect(() => {

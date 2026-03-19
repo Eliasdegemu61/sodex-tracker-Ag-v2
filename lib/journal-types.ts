@@ -53,6 +53,7 @@ export interface SymbolAnalytics {
     worstTrade: number;
     avgHoldingTimeMs: number;
     avgLeverage: number;
+    isSpot: boolean;
 }
 
 export interface DisciplineBreakdown {
