@@ -43,7 +43,8 @@ export async function POST(req: Request) {
               const trimmedId = userId.trim();
               entries.push({ 
                 address: address.trim().toLowerCase(), 
-                user_id: parseInt(trimmedId, 10) 
+                user_id: parseInt(trimmedId, 10),
+                updated_at: new Date().toISOString()
               });
             }
           }
