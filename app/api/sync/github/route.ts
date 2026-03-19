@@ -100,6 +100,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ 
       timestamp: new Date().toISOString(),
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
       results 
     }, { status: hasErrors ? 500 : 200 })
 
