@@ -46,20 +46,21 @@ export function EquityChart({ data }: EquityChartProps) {
                 >
                     <defs>
                         <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#ffff" stopOpacity={0.1}/>
-                            <stop offset="95%" stopColor="#ffff" stopOpacity={0}/>
+                            <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2}/>
+                            <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
                         </linearGradient>
                     </defs>
                     <CartesianGrid 
                         strokeDasharray="3 3" 
                         vertical={false} 
-                        stroke="rgba(255,255,255,0.05)" 
+                        stroke="currentColor"
+                        className="opacity-[0.05]"
                     />
                     <XAxis 
                         dataKey="formattedDate" 
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: 'bold' }}
+                        tick={{ fill: 'currentColor', fontSize: 10, fontWeight: 'bold', opacity: 0.2 }}
                         interval="preserveStartEnd"
                         minTickGap={30}
                     />
@@ -71,11 +72,11 @@ export function EquityChart({ data }: EquityChartProps) {
                         content={({ active, payload }) => {
                             if (active && payload && payload.length) {
                                 return (
-                                    <div className="bg-[#111] border border-white/10 p-3 rounded-xl shadow-2xl">
-                                        <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest mb-1">
+                                    <div className="bg-card border border-border/10 p-3 rounded-xl shadow-2xl backdrop-blur-md">
+                                        <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-1">
                                             {payload[0].payload.date}
                                         </p>
-                                        <p className="text-sm font-bold text-white tabular-nums">
+                                        <p className="text-sm font-bold text-foreground tabular-nums">
                                             ${payload[0].value.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                         </p>
                                     </div>
@@ -87,7 +88,7 @@ export function EquityChart({ data }: EquityChartProps) {
                     <Area
                         type="monotone"
                         dataKey="balance"
-                        stroke="#fff"
+                        stroke="var(--primary)"
                         strokeWidth={2}
                         fillOpacity={1}
                         fill="url(#colorBalance)"

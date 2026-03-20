@@ -100,7 +100,7 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
   }, [])
 
   return (
-    <Card className="p-4 lg:p-8 bg-card/95 shadow-sm border border-border/20 rounded-[2.5rem] shadow-sm flex flex-col">
+    <Card className="p-4 lg:p-8 bg-card border border-border/50 rounded-2xl flex flex-col transition-all duration-300 hover:border-primary/30">
       <div className="flex items-center justify-between mb-4 lg:mb-8">
         <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60">volume trend</h3>
         <div className="flex flex-col sm:flex-row gap-2">
@@ -110,8 +110,8 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
                 key={type}
                 onClick={() => setChartType(type)}
                 className={`text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all capitalize ${chartType === type
-                  ? 'bg-orange-500 text-black shadow-lg'
-                  : 'text-muted-foreground/40 hover:text-foreground hover:bg-secondary/20'
+                  ? 'bg-primary text-white shadow-[0_0_15px_rgba(255,77,0,0.3)]'
+                  : 'text-muted-foreground/40 hover:text-foreground hover:bg-white/5'
                   }`}
               >
                 {type}
@@ -124,8 +124,8 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
                 key={range}
                 onClick={() => setTimeRange(range)}
                 className={`text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all ${timeRange === range
-                  ? 'bg-orange-500 text-black shadow-lg'
-                  : 'text-muted-foreground/40 hover:text-foreground hover:bg-secondary/20'
+                  ? 'bg-primary text-white shadow-[0_0_15px_rgba(255,77,0,0.3)]'
+                  : 'text-muted-foreground/40 hover:text-foreground hover:bg-white/5'
                   }`}
               >
                 {range}
@@ -140,20 +140,20 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
           <AreaChart data={processedChartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="colorSpot" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#fb923c" stopOpacity={0.2} />
-                <stop offset="95%" stopColor="#fb923c" stopOpacity={0} />
+                <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="colorFutures" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#ea580c" stopOpacity={0.2} />
-                <stop offset="95%" stopColor="#ea580c" stopOpacity={0} />
+                <stop offset="5%" stopColor="#EA580C" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="#EA580C" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="colorDailyTotal" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.15} />
-                <stop offset="95%" stopColor="#fbbf24" stopOpacity={0} />
+                <stop offset="5%" stopColor="#FACC15" stopOpacity={0.1} />
+                <stop offset="95%" stopColor="#FACC15" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#f97316" stopOpacity={0.2} />
-                <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" opacity={0.05} />
@@ -224,19 +224,19 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
                 <Area
                   type="monotone"
                   dataKey="spot"
-                  stroke="#fb923c"
+                  stroke="var(--primary)"
                   fill="url(#colorSpot)"
                   strokeWidth={2}
                   isAnimationActive={!isMobile}
                   animationDuration={1500}
                   name="Spot"
                   dot={false}
-                  activeDot={{ r: 4, strokeWidth: 0, fill: '#fb923c' }}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: "var(--primary)" }}
                 />
                 <Area
                   type="monotone"
                   dataKey="spot_incomplete"
-                  stroke="#fb923c"
+                  stroke="var(--primary)"
                   strokeDasharray="4 4"
                   fill="url(#colorSpot)"
                   fillOpacity={0.4}
@@ -245,24 +245,24 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
                   animationDuration={1500}
                   name="Spot"
                   dot={false}
-                  activeDot={{ r: 4, strokeWidth: 0, fill: '#fb923c' }}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: "var(--primary)" }}
                 />
                 <Area
                   type="monotone"
                   dataKey="futures"
-                  stroke="#ea580c"
+                  stroke="#EA580C"
                   fill="url(#colorFutures)"
                   strokeWidth={2}
                   isAnimationActive={true}
                   animationDuration={1500}
                   name="Futures"
                   dot={false}
-                  activeDot={{ r: 4, strokeWidth: 0, fill: '#ea580c' }}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: '#EA580C' }}
                 />
                 <Area
                   type="monotone"
                   dataKey="futures_incomplete"
-                  stroke="#ea580c"
+                  stroke="#EA580C"
                   strokeDasharray="4 4"
                   fill="url(#colorFutures)"
                   fillOpacity={0.4}
@@ -271,7 +271,7 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
                   animationDuration={1500}
                   name="Futures"
                   dot={false}
-                  activeDot={{ r: 4, strokeWidth: 0, fill: '#ea580c' }}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: '#EA580C' }}
                 />
                 <Area
                   type="monotone"
@@ -317,7 +317,7 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
                 <Area
                   type="monotone"
                   dataKey="cumulative_incomplete"
-                  stroke="#f97316"
+                  stroke="var(--primary)"
                   strokeDasharray="4 4"
                   fill="url(#colorCumulative)"
                   fillOpacity={0.4}
@@ -326,7 +326,7 @@ export function VolumeChartClient({ data, chartData }: VolumeChartClientProps) {
                   animationDuration={1500}
                   name="Cumulative Vol"
                   dot={false}
-                  activeDot={{ r: 4, strokeWidth: 0, fill: '#f97316' }}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: "var(--primary)" }}
                 />
               </>
             )}

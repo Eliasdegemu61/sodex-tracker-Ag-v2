@@ -21,6 +21,8 @@ import {
     Tooltip as RechartsTooltip,
 } from 'recharts'
 import { fetchTokenPrices, type TokenPriceMap, normalizeTokenName } from '@/lib/price-service'
+import { TokenFlowChart } from '@/components/token-flow-chart'
+import { cn } from '@/lib/utils'
 
 interface TokenFlow {
     token: string
@@ -329,8 +331,8 @@ export function AssetIntelligenceDashboard() {
 
     return (
         <div className="space-y-6 w-full max-w-7xl mx-auto pb-12">
-            {/* Aggregate Intelligence Header */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Aggregate Intelligence Header - 3 Column Stats on Mobile */}
+            <div className="grid grid-cols-3 gap-2 md:gap-4 mb-8">
                 <SummaryCard
                     title="Total Ecosystem Inflow"
                     value={`$${formatNumber(stats.totalInflow)}`}
@@ -349,8 +351,8 @@ export function AssetIntelligenceDashboard() {
             </div>
 
             {/* Premium Market Overview Chart */}
-            <Card className="p-6 md:p-8 bg-card/60 backdrop-blur-2xl border-border/10 rounded-[2.5rem] relative overflow-hidden group">
-                <div className="absolute top-0 right-0 -mr-32 -mt-32 w-64 h-64 bg-orange-500/5 blur-[100px] rounded-full pointer-events-none" />
+            <Card className="p-6 md:p-8 bg-card/40 backdrop-blur-3xl border-border/10 rounded-[2.5rem] relative overflow-hidden group shadow-2xl">
+                <div className="absolute top-0 right-0 -mr-32 -mt-32 w-64 h-64 bg-primary/10 blur-[120px] rounded-full pointer-events-none opacity-50" />
 
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 relative z-50">
                     <div className="flex items-center gap-4 flex-wrap">
@@ -361,7 +363,7 @@ export function AssetIntelligenceDashboard() {
                             <button
                                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                                 className={`flex items-center gap-3 px-5 py-2.5 transition-all duration-300 rounded-2xl border text-sm font-bold shadow-lg ${isDropdownOpen
-                                    ? 'bg-card/90 border-orange-500/50 text-orange-400 shadow-orange-500/20'
+                                    ? 'bg-card/90 border-primary/50 text-primary shadow-primary/20'
                                     : 'bg-card/40 border-border/10 text-foreground/80 hover:bg-card/60 hover:border-border/20'
                                     } backdrop-blur-xl`}
                             >
@@ -378,7 +380,7 @@ export function AssetIntelligenceDashboard() {
                                 <div className="bg-secondary/30 px-2 py-0.5 rounded-md text-[10px]">
                                     {selectedTokens.length}/10
                                 </div>
-                                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 text-orange-400' : 'text-muted-foreground/60'}`} />
+                                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 text-primary' : 'text-muted-foreground/60'}`} />
                             </button>
 
                             {isDropdownOpen && (
@@ -394,14 +396,14 @@ export function AssetIntelligenceDashboard() {
                                                 <button
                                                     key={t.token}
                                                     onClick={() => toggleToken(t.token)}
-                                                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 text-left mb-1 last:mb-0 ${isSelected ? 'bg-orange-500/10' : 'hover:bg-secondary/20'
+                                                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 text-left mb-1 last:mb-0 ${isSelected ? 'bg-primary/10' : 'hover:bg-secondary/20'
                                                         }`}
                                                 >
                                                     <div className="flex items-center gap-3">
                                                         <div className={`w-3 h-3 rounded-full shadow-sm ${isSelected ? 'shadow-current' : ''}`} style={{ backgroundColor: color, color: color }} />
                                                         <span className={`text-sm font-bold ${isSelected ? 'text-foreground' : 'text-foreground/70'}`}>{t.token}</span>
                                                     </div>
-                                                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${isSelected ? 'bg-orange-500 border-orange-500 text-black' : 'border-border/20 text-transparent'
+                                                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${isSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-border/20 text-transparent'
                                                         }`}>
                                                         <Check className="w-3 h-3" strokeWidth={3} />
                                                     </div>
@@ -415,16 +417,16 @@ export function AssetIntelligenceDashboard() {
                     </div>
 
                     {/* Timeframe & Metric Selectors */}
-                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
-                        {/* Metric Selector */}
-                        <div className="flex flex-wrap gap-1 bg-secondary/10 p-1 rounded-2xl border border-border/5">
+                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
+                        {/* Unified Selectors Layout */}
+                        <div className="flex flex-wrap gap-1 bg-secondary/5 p-1 rounded-2xl border border-border/5 backdrop-blur-md">
                             {(['Retention', 'Deposits', 'Withdrawals'] as const).map((m) => (
                                 <button
                                     key={m}
                                     onClick={() => setMetricType(m)}
-                                    className={`text-[10px] font-bold px-4 py-2 rounded-xl transition-all ${metricType === m
-                                        ? 'bg-orange-500 text-black shadow-lg shadow-orange-500/20'
-                                        : 'text-muted-foreground/50 hover:text-foreground hover:bg-secondary/20'
+                                    className={`text-[9px] font-bold px-4 py-2 rounded-xl transition-all ${metricType === m
+                                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                                        : 'text-muted-foreground/40 hover:text-foreground hover:bg-secondary/20'
                                         }`}
                                 >
                                     {m}
@@ -432,15 +434,14 @@ export function AssetIntelligenceDashboard() {
                             ))}
                         </div>
 
-                        {/* Timeframe Selector */}
-                        <div className="flex flex-wrap gap-1 bg-secondary/10 p-1 rounded-2xl border border-border/5">
+                        <div className="flex flex-wrap gap-1 bg-secondary/5 p-1 rounded-2xl border border-border/5 backdrop-blur-md">
                             {(['24hr', '7day', '30day', '3month', '6month', '1year', 'All Time'] as const).map((range) => (
                                 <button
                                     key={range}
                                     onClick={() => setTimeRange(range)}
-                                    className={`text-[10px] font-bold px-3 py-2 rounded-xl transition-all ${timeRange === range
-                                        ? 'bg-secondary/40 text-foreground shadow-sm'
-                                        : 'text-muted-foreground/50 hover:text-foreground hover:bg-secondary/20'
+                                    className={`text-[9px] font-bold px-3 py-2 rounded-xl transition-all ${timeRange === range
+                                        ? 'bg-secondary/30 text-foreground shadow-sm'
+                                        : 'text-muted-foreground/40 hover:text-foreground hover:bg-secondary/10'
                                         }`}
                                 >
                                     {range}
@@ -483,7 +484,6 @@ export function AssetIntelligenceDashboard() {
                                         )
                                     })}
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" opacity={0.05} />
                                 <XAxis
                                     dataKey="date"
                                     tickFormatter={(val) => {
@@ -491,21 +491,21 @@ export function AssetIntelligenceDashboard() {
                                         return `${d.getMonth() + 1}/${d.getDate()}`
                                     }}
                                     stroke="currentColor"
-                                    fontSize={10}
+                                    fontSize={9}
                                     tickLine={false}
                                     axisLine={false}
-                                    tick={{ fill: 'currentColor', opacity: 0.4, fontWeight: 'bold' }}
+                                    tick={{ fill: 'currentColor', opacity: 0.3, fontWeight: 'medium' }}
                                     dy={10}
                                 />
                                 <YAxis
                                     tickFormatter={(val) => val === 0 ? '0' : `$${formatNumber(val)}`}
                                     stroke="currentColor"
-                                    fontSize={10}
+                                    fontSize={9}
                                     tickLine={false}
                                     axisLine={false}
-                                    tick={{ fill: 'currentColor', opacity: 0.4, fontWeight: 'bold' }}
-                                    width={60}
-                                    dx={-10}
+                                    tick={{ fill: 'currentColor', opacity: 0.3, fontWeight: 'medium' }}
+                                    width={50}
+                                    dx={-5}
                                 />
                                 <RechartsTooltip
                                     content={({ active, payload, label }) => {
@@ -513,16 +513,16 @@ export function AssetIntelligenceDashboard() {
                                             const d = new Date(label as string | number)
                                             const dateStr = !isNaN(d.getTime()) ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : label;
                                             return (
-                                                <div className="bg-card/95 backdrop-blur-md border border-border/20 p-4 rounded-2xl shadow-2xl min-w-[200px]">
-                                                    <p className="text-[10px] text-muted-foreground/60 font-bold mb-3 uppercase">{dateStr}</p>
-                                                    <div className="space-y-3">
+                                                <div className="bg-card/90 backdrop-blur-xl border border-white/5 p-3 rounded-2xl shadow-2xl min-w-[170px] animate-in fade-in zoom-in-95 duration-200">
+                                                    <p className="text-[9px] text-muted-foreground/40 font-black mb-2 uppercase tracking-tight">{dateStr}</p>
+                                                    <div className="space-y-2">
                                                         {payload.map((entry: any, i: number) => (
-                                                            <div key={i} className="flex items-center justify-between gap-6">
+                                                            <div key={i} className="flex items-center justify-between gap-4">
                                                                 <div className="flex items-center gap-2">
-                                                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                                                                    <span className="text-xs font-bold text-foreground/80">{entry.name}</span>
+                                                                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
+                                                                    <span className="text-[10px] font-bold text-foreground/70">{entry.name}</span>
                                                                 </div>
-                                                                <span className={`text-xs font-bold ${entry.value < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                                                                <span className={`text-[10px] font-black ${entry.value < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
                                                                     {entry.value > 1000 || entry.value < -1000 ? `$${formatNumber(Math.abs(entry.value))}${entry.value < 0 ? ' ↓' : ''}` : entry.value.toFixed(2)}
                                                                 </span>
                                                             </div>
@@ -563,79 +563,139 @@ export function AssetIntelligenceDashboard() {
                 </div>
             </Card>
 
+            {/* New Flow Chart above Directory */}
+            <TokenFlowChart />
+
             {/* Token Table - Detailed View */}
             <Card className="p-6 bg-card/40 backdrop-blur-xl border-border/10 rounded-[2.5rem] overflow-hidden">
                 <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-sm font-bold text-foreground/80 flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-orange-400" />
+                    <h3 className="text-[10px] font-bold text-foreground/40 flex items-center gap-2 uppercase tracking-widest">
+                        <Layers className="w-3.5 h-3.5 opacity-40" />
                         Complete Asset Directory
                     </h3>
                     <div className="px-3 py-1 bg-secondary/20 rounded-full text-[10px] font-bold text-muted-foreground/60 uppercase">
                         {data.length} Tracked Assets
                     </div>
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="border-b border-border/5 text-[10px] uppercase tracking-wider text-muted-foreground/40 font-bold">
-                                <th className="pb-3 pl-2">Asset</th>
-                                <th className="pb-3">Total Inflow</th>
-                                <th className="pb-3">Total Outflow</th>
-                                <th className="pb-3">Retention Rate</th>
-                                <th className="pb-3 text-right pr-2">Net Remaining</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border/5">
-                            {data.map((item) => (
-                                <tr key={item.token} className="group hover:bg-orange-500/5 transition-colors">
-                                    <td className="py-4 pl-2">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center shrink-0 border border-border/5">
-                                                <span className="text-[10px] font-bold text-foreground/70 uppercase">{item.token.substring(0, 2)}</span>
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-sm font-bold text-foreground/90">{item.token}</span>
-                                                {!item.has_price && (
-                                                    <span className="text-[8px] text-orange-400 font-bold uppercase">No USD Price</span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="py-4 text-sm font-medium text-foreground/70">
-                                        <div className="flex flex-col">
-                                            <span>{item.has_price ? `$${formatNumber(item.deposit_usd || 0)}` : '-'}</span>
-                                            <span className="text-[10px] text-muted-foreground/60">{formatNumber(item.overall_deposit)} {item.token}</span>
-                                        </div>
-                                    </td>
-                                    <td className="py-4 text-sm font-medium text-foreground/70">
-                                        <div className="flex flex-col">
-                                            <span>{item.has_price ? `$${formatNumber(item.withdrawal_usd || 0)}` : '-'}</span>
-                                            <span className="text-[10px] text-muted-foreground/60">{formatNumber(item.overall_withdrawal)} {item.token}</span>
-                                        </div>
-                                    </td>
-                                    <td className="py-4">
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-xs font-bold text-foreground/80 w-12">{item.retention_rate.toFixed(1)}%</span>
-                                            <div className="flex-1 max-w-[80px] h-1.5 bg-secondary/20 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-orange-500/60 rounded-full"
-                                                    style={{ width: `${Math.min(item.retention_rate, 100)}%` }}
-                                                />
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="py-4 text-right pr-2">
-                                        <div className="flex flex-col items-end">
-                                            <span className={`text-sm font-bold ${item.has_price ? 'text-emerald-400' : 'text-foreground/40'}`}>
-                                                {item.has_price ? `$${formatNumber(item.net_remaining_usd || 0)}` : '-'}
-                                            </span>
-                                            <span className="text-[10px] text-muted-foreground/60">{formatNumber(item.net_remaining)} {item.token}</span>
-                                        </div>
-                                    </td>
+                {/* Responsive Table/Card View */}
+                <div className="mt-4">
+                    {/* Desktop Table View */}
+                    <div className="hidden md:block overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="border-b border-border/5 text-[10px] uppercase tracking-wider text-muted-foreground/40 font-bold">
+                                    <th className="pb-3 pl-2">Asset</th>
+                                    <th className="pb-3">Total Inflow</th>
+                                    <th className="pb-3">Total Outflow</th>
+                                    <th className="pb-3">Retention Rate</th>
+                                    <th className="pb-3 text-right pr-2">Net Remaining</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-border/5">
+                                {data.map((item) => (
+                                    <tr key={item.token} className="group hover:bg-orange-500/5 transition-colors">
+                                        <td className="py-4 pl-2">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center shrink-0 border border-border/5">
+                                                    <span className="text-[10px] font-bold text-foreground/70 uppercase">{item.token.substring(0, 2)}</span>
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-bold text-foreground/90">{item.token}</span>
+                                                    {!item.has_price && (
+                                                        <span className="text-[8px] text-orange-400 font-bold uppercase">No USD Price</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 text-sm font-medium text-foreground/70">
+                                            <div className="flex flex-col">
+                                                <span>{item.has_price ? `$${formatNumber(item.deposit_usd || 0)}` : '-'}</span>
+                                                <span className="text-[10px] text-muted-foreground/60">{formatNumber(item.overall_deposit)} {item.token}</span>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 text-sm font-medium text-foreground/70">
+                                            <div className="flex flex-col">
+                                                <span>{item.has_price ? `$${formatNumber(item.withdrawal_usd || 0)}` : '-'}</span>
+                                                <span className="text-[10px] text-muted-foreground/60">{formatNumber(item.overall_withdrawal)} {item.token}</span>
+                                            </div>
+                                        </td>
+                                        <td className="py-4">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-xs font-bold text-foreground/80 w-12">{item.retention_rate.toFixed(1)}%</span>
+                                                <div className="flex-1 max-w-[80px] h-1.5 bg-secondary/20 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-orange-500/60 rounded-full"
+                                                        style={{ width: `${Math.min(item.retention_rate, 100)}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 text-right pr-2">
+                                            <div className="flex flex-col items-end">
+                                                <span className={`text-sm font-bold ${item.has_price ? 'text-emerald-400' : 'text-foreground/40'}`}>
+                                                    {item.has_price ? `$${formatNumber(item.net_remaining_usd || 0)}` : '-'}
+                                                </span>
+                                                <span className="text-[10px] text-muted-foreground/60">{formatNumber(item.net_remaining)} {item.token}</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Mobile Card-Based View */}
+                    <div className="md:hidden space-y-4">
+                        {data.map((item) => (
+                            <div key={item.token} className="p-4 bg-secondary/5 rounded-2xl border border-border/5 group active:bg-secondary/10 transition-all">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-secondary/20 flex items-center justify-center font-black text-xs text-primary shrink-0">
+                                            {item.token.substring(0, 2)}
+                                        </div>
+                                        <div>
+                                            <div className="text-sm font-bold text-foreground">{item.token}</div>
+                                            {!item.has_price && <div className="text-[8px] text-orange-400 font-bold uppercase">No USD Price</div>}
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className={`text-xs font-black ${item.has_price ? 'text-emerald-400' : 'text-foreground/40'}`}>
+                                            {item.has_price ? `$${formatNumber(item.net_remaining_usd || 0)}` : '-'}
+                                        </div>
+                                        <div className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Net Remaining</div>
+                                    </div>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/5">
+                                    <div className="space-y-3">
+                                        <div>
+                                            <div className="text-[8px] font-bold text-muted-foreground/30 uppercase tracking-widest mb-0.5">Total Inflow</div>
+                                            <div className="text-[10px] font-bold text-foreground/80">{item.has_price ? `$${formatNumber(item.deposit_usd || 0)}` : formatNumber(item.overall_deposit)}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-[8px] font-bold text-muted-foreground/30 uppercase tracking-widest mb-0.5">Total Outflow</div>
+                                            <div className="text-[10px] font-bold text-foreground/80">{item.has_price ? `$${formatNumber(item.withdrawal_usd || 0)}` : formatNumber(item.overall_withdrawal)}</div>
+                                        </div>
+                                    </div>
+                                    <div className="text-right flex flex-col justify-end space-y-3">
+                                        <div>
+                                            <div className="text-[8px] font-bold text-muted-foreground/30 uppercase tracking-widest mb-0.5">Retention Rate</div>
+                                            <div className="flex items-center justify-end gap-2">
+                                                <span className="text-[10px] font-black text-foreground/90">{item.retention_rate.toFixed(1)}%</span>
+                                                <div className="w-12 h-1 bg-secondary/20 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-emerald-500/60" style={{ width: `${Math.min(item.retention_rate, 100)}%` }} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="text-[8px] font-bold text-muted-foreground/30 uppercase tracking-widest mb-0.5">Balance</div>
+                                            <div className="text-[10px] font-black text-foreground">{formatNumber(item.net_remaining)} {item.token}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </Card>
         </div>
@@ -644,13 +704,16 @@ export function AssetIntelligenceDashboard() {
 
 function SummaryCard({ title, value, color }: { title: string, value: string, color: string }) {
     return (
-        <Card className="p-6 bg-card/40 border-border/5 rounded-[2rem] relative overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
-            {/* Minimal Corner Glow */}
-            <div className="absolute -top-10 -right-10 w-40 h-40 blur-[60px] opacity-10 bg-current transition-opacity group-hover:opacity-20 text-orange-400" />
+        <Card className="p-3 md:p-6 bg-card/30 backdrop-blur-xl border-border/5 rounded-2xl md:rounded-[2rem] relative overflow-hidden group hover:scale-[1.02] transition-all duration-500">
+            {/* Minimal Subtle Glow */}
+            <div className={cn(
+                "absolute -top-10 -right-10 w-32 h-32 blur-[50px] opacity-5 transition-opacity group-hover:opacity-10 pointer-events-none", 
+                color === 'blue' ? 'bg-blue-500' : color === 'emerald' ? 'bg-emerald-500' : 'bg-primary'
+            )} />
 
-            <div className="space-y-1 relative z-10 mt-2">
-                <h4 className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest">{title}</h4>
-                <div className="text-2xl font-black tracking-tight text-foreground">{value}</div>
+            <div className="space-y-0.5 md:space-y-1 relative z-10 mt-0.5 md:mt-1">
+                <h4 className="text-[7px] md:text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest truncate">{title}</h4>
+                <div className="text-xs md:text-2xl font-black tracking-tight text-foreground/90">{value}</div>
             </div>
         </Card>
     )

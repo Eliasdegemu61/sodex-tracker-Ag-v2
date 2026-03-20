@@ -12,12 +12,12 @@ function ScoreRing({ value }: { value: number }) {
     const radius = 40;
     const circumference = 2 * Math.PI * radius;
     const dash = (value / 100) * circumference;
-    const color = value >= 80 ? '#22c55e' : value >= 50 ? '#f97316' : '#ef4444';
+    const color = value >= 80 ? 'var(--emerald-500)' : value >= 50 ? 'var(--orange-500)' : 'var(--red-500)';
 
     return (
         <div className="relative w-24 h-24 flex items-center justify-center">
             <svg width="96" height="96" viewBox="0 0 96 96" className="-rotate-90">
-                <circle cx="48" cy="48" r={radius} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
+                <circle cx="48" cy="48" r={radius} fill="none" stroke="currentColor" strokeOpacity="0.05" strokeWidth="8" />
                 <circle
                     cx="48"
                     cy="48"
@@ -31,7 +31,7 @@ function ScoreRing({ value }: { value: number }) {
                 />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-xl font-black" style={{ color }}>{value}</span>
+                <span className="text-xl font-black" style={{ color: value >= 80 ? 'rgb(16 185 129)' : value >= 50 ? 'rgb(249 115 22)' : 'rgb(239 68 68)' }}>{value}</span>
                 <span className="text-[8px] font-bold text-muted-foreground/30 uppercase tracking-wider">/ 100</span>
             </div>
         </div>
@@ -45,17 +45,17 @@ export function DisciplineScore({ score }: DisciplineScoreProps) {
                 score.overall >= 50 ? 'Moderate' : 'Needs Work';
 
     const labelColor =
-        score.overall >= 90 ? 'text-green-400' :
-            score.overall >= 75 ? 'text-green-400' :
-                score.overall >= 50 ? 'text-orange-400' : 'text-red-400';
+        score.overall >= 90 ? 'text-emerald-500' :
+            score.overall >= 75 ? 'text-emerald-500' :
+                score.overall >= 50 ? 'text-orange-500' : 'text-red-500';
 
     return (
-        <Card className="p-5 bg-black/40 border border-border/20 rounded-3xl">
+        <Card className="p-5 bg-card/40 backdrop-blur-3xl border border-border/10 rounded-3xl">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">
                     Discipline Score
                 </h3>
-                <Trophy className="w-4 h-4 text-orange-400" />
+                <Trophy className="w-4 h-4 text-orange-500" />
             </div>
 
             <div className="flex items-center gap-6">
@@ -72,7 +72,7 @@ export function DisciplineScore({ score }: DisciplineScoreProps) {
                     <div key={rule.rule}>
                         <div className="flex items-center justify-between mb-1">
                             <span className="text-[10px] font-medium text-muted-foreground/60">{rule.rule}</span>
-                            <span className={`text-[10px] font-bold ${rule.passRate >= 80 ? 'text-green-400' : rule.passRate >= 50 ? 'text-orange-400' : 'text-red-400'}`}>
+                            <span className={`text-[10px] font-bold ${rule.passRate >= 80 ? 'text-emerald-500' : rule.passRate >= 50 ? 'text-orange-500' : 'text-red-500'}`}>
                                 {rule.passRate.toFixed(0)}%
                             </span>
                         </div>

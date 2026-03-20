@@ -20,9 +20,9 @@ export function CyberCard({
             className={cn(
                 "relative transition-all duration-300",
                 onClick && "cursor-pointer",
-                variant === 'default' && "p-6 rounded-2xl bg-black/40 border border-white/5",
-                variant === 'accent' && "p-6 rounded-2xl bg-black/60 border border-white/10",
-                variant === 'slim' && "p-4 rounded-xl bg-black/40 border border-white/5",
+                variant === 'default' && "p-6 rounded-2xl bg-card/40 backdrop-blur-xl border border-border/10",
+                variant === 'accent' && "p-6 rounded-2xl bg-card/60 backdrop-blur-2xl border border-border/20",
+                variant === 'slim' && "p-4 rounded-xl bg-card/40 backdrop-blur-xl border border-border/10",
                 className
             )}>
             <div className="relative z-10">{children}</div>
@@ -39,7 +39,7 @@ export function GlowLine({
 }) {
     return (
         <div className={cn(
-            "bg-white/5 transition-all duration-1000",
+            "bg-border/10 transition-all duration-1000",
             vertical ? "w-px h-full" : "h-px w-full",
             className
         )} />
@@ -65,9 +65,9 @@ export function CyberButton({
             disabled={disabled}
             className={cn(
                 "relative py-2.5 px-6 rounded-xl font-bold text-xs transition-all duration-200 active:scale-95 disabled:opacity-30 disabled:pointer-events-none",
-                variant === 'primary' && "bg-white text-black hover:bg-white/90",
-                variant === 'secondary' && "bg-white/5 text-white/80 border border-white/10 hover:bg-white/10",
-                variant === 'ghost' && "bg-transparent text-white/40 hover:text-white/80",
+                variant === 'primary' && "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
+                variant === 'secondary' && "bg-secondary/10 text-foreground/80 border border-border/10 hover:bg-secondary/20",
+                variant === 'ghost' && "bg-transparent text-muted-foreground/60 hover:text-foreground/80",
                 className
             )}
         >
@@ -81,7 +81,7 @@ export function CyberButton({
 export function VerticalBadge({ text }: { text: string }) {
     return (
         <div className="py-4 px-2 flex flex-col items-center gap-2">
-            <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest select-none">
+            <span className="text-[10px] font-bold text-muted-foreground/20 uppercase tracking-widest select-none">
                 {text}
             </span>
         </div>

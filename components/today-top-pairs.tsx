@@ -32,8 +32,8 @@ export function TodayTopPairs() {
 
   if (error) {
     return (
-      <Card className="p-5 bg-card/95 shadow-sm border border-red-500/20 rounded-3xl">
-        <h3 className="text-[10px] font-bold  text-red-400/60  mb-2">Sync Error</h3>
+      <Card className="p-5 bg-card border border-destructive/20 rounded-2xl">
+        <h3 className="text-[10px] font-bold text-destructive/60 mb-2">Sync Error</h3>
         <p className="text-[10px] text-muted-foreground/30 font-bold uppercase ">{error}</p>
       </Card>
     )
@@ -41,12 +41,12 @@ export function TodayTopPairs() {
 
   if (isLoading || !volumeData) {
     return (
-      <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl animate-pulse">
+      <Card className="p-5 bg-card border border-border/50 rounded-2xl animate-pulse">
         <div className="space-y-3">
-          <div className="h-2 bg-secondary/10 rounded-full w-1/4" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="h-2 bg-white/5 rounded-full w-1/4" />
+          <div className="flex flex-col gap-3">
             {[1, 2, 3, 4, 5].map(idx => (
-              <div key={idx} className="h-24 bg-secondary/10 rounded-2xl" />
+              <div key={idx} className="h-16 bg-white/5 rounded-2xl" />
             ))}
           </div>
         </div>
@@ -57,53 +57,51 @@ export function TodayTopPairs() {
   const todayData = volumeData?.today_stats
 
   return (
-    <Card className="p-6 bg-card/95 shadow-sm border border-border/20 rounded-[2rem] shadow-sm overflow-hidden flex flex-col">
+    <Card className="p-6 bg-card border border-border/50 rounded-2xl flex flex-col transition-all duration-300 hover:border-primary/30 h-full">
       <div className="flex items-center justify-between mb-6">
         <div className="flex flex-col">
           <h3 className="text-sm font-bold text-foreground/80 tracking-tight">Today's Top Performers</h3>
           <span className="text-[10px] text-muted-foreground/40 font-mono mt-0.5">{todayData.date}</span>
         </div>
-        <TrendingUp className="w-4 h-4 text-orange-400/20" />
+        <TrendingUp className="w-4 h-4 text-primary/30" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="flex flex-col gap-3">
         {allEntries.length > 0 ? (
           allEntries.map((entry, idx) => {
             return (
-              <div key={`${entry.pair}-${entry.type}`} className="group relative flex flex-col p-4 bg-secondary/5 rounded-3xl border border-border/10 hover:bg-orange-500/5 hover:border-orange-500/20 transition-colors duration-500 transform-gpu">
-                <div className="flex items-center gap-2.5 mb-4">
+              <div key={`${entry.pair}-${entry.type}`} className="group relative flex flex-row items-center justify-between p-4 bg-white/[0.02] rounded-2xl border border-border/50 hover:bg-primary/[0.02] hover:border-primary/30 transition-all duration-300">
+                <div className="flex items-center gap-3">
                   <div className="relative">
                     {getTokenLogo(entry.pair) ? (
                       <img
                         src={getTokenLogo(entry.pair)}
                         alt={entry.pair}
-                        className="w-8 h-8 rounded-full bg-background/50 p-1 border border-border/10 group-hover:border-orange-500/30 transition-colors"
+                        className="w-10 h-10 rounded-full bg-background/50 p-1 border border-border/10 group-hover:border-primary/30 transition-colors"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none'
                         }}
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center text-[10px] font-bold text-orange-400">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
                         {entry.pair.slice(0, 1)}
                       </div>
                     )}
                   </div>
-                  <div className="flex flex-col overflow-hidden">
-                    <span className="text-[11px] font-bold text-foreground/90 truncate leading-tight" title={entry.pair}>{entry.pair}</span>
-                    <span className={`text-[9px] font-black uppercase tracking-widest mt-0.5 ${entry.type === 'SPOT' ? 'text-orange-400/80' : 'text-orange-600/80'}`}>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-foreground/90 leading-tight">{entry.pair}</span>
+                    <span className={`text-[10px] font-black uppercase tracking-widest mt-0.5 ${entry.type === 'SPOT' ? 'text-primary/70' : 'text-primary'}`}>
                       {entry.type}
                     </span>
                   </div>
                 </div>
 
-                <div className="mt-auto">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">Volume</span>
-                    <span className="text-sm font-bold text-foreground/90">${formatVolume(entry.volume)}</span>
+                <div className="flex items-center gap-6">
+                  <div className="flex flex-col items-end">
+                    <span className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest leading-none mb-1">Today's Volume (UTC)</span>
+                    <span className="text-base font-bold text-foreground/90">${formatVolume(entry.volume)}</span>
                   </div>
-                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ArrowUpRight className="w-3 h-3 text-orange-500/40" />
-                  </div>
+                  <ArrowUpRight className="w-4 h-4 text-primary/30 group-hover:text-primary transition-colors" />
                 </div>
               </div>
             )

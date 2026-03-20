@@ -15,7 +15,7 @@ export function TradeAnalytics({ analytics }: TradeAnalyticsProps) {
 
     if (analytics.length === 0) {
         return (
-            <Card className="p-5 bg-black/40 border border-border/20 rounded-3xl">
+            <Card className="p-5 bg-card/40 backdrop-blur-3xl border border-border/10 rounded-3xl">
                 <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-4">Trade Analytics</h3>
                 <p className="text-sm text-muted-foreground/30 text-center py-8">No trades in this plan period</p>
             </Card>
@@ -40,32 +40,32 @@ export function TradeAnalytics({ analytics }: TradeAnalyticsProps) {
     const SortTh = ({ label, field }: { label: string; field: keyof SymbolAnalytics }) => (
         <th
             onClick={() => toggleSort(field)}
-            className={`py-2 px-2 text-right cursor-pointer select-none hover:text-foreground/60 transition-colors ${sortKey === field ? 'text-orange-400' : 'text-muted-foreground/30'} text-[10px] font-bold uppercase tracking-widest`}
+            className={`py-2 px-2 text-right cursor-pointer select-none hover:text-foreground/60 transition-colors ${sortKey === field ? 'text-primary' : 'text-muted-foreground/30'} text-[10px] font-black uppercase tracking-widest`}
         >
             {label} {sortKey === field ? (sortDir === 'desc' ? '↓' : '↑') : ''}
         </th>
     );
 
     return (
-        <Card className="p-5 bg-black/40 border border-border/20 rounded-3xl">
+        <Card className="p-5 bg-card/40 backdrop-blur-3xl border border-border/10 rounded-3xl">
             <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-4">Trade Analytics</h3>
 
             {/* Highlights */}
             <div className="grid grid-cols-3 gap-3 mb-5">
-                <div className="p-3 rounded-2xl bg-black/20 border border-border/10">
+                <div className="p-3 rounded-2xl bg-secondary/10 border border-border/10">
                     <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">Most Traded</p>
-                    <p className="text-sm font-bold text-foreground mt-1">{mostTraded?.symbol ?? '—'}</p>
+                    <p className="text-sm font-bold text-foreground/90 mt-1">{mostTraded?.symbol ?? '—'}</p>
                     <p className="text-[10px] text-muted-foreground/40">{mostTraded?.trades ?? 0} trades</p>
                 </div>
-                <div className="p-3 rounded-2xl bg-black/20 border border-green-500/10">
+                <div className="p-3 rounded-2xl bg-secondary/10 border border-emerald-500/10">
                     <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">Best Asset</p>
-                    <p className="text-sm font-bold text-green-400 mt-1">{bestSymbol?.symbol ?? '—'}</p>
-                    <p className="text-[10px] text-green-400/60">+${bestSymbol?.totalPnl?.toFixed(2) ?? '0'}</p>
+                    <p className="text-sm font-bold text-emerald-500 mt-1">{bestSymbol?.symbol ?? '—'}</p>
+                    <p className="text-[10px] text-emerald-500/60">+${bestSymbol?.totalPnl?.toFixed(2) ?? '0'}</p>
                 </div>
-                <div className="p-3 rounded-2xl bg-black/20 border border-red-500/10">
+                <div className="p-3 rounded-2xl bg-secondary/10 border border-red-500/10">
                     <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">Worst Asset</p>
-                    <p className="text-sm font-bold text-red-400 mt-1">{worstSymbol?.symbol ?? '—'}</p>
-                    <p className="text-[10px] text-red-400/60">${worstSymbol?.totalPnl?.toFixed(2) ?? '0'}</p>
+                    <p className="text-sm font-bold text-red-500 mt-1">{worstSymbol?.symbol ?? '—'}</p>
+                    <p className="text-[10px] text-red-500/60">${worstSymbol?.totalPnl?.toFixed(2) ?? '0'}</p>
                 </div>
             </div>
 
@@ -87,22 +87,22 @@ export function TradeAnalytics({ analytics }: TradeAnalyticsProps) {
                     </thead>
                     <tbody>
                         {sorted.map((row) => (
-                            <tr key={row.symbol} className="bg-black/20 hover:bg-black/40 transition-colors rounded-xl">
-                                <td className="py-2.5 px-2 first:rounded-l-xl font-bold text-foreground/80">{row.symbol}</td>
-                                <td className="py-2.5 px-2 text-right text-muted-foreground/60">{row.trades}</td>
-                                <td className={`py-2.5 px-2 text-right font-bold ${row.winRate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
+                            <tr key={row.symbol} className="bg-secondary/5 hover:bg-secondary/10 transition-colors">
+                                <td className="py-2.5 px-2 first:rounded-l-xl font-black text-foreground/90">{row.symbol}</td>
+                                <td className="py-2.5 px-2 text-right text-muted-foreground/60 tabular-nums">{row.trades}</td>
+                                <td className={`py-2.5 px-2 text-right font-black tabular-nums ${row.winRate >= 50 ? 'text-emerald-500' : 'text-red-500'}`}>
                                     {row.winRate.toFixed(1)}%
                                 </td>
-                                <td className={`py-2.5 px-2 text-right font-bold ${row.totalPnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                <td className={`py-2.5 px-2 text-right font-black tabular-nums ${row.totalPnl >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                                     {row.totalPnl >= 0 ? '+' : ''}${row.totalPnl.toFixed(2)}
                                 </td>
-                                <td className={`py-2.5 px-2 text-right ${row.avgPnl >= 0 ? 'text-green-400/70' : 'text-red-400/70'}`}>
+                                <td className={`py-2.5 px-2 text-right tabular-nums ${row.avgPnl >= 0 ? 'text-emerald-500/70' : 'text-red-500/70'}`}>
                                     {row.avgPnl >= 0 ? '+' : ''}${row.avgPnl.toFixed(2)}
                                 </td>
-                                <td className="py-2.5 px-2 text-right text-green-400/70">+${row.bestTrade.toFixed(2)}</td>
-                                <td className="py-2.5 px-2 text-right text-red-400/70">${row.worstTrade.toFixed(2)}</td>
-                                <td className="py-2.5 px-2 text-right text-muted-foreground/50">{formatHoldingTime(row.avgHoldingTimeMs)}</td>
-                                <td className="py-2.5 px-2 last:rounded-r-xl text-right text-muted-foreground/50">
+                                <td className="py-2.5 px-2 text-right text-emerald-500/70 tabular-nums">+${row.bestTrade.toFixed(2)}</td>
+                                <td className="py-2.5 px-2 text-right text-red-500/70 tabular-nums">${row.worstTrade.toFixed(2)}</td>
+                                <td className="py-2.5 px-2 text-right text-muted-foreground/50 tabular-nums">{formatHoldingTime(row.avgHoldingTimeMs)}</td>
+                                <td className="py-2.5 px-2 last:rounded-r-xl text-right text-muted-foreground/50 tabular-nums">
                                     {row.isSpot ? '—' : `${row.avgLeverage.toFixed(1)}x`}
                                 </td>
                             </tr>

@@ -1,16 +1,16 @@
 import React from "react"
 import type { Metadata } from 'next'
-import { Open_Sans } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Providers } from '@/app/providers'
 import { AnnouncementProvider } from '@/context/announcement-context'
 import { FAVICON_DATA_URI } from '@/lib/image-constants'
 import './globals.css'
 
-const openSans = Open_Sans({
+const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-open-sans',
+  variable: '--font-inter',
 })
 
 export const metadata: Metadata = {
@@ -45,7 +45,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${openSans.variable} font-sans antialiased bg-background text-foreground`}>
+      <body className={`${inter.variable} font-sans antialiased bg-background text-foreground`}>
         <AnnouncementProvider>
           <Providers>
             {children}

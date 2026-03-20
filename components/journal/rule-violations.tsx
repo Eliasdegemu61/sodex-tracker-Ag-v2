@@ -36,25 +36,25 @@ const typeConfig: Record<string, any> = {
 export function RuleViolations({ violations }: RuleViolationsProps) {
     return (
         <CyberCard className="p-6">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/5">
-                <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">
-                    Internal Compliance Log
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/10">
+                <h3 className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.3em]">
+                    Compliance
                 </h3>
                 {violations.length > 0 && (
                     <span className="px-2 py-0.5 rounded-md bg-red-500/10 border border-red-500/30 text-red-500 text-[10px] font-black uppercase tracking-widest animate-[pulse_2s_infinite]">
-                        {violations.length} ANOMALIES
+                        Taking Risks
                     </span>
                 )}
             </div>
 
             {violations.length === 0 ? (
-                <div className="flex items-center gap-4 p-4 rounded-2xl bg-orange-500/5 border border-orange-500/10">
+                <div className="flex items-center gap-4 p-4 rounded-2xl bg-secondary/5 border border-border/10">
                     <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20 shadow-lg shadow-orange-500/5">
                         <ShieldCheck className="text-orange-500 w-5 h-5" />
                     </div>
                     <div>
-                        <p className="text-[11px] font-black text-orange-500 uppercase tracking-widest">Protocol Harmonized</p>
-                        <p className="text-[10px] text-white/20 uppercase font-bold tracking-tight">No violations registered in current cycle</p>
+                        <p className="text-[11px] font-black text-orange-500 uppercase tracking-widest">All Good</p>
+                        <p className="text-[10px] text-muted-foreground/20 uppercase font-bold tracking-tight">No violations found</p>
                     </div>
                 </div>
             ) : (
@@ -66,19 +66,19 @@ export function RuleViolations({ violations }: RuleViolationsProps) {
                             <div
                                 key={i}
                                 className={cn(
-                                    "flex items-start gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 group transition-all",
+                                    "flex items-start gap-4 p-4 rounded-2xl bg-secondary/5 border border-border/10 group transition-all",
                                     cfg.border
                                 )}
                             >
-                                <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-white/5", cfg.color)}>
+                                <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-secondary/10", cfg.color)}>
                                    <Icon className="w-4 h-4" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className={cn("text-[11px] font-black uppercase tracking-widest", cfg.color)}>{cfg.label}</p>
-                                    <p className="text-[10px] text-white/40 mt-1 italic font-medium leading-tight">{v.description}</p>
+                                    <p className="text-[10px] text-muted-foreground/40 mt-1 italic font-medium leading-tight">{v.description}</p>
                                 </div>
                                 {v.severity === 'critical' && (
-                                    <span className="text-[8px] font-black px-2 py-0.5 rounded bg-red-500 text-white uppercase tracking-widest shrink-0">
+                                    <span className="text-[8px] font-black px-2 py-0.5 rounded bg-red-500 text-primary-foreground uppercase tracking-widest shrink-0">
                                         CRITICAL
                                     </span>
                                 )}

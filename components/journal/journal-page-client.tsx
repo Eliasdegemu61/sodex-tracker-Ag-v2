@@ -81,8 +81,8 @@ function AddressPrompt({ onSetAddress }: { onSetAddress: (addr: string) => void 
         <div className="flex-1 flex flex-col items-center justify-center p-8 min-h-[60vh] animate-in fade-in duration-1000">
             <div className="max-w-md w-full space-y-8 text-center">
                 <div>
-                    <h2 className="text-xl font-bold text-white tracking-tight mb-2">Connect Journal</h2>
-                    <p className="text-xs text-white/40 font-medium leading-relaxed">Enter your wallet address to sync your trading history.</p>
+                    <h2 className="text-xl font-bold text-foreground tracking-tight mb-2">Connect Journal</h2>
+                    <p className="text-xs text-muted-foreground/40 font-medium leading-relaxed">Enter your wallet address to sync your trading history.</p>
                 </div>
                 <div className="space-y-4">
                     <input
@@ -90,12 +90,12 @@ function AddressPrompt({ onSetAddress }: { onSetAddress: (addr: string) => void 
                         placeholder="0x..."
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        className="w-full h-11 bg-white/5 border border-white/10 rounded-xl px-4 font-mono text-sm outline-none focus:border-white/20 transition-all placeholder:text-white/20 text-center"
+                        className="w-full h-11 bg-secondary/10 border border-border/10 rounded-xl px-4 font-mono text-sm outline-none focus:border-primary/20 transition-all placeholder:text-muted-foreground/20 text-center"
                     />
                     {error && <p className="text-xs text-red-400 font-medium">{error}</p>}
                     <button 
                         onClick={handleManualLink} 
-                        className="w-full h-11 bg-white text-black rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="w-full h-11 bg-primary text-primary-foreground rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-primary/10"
                         disabled={!input.trim() || isLoading}
                     >
                         {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Continue'}
@@ -106,7 +106,7 @@ function AddressPrompt({ onSetAddress }: { onSetAddress: (addr: string) => void 
     );
 }
 
-export function JournalPageClient() {
+export function JournalPageClient({ isDashboard = false }: { isDashboard?: boolean }) {
     const [view, setView] = useState<View>('list');
     const [plans, setPlans] = useState<TradingPlan[]>([]);
     const [selectedPlan, setSelectedPlan] = useState<TradingPlan | null>(null);
@@ -285,74 +285,79 @@ export function JournalPageClient() {
 
     if (!isMounted) {
         return (
-            <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-8">
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-8">
                 <div className="flex flex-col items-center gap-4 animate-pulse">
-                    <Loader2 className="w-10 h-10 text-white/20 animate-spin" />
-                    <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em]">Booting Terminal...</p>
+                    <Loader2 className="w-10 h-10 text-muted-foreground/20 animate-spin" />
+                    <p className="text-[10px] font-bold text-muted-foreground/20 uppercase tracking-[0.3em]">Booting Terminal...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white flex flex-col font-sans selection:bg-white selection:text-black">
+        <div className={cn(
+            "text-foreground flex flex-col font-sans selection:bg-primary selection:text-primary-foreground",
+            !isDashboard && "min-h-screen bg-background"
+        )}>
             {/* Header */}
-            <header className="h-12 md:h-16 border-b border-white/5 flex items-center justify-between px-4 md:px-6 shrink-0 sticky top-0 bg-[#050505]/80 backdrop-blur-xl z-50">
-                <div className="flex items-center gap-4">
-                    <div 
-                        className="text-xs font-black tracking-widest cursor-pointer hover:text-white/80 transition-colors opacity-50"
-                        onClick={() => setView('list')}
-                    >
-                        JOURNAL
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    {/* Identity Status */}
-                    {isAddressPromptFinished && (
-                        <div className="flex items-center gap-3 mr-1">
-                            <div className="flex flex-col items-end">
-                                <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest leading-none mb-0.5">Connected</span>
-                                <span className="text-[10px] font-mono text-white/60 leading-none">
-                                    {tempAddress?.slice(0, 6)}...{tempAddress?.slice(-4)}
-                                </span>
-                            </div>
-                            <button 
-                                onClick={handleDisconnect}
-                                className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-white/40 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all group"
-                                title="Disconnect Address"
-                            >
-                                <X className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                            </button>
+            {!isDashboard && (
+                <header className="h-12 md:h-16 border-b border-border/10 flex items-center justify-between px-4 md:px-6 shrink-0 sticky top-0 bg-background/80 backdrop-blur-xl z-50">
+                    <div className="flex items-center gap-4">
+                        <div 
+                            className="text-xs font-black tracking-widest cursor-pointer hover:text-foreground/80 transition-colors opacity-50"
+                            onClick={() => setView('list')}
+                        >
+                            JOURNAL
                         </div>
-                    )}
+                    </div>
 
-                    <div className="w-px h-4 bg-white/10 mx-1" />
+                    <div className="flex items-center gap-3">
+                        {/* Identity Status */}
+                        {isAddressPromptFinished && (
+                            <div className="flex items-center gap-3 mr-1">
+                                <div className="flex flex-col items-end">
+                                    <span className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest leading-none mb-0.5">Connected</span>
+                                    <span className="text-[10px] font-mono text-muted-foreground/60 leading-none">
+                                        {tempAddress?.slice(0, 6)}...{tempAddress?.slice(-4)}
+                                    </span>
+                                </div>
+                                <button 
+                                    onClick={handleDisconnect}
+                                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-secondary/5 border border-border/10 text-muted-foreground/40 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all group"
+                                    title="Disconnect Address"
+                                >
+                                    <X className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                                </button>
+                            </div>
+                        )}
 
-                    {/* Cloud Sync Status */}
-                    <button
-                        onClick={() => user ? supabase.auth.signOut() : setIsAuthModalOpen(true)}
-                        className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all text-[10px] font-black uppercase tracking-widest shadow-sm",
-                            user 
-                                ? "bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500/20" 
-                                : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10 hover:text-white"
-                        )}
-                    >
-                        {isSyncing ? (
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : user ? (
-                            <Cloud className="w-3 h-3" />
-                        ) : (
-                            <CloudOff className="w-3 h-3" />
-                        )}
-                        <span className="hidden sm:inline">
-                            {isSyncing ? 'Syncing' : user ? 'Cloud' : 'Guest'}
-                        </span>
-                        {user && <LogOut className="w-2.5 h-2.5 ml-0.5 opacity-40 hover:opacity-100" />}
-                    </button>
-                </div>
-            </header>
+                        <div className="w-px h-4 bg-border/20 mx-1" />
+
+                        {/* Cloud Sync Status */}
+                        <button
+                            onClick={() => user ? supabase.auth.signOut() : setIsAuthModalOpen(true)}
+                            className={cn(
+                                "flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all text-[10px] font-black uppercase tracking-widest shadow-sm",
+                                user 
+                                    ? "bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500/20" 
+                                    : "bg-secondary/5 border-border/10 text-muted-foreground/40 hover:bg-secondary/10 hover:text-foreground"
+                            )}
+                        >
+                            {isSyncing ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : user ? (
+                                <Cloud className="w-3 h-3" />
+                            ) : (
+                                <CloudOff className="w-3 h-3" />
+                            )}
+                            <span className="hidden sm:inline">
+                                {isSyncing ? 'Syncing' : user ? 'Cloud' : 'Guest'}
+                            </span>
+                            {user && <LogOut className="w-2.5 h-2.5 ml-0.5 opacity-40 hover:opacity-100" />}
+                        </button>
+                    </div>
+                </header>
+            )}
 
             <main className="flex-1 overflow-y-auto no-scrollbar pb-20">
                 <div className="max-w-4xl mx-auto w-full px-4 md:px-6 pt-4 md:pt-12">
@@ -362,10 +367,10 @@ export function JournalPageClient() {
                         <div className="space-y-6 md:space-y-12">
                             {/* Breadcrumbs for Dashboard View */}
                             {view === 'dashboard' && selectedPlan && (
-                                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">
-                                    <span onClick={() => setView('list')} className="cursor-pointer hover:text-white transition-colors">Portfolios</span>
+                                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/30">
+                                    <span onClick={() => setView('list')} className="cursor-pointer hover:text-foreground transition-colors">Portfolios</span>
                                     <ChevronRight className="w-3 h-3" />
-                                    <span className="text-white/60">{selectedPlan.name}</span>
+                                    <span className="text-muted-foreground/60">{selectedPlan.name}</span>
                                 </div>
                             )}
 
@@ -373,8 +378,8 @@ export function JournalPageClient() {
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                                     <div className="flex items-end justify-between">
                                         <div>
-                                            <h1 className="text-3xl font-bold tracking-tight mb-2">Portfolios</h1>
-                                            <p className="text-sm text-white/40 tracking-wide">Manage and track your active trading plans.</p>
+                                            <h1 className="text-3xl font-bold tracking-tight mb-2 text-foreground">Portfolios</h1>
+                                            <p className="text-sm text-muted-foreground/40 tracking-wide">Manage and track your active trading plans.</p>
                                         </div>
                                         <CyberButton onClick={() => setView('create')} className="h-10">New Plan</CyberButton>
                                     </div>

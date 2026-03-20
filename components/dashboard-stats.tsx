@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card'
 import { useState, useEffect } from 'react'
 import { ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts'
 import { formatNumber } from '@/lib/format-number'
+import { cn } from '@/lib/utils'
 import { useDexData } from '@/context/dex-data-context'
 import { useVolumeData } from '@/context/volume-data-context'
 import { TrendingUp } from 'lucide-react'
@@ -103,15 +104,15 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
 
   // Revised User and Volume Cards for Mobile Merger
   const StatsHeader = () => {
-    const SharedCard = ({ children }: { children: React.ReactNode }) => (
-      <Card className="p-4 lg:p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl group">
+    const SharedCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
+      <Card className={cn("p-4 lg:p-5 bg-card border border-border/50 rounded-2xl group transition-all duration-300 hover:border-primary/30", className)}>
         {children}
       </Card>
     );
 
     const UserStats = () => (
       <div className="flex-1 min-w-0">
-        <h3 className="text-[10px] lg:text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-1 whitespace-nowrap text-zinc-500">Total Users</h3>
+        <h3 className="text-[10px] lg:text-xs font-semibold text-muted-foreground/60 mb-1 whitespace-nowrap text-zinc-500">Total Users</h3>
         <div className="flex flex-col">
           <div className="text-xl lg:text-2xl font-bold tracking-tight text-foreground leading-none mb-1 lg:mb-2">
             {totalUsers.toLocaleString()}
@@ -128,10 +129,23 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
 
     const VolumeStats = () => (
       <div className="flex-1 min-w-0">
-        <h3 className="text-[10px] lg:text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-1 whitespace-nowrap text-zinc-500">Total Volume</h3>
+        <h3 className="text-[10px] lg:text-xs font-semibold text-muted-foreground/60 mb-1 whitespace-nowrap text-zinc-500">Total Volume</h3>
         <div className="text-xl lg:text-2xl font-bold tracking-tight text-foreground">${formatNumber(totalVolume)}</div>
       </div>
     );
+
+    if (variant === 'compact') {
+      return (
+        <>
+          <SharedCard>
+            <UserStats />
+          </SharedCard>
+          <SharedCard>
+            <VolumeStats />
+          </SharedCard>
+        </>
+      );
+    }
 
     return (
       <div className="space-y-2 lg:space-y-3 mb-0 lg:mb-4">
@@ -170,7 +184,7 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
       <StatsHeader />
 
       {/* Spot vs Futures Volume */}
-      <Card className="hidden lg:block p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm overflow-hidden group">
+      <Card className="hidden lg:block p-5 bg-card border border-border/50 rounded-2xl overflow-hidden group transition-all duration-300 hover:border-primary/30">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60 text-zinc-500 uppercase tracking-wider">Volume Split</h3>
         </div>
@@ -199,8 +213,8 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
                 isAnimationActive={!isMobile}
                 stroke="none"
               >
-                <Cell fill="#fb923c" className="drop-shadow-[0_0_8px_rgba(251,146,60,0.4)]" />
-                <Cell fill="#ea580c" className="drop-shadow-[0_0_8px_rgba(234,88,12,0.4)]" />
+                <Cell fill="var(--primary)" className="drop-shadow-[0_0_8px_rgba(255,77,0,0.4)]" />
+                <Cell fill="#EA580C" className="drop-shadow-[0_0_8px_rgba(234,88,12,0.4)]" />
               </Pie>
             </PieChart>
           </ResponsiveContainer>
@@ -215,7 +229,7 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
         <div className="mt-4 grid grid-cols-2 gap-2">
           <div className="p-3 bg-secondary/10 rounded-2xl border border-border/5 space-y-1">
             <div className="flex items-center gap-2 mb-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-orange-400" />
+              <div className="w-1.5 h-1.5 rounded-full bg-primary" />
               <span className="text-[8px] text-muted-foreground/70 dark:text-muted-foreground/40 font-bold  uppercase">Spot</span>
             </div>
             <p className="text-xs font-bold text-foreground/80">${formatNumber(spotVolume)}</p>

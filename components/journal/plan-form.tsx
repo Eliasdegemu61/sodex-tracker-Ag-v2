@@ -153,16 +153,16 @@ export function PlanForm({
     return (
         <div className="space-y-12 pb-20">
             {/* Header */}
-            <div className="flex items-center justify-between pb-6 md:pb-8 border-b border-white/5">
+            <div className="flex items-center justify-between pb-6 md:pb-8 border-b border-border/10">
                 <div>
-                    <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+                    <h2 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
                         {isEditing ? 'Edit Portfolio' : 'New Portfolio'}
                     </h2>
-                    <p className="text-[11px] md:text-sm text-white/40 mt-0.5 md:mt-1">
+                    <p className="text-[11px] md:text-sm text-muted-foreground/40 mt-0.5 md:mt-1">
                         {isEditing ? 'Modify your trading constraints.' : 'Initialize a new trading plan.'}
                     </p>
                 </div>
-                <button onClick={onCancel} className="p-1.5 md:p-2 rounded-xl hover:bg-white/5 text-white/20 hover:text-white transition-all">
+                <button onClick={onCancel} className="p-1.5 md:p-2 rounded-xl hover:bg-secondary/10 text-muted-foreground/20 hover:text-foreground transition-all">
                     <X className="w-4.5 h-4.5 md:w-5 md:h-5" />
                 </button>
             </div>
@@ -198,7 +198,7 @@ export function PlanForm({
                 </div>
 
                 <div className="space-y-3">
-                    <label className="text-[9px] font-bold text-white/20 uppercase tracking-widest">Connect Wallet</label>
+                    <label className="text-[9px] font-bold text-muted-foreground/20 uppercase tracking-widest">Connect Wallet</label>
                     <div className="relative">
                         <input
                             type="text"
@@ -206,12 +206,12 @@ export function PlanForm({
                             onChange={(e) => set('walletAddress', e.target.value)}
                             placeholder="0x..."
                             className={cn(
-                                "w-full h-11 md:h-12 bg-white/5 border border-white/10 rounded-xl px-4 font-mono text-[13px] text-white outline-none focus:border-white/20 transition-all",
+                                "w-full h-11 md:h-12 bg-secondary/5 border border-border/10 rounded-xl px-4 font-mono text-[13px] text-foreground outline-none focus:border-primary/40 focus:bg-secondary/10 transition-all",
                                 (errors.walletAddress || idLookupError) && "border-red-500/40"
                             )}
                         />
                         <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                            {isIdLoading ? <Loader2 className="w-4 h-4 animate-spin text-white/40" /> : form.userId ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : idLookupError ? <AlertCircle className="w-4 h-4 text-red-500" /> : null}
+                            {isIdLoading ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground/40" /> : form.userId ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : idLookupError ? <AlertCircle className="w-4 h-4 text-red-500" /> : null}
                         </div>
                     </div>
                     {(errors.walletAddress || idLookupError) && (
@@ -220,13 +220,13 @@ export function PlanForm({
                 </div>
 
                 <div className="space-y-3">
-                    <label className="text-[9px] font-bold text-white/20 uppercase tracking-widest">Notes</label>
+                    <label className="text-[9px] font-bold text-muted-foreground/20 uppercase tracking-widest">Notes</label>
                     <textarea
                         value={form.notes}
                         onChange={(e) => set('notes', e.target.value)}
                         placeholder="Strategy details..."
                         rows={3}
-                        className="w-full px-4 py-3 rounded-2xl bg-white/5 border border-white/5 text-[13px] text-white/80 outline-none focus:border-white/20 transition-all resize-none"
+                        className="w-full px-4 py-3 rounded-2xl bg-secondary/5 border border-border/10 text-[13px] text-foreground/80 outline-none focus:border-primary/40 focus:bg-secondary/10 transition-all resize-none"
                     />
                 </div>
             </div>
@@ -252,11 +252,11 @@ function Field({ label, id, value, onChange, error, type = 'text', placeholder =
 }) {
     return (
         <div className="space-y-2.5">
-            <label htmlFor={id} className="text-[9px] font-bold text-white/20 uppercase tracking-widest">{label}</label>
+            <label htmlFor={id} className="text-[9px] font-bold text-muted-foreground/20 uppercase tracking-widest">{label}</label>
             <input
                 id={id} type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
                 className={cn(
-                    "w-full h-11 md:h-12 px-4 rounded-xl bg-white/5 border border-white/5 text-[13px] font-bold text-white placeholder:text-white/10 outline-none transition-all focus:border-white/20 focus:bg-white/[0.07]",
+                    "w-full h-11 md:h-12 px-4 rounded-xl bg-secondary/5 border border-border/5 text-[13px] font-bold text-foreground placeholder:text-muted-foreground/10 outline-none transition-all focus:border-primary/40 focus:bg-secondary/10",
                     "appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
                     error && "border-red-500/40"
                 )}
@@ -288,21 +288,21 @@ function DateField({ label, value, onChange, error }: {
 
     return (
         <div className="space-y-2.5 relative" ref={containerRef}>
-            <label className="text-[9px] font-bold text-white/20 uppercase tracking-widest">{label}</label>
+            <label className="text-[9px] font-bold text-muted-foreground/20 uppercase tracking-widest">{label}</label>
             <button
                 type="button" onClick={() => setIsOpen(!isOpen)}
                 className={cn(
-                    "w-full h-11 md:h-12 px-4 rounded-xl bg-white/5 border border-white/5 text-[13px] font-bold transition-all flex items-center justify-between",
-                    isOpen ? "border-white/20 bg-white/10" : "hover:border-white/10",
+                    "w-full h-11 md:h-12 px-4 rounded-xl bg-secondary/5 border border-border/10 text-[13px] font-bold transition-all flex items-center justify-between",
+                    isOpen ? "border-primary/40 bg-secondary/10" : "hover:border-border/20",
                     error ? "border-red-500/40" : "",
-                    value ? "text-white" : "text-white/20"
+                    value ? "text-foreground" : "text-muted-foreground/20"
                 )}
             >
                 <span className="tracking-tight">{displayDate}</span>
                 <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", isOpen && "rotate-180")} />
             </button>
             {isOpen && (
-                <div className="absolute top-full left-0 mt-2 z-[100] bg-[#111] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+                <div className="absolute top-full left-0 mt-2 z-[100] bg-card border border-border/10 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-3xl">
                     <ModernCalendar selectedDate={value} onSelect={onChange} onClose={() => setIsOpen(false)} />
                 </div>
             )}

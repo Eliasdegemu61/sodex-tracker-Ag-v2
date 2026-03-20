@@ -42,32 +42,32 @@ export function TVLCard() {
 
   if (isLoading) {
     return (
-      <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl animate-pulse">
-        <div className="h-[40px] bg-secondary/10 rounded-xl" />
+      <Card className="p-5 bg-card border border-border/50 rounded-2xl animate-pulse">
+        <div className="h-[40px] bg-white/5 rounded-xl" />
       </Card>
     )
   }
 
   if (error) {
     return (
-      <Card className="p-5 bg-card/95 shadow-sm border border-red-500/20 rounded-3xl">
-        <h3 className="text-[10px] font-bold  text-red-400/60  mb-2">Sync Error</h3>
+      <Card className="p-5 bg-card border border-destructive/20 rounded-2xl">
+        <h3 className="text-[10px] font-bold text-destructive/60 mb-2">Sync Error</h3>
         <p className="text-[10px] text-muted-foreground/30 font-bold uppercase ">TVL connectivity lost</p>
       </Card>
     )
   }
 
   return (
-    <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm group hover:border-orange-500/20 transition-all duration-300">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60">Value Locked</h3>
-        <div className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+    <Card className="p-4 lg:p-5 bg-card border border-border/50 rounded-2xl transition-all duration-300 hover:border-primary/30 group">
+      <div className="flex items-center justify-between mb-1">
+        <h3 className="text-[10px] lg:text-xs font-semibold text-muted-foreground/60 whitespace-nowrap text-zinc-500">Value Locked</h3>
+        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(255,77,0,0.5)]" />
       </div>
       <div className="flex items-baseline gap-2">
-        <div className="text-xl font-bold tracking-tight text-foreground">
+        <div className="text-xl lg:text-2xl font-bold tracking-tight text-foreground leading-none">
           {formatNumber(tvl)}
         </div>
-        <div className="text-[8px] text-muted-foreground/30 font-bold   group-hover:text-orange-400/40 transition-colors">
+        <div className="text-[8px] text-muted-foreground/30 font-bold group-hover:text-primary/40 transition-colors">
           MAG7.SSI
         </div>
       </div>

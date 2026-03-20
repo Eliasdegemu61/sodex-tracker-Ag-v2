@@ -195,7 +195,7 @@ export function MonthlyCalendar() {
               <div
                 key={idx}
                 onClick={() => hasActivity && isCurrentMonth && setSelectedDay(dayTrades)}
-                className={`relative rounded-xl sm:rounded-2xl transition-all duration-200 flex flex-col justify-between p-2 sm:p-3 
+                className={`relative rounded-xl sm:rounded-2xl transition-all duration-200 flex flex-col justify-between p-1.5 sm:p-2 
                   aspect-[3/2.4] sm:aspect-[3/2.2]
                   ${cellBg} ${hasActivity && isCurrentMonth ? 'cursor-pointer scale-[1.02] shadow-sm' : 'cursor-default'}`}
               >
@@ -206,7 +206,7 @@ export function MonthlyCalendar() {
                 {/* Simplified PnL info — bottom right */}
                 {hasActivity && isCurrentMonth && dayTrades && (
                   <div className="flex flex-col items-end text-right mt-auto gap-0.5">
-                    <span className={`text-[8px] sm:text-[11px] font-bold leading-tight ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                    <span className={`text-[7px] sm:text-[10px] font-bold leading-tight ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
                       {isPositive ? '+' : '-'}${Math.abs(dayTrades.pnl).toFixed(2)}
                     </span>
                   </div>

@@ -17,8 +17,8 @@ function SpotDetailModal({ position, onClose }: { position: EnrichedPosition; on
     if (!position.matches) return null;
 
     return (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-            <Card className="w-full max-w-2xl bg-[#0a0a0b] border border-white/5 shadow-2xl rounded-[2.5rem] overflow-hidden relative">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in duration-300">
+            <Card className="w-full max-w-2xl bg-card border border-border/10 shadow-2xl rounded-[2.5rem] overflow-hidden relative">
                 <div className="p-6 md:p-8">
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-4">
@@ -27,83 +27,83 @@ function SpotDetailModal({ position, onClose }: { position: EnrichedPosition; on
                             </div>
                             <div>
                                 <div className="flex items-center gap-3">
-                                    <h3 className="text-xl font-black text-white">{position.pairName}</h3>
+                                    <h3 className="text-xl font-black text-foreground">{position.pairName}</h3>
                                     <span className="px-2 py-0.5 rounded-lg bg-orange-500/10 text-orange-500 text-[10px] font-black tracking-widest border border-orange-500/20">SPOT</span>
                                 </div>
-                                <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest mt-1">Order Execution Breakdown</p>
+                                <p className="text-[10px] text-muted-foreground/40 font-bold uppercase tracking-widest mt-1">Order Execution Breakdown</p>
                             </div>
                         </div>
                         <button 
                             onClick={onClose} 
-                            className="w-10 h-10 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all group"
+                            className="w-10 h-10 rounded-2xl bg-secondary/10 hover:bg-secondary/20 flex items-center justify-center transition-all group"
                         >
-                            <X className="w-5 h-5 text-white/40 group-hover:text-white" />
+                            <X className="w-5 h-5 text-muted-foreground/40 group-hover:text-foreground" />
                         </button>
                     </div>
 
                     <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 scrollbar-hide">
                         {position.matches.map((match, idx) => (
-                            <div key={idx} className="p-5 rounded-[2rem] bg-white/[0.02] border border-white/5 group hover:bg-white/[0.04] transition-all">
+                            <div key={idx} className="p-5 rounded-[2rem] bg-secondary/5 border border-border/5 group hover:bg-secondary/10 transition-all">
                                 <div className="flex items-center justify-between mb-4">
-                                    <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Match #{idx + 1}</span>
+                                    <span className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-widest">Match #{idx + 1}</span>
                                     <div className={cn(
                                         "px-3 py-1 rounded-xl text-[11px] font-black",
-                                        match.pnl >= 0 ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400"
+                                        match.pnl >= 0 ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"
                                     )}>
                                         {match.pnl >= 0 ? "+" : ""}${match.pnl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
                                     </div>
                                 </div>
                                 
                                 <div className="grid grid-cols-2 gap-8 relative">
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-[1px] bg-white/5 hidden md:block" />
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-[1px] bg-border/10 hidden md:block" />
                                     
                                     <div className="space-y-1.5">
                                         <div className="flex items-center gap-1.5">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                                            <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">Bought</span>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                            <span className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest">Bought</span>
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="text-sm font-black text-white/90">${match.buy_price.toLocaleString()}</span>
-                                            <span className="text-[9px] font-bold text-white/10 uppercase">{new Date(match.buy_ts).toLocaleTimeString()}</span>
+                                            <span className="text-sm font-black text-foreground">${match.buy_price.toLocaleString()}</span>
+                                            <span className="text-[9px] font-bold text-muted-foreground/30 uppercase">{new Date(match.buy_ts).toLocaleTimeString()}</span>
                                         </div>
                                     </div>
 
                                     <div className="space-y-1.5 text-right">
                                         <div className="flex items-center justify-end gap-1.5">
-                                            <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">Sold</span>
+                                            <span className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest">Sold</span>
                                             <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="text-sm font-black text-white/90">${match.sell_price.toLocaleString()}</span>
-                                            <span className="text-[9px] font-bold text-white/10 uppercase">{new Date(match.sell_ts).toLocaleTimeString()}</span>
+                                            <span className="text-sm font-black text-foreground">${match.sell_price.toLocaleString()}</span>
+                                            <span className="text-[9px] font-bold text-muted-foreground/30 uppercase">{new Date(match.sell_ts).toLocaleTimeString()}</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+                                <div className="mt-4 pt-4 border-t border-border/5 flex items-center justify-between">
                                     <div className="flex flex-col">
-                                        <span className="text-[8px] font-bold text-white/10 uppercase tracking-widest">Matched Qty</span>
-                                        <span className="text-[10px] font-black text-white/60">{match.buy_qty.toLocaleString()}</span>
+                                        <span className="text-[8px] font-bold text-muted-foreground/30 uppercase tracking-widest">Matched Qty</span>
+                                        <span className="text-[10px] font-black text-muted-foreground/60">{match.buy_qty.toLocaleString()}</span>
                                     </div>
                                     <div className="flex flex-col text-right">
-                                        <span className="text-[8px] font-bold text-white/10 uppercase tracking-widest">Combined Fee</span>
-                                        <span className="text-[10px] font-black text-white/60">${(match.buy_fee + match.sell_fee).toFixed(4)}</span>
+                                        <span className="text-[8px] font-bold text-muted-foreground/30 uppercase tracking-widest">Combined Fee</span>
+                                        <span className="text-[10px] font-black text-muted-foreground/60">${(match.buy_fee + match.sell_fee).toFixed(4)}</span>
                                     </div>
                                 </div>
                             </div>
                         ))}
                     </div>
 
-                    <div className="mt-8 pt-8 border-t border-white/5 grid grid-cols-2 gap-6">
+                    <div className="mt-8 pt-8 border-t border-border/10 grid grid-cols-2 gap-6">
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest mb-1">Total Net P&L</span>
-                            <span className={cn("text-2xl font-black tracking-tight", position.realizedPnlValue >= 0 ? "text-green-400" : "text-red-400")}>
+                            <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-1">Total Net P&L</span>
+                            <span className={cn("text-2xl font-black tracking-tight", position.realizedPnlValue >= 0 ? "text-emerald-500" : "text-red-500")}>
                                 {position.realizedPnlValue >= 0 ? "+" : ""}${position.realizedPnlValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </span>
                         </div>
                         <div className="text-right flex flex-col items-end">
-                            <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest mb-1">Accumulated Fees</span>
-                            <span className="text-xl font-bold text-white/60 tabular-nums">${position.tradingFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</span>
+                            <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-1">Accumulated Fees</span>
+                            <span className="text-xl font-bold text-muted-foreground/60 tabular-nums">${position.tradingFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</span>
                         </div>
                     </div>
                 </div>
@@ -226,9 +226,9 @@ export function DailyPositionDetail({ dailyData, allPositions }: DailyPositionDe
                                                         "w-7 h-7 rounded-lg flex items-center justify-center border transition-all",
                                                         pos.is_spot 
                                                             ? "bg-orange-500/10 border-orange-500/10 group-hover:bg-orange-500/20" 
-                                                            : "bg-secondary/10 border-white/5 group-hover:bg-secondary/20"
+                                                            : "bg-secondary/10 border-border/10 group-hover:bg-secondary/20"
                                                     )}>
-                                                        {pos.is_spot ? <ExternalLink className="w-3.5 h-3.5 text-orange-400" /> : <Hash className="w-3.5 h-3.5 text-white/40" />}
+                                                        {pos.is_spot ? <ExternalLink className="w-3.5 h-3.5 text-orange-400" /> : <Hash className="w-3.5 h-3.5 text-muted-foreground/40" />}
                                                     </div>
                                                     <div className="flex flex-col">
                                                         <span className="text-xs font-black text-foreground">{pos.pairName}</span>

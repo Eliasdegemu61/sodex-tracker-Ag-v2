@@ -116,7 +116,7 @@ export function FundFlowChart() {
     }, [data, selectedToken, timeRange])
     if (isLoading) {
         return (
-            <Card className="p-8 bg-card/95 shadow-sm border border-border/20 rounded-[2.5rem] animate-pulse mt-4">
+            <Card className="p-8 bg-card border border-border/50 rounded-2xl animate-pulse">
                 <h3 className="text-xs font-semibold text-muted-foreground/60 mb-8">Interrogating Flows</h3>
                 <div className="h-64 bg-secondary/10 rounded-2xl" />
             </Card>
@@ -124,17 +124,17 @@ export function FundFlowChart() {
     }
 
     return (
-        <Card className="p-8 bg-card/95 shadow-sm border border-border/20 rounded-[2.5rem] shadow-sm flex flex-col mt-4">
+        <Card className="p-8 bg-card border border-border/50 rounded-2xl flex flex-col transition-all duration-300 hover:border-primary/30">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
                 <div>
-                    <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60">fund flow</h3>
+                    <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60 uppercase">Fund Flow</h3>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <Select value={selectedToken} onValueChange={setSelectedToken}>
-                        <SelectTrigger className="w-[110px] h-9 bg-secondary/5 border-border/10 rounded-xl text-[10px] font-bold text-foreground/60 uppercase">
+                        <SelectTrigger className="w-[110px] h-9 bg-white/5 border border-border/50 rounded-xl text-[10px] font-bold text-foreground/60 uppercase hover:bg-white/10 transition-colors">
                             <SelectValue placeholder="Asset" />
                         </SelectTrigger>
-                        <SelectContent className="bg-card/90 border border-border/20 rounded-xl">
+                        <SelectContent className="bg-card border border-border/50 rounded-xl">
                             {tokens.map((t) => (
                                 <SelectItem key={t} value={t} className="text-[10px] font-bold uppercase">{t}</SelectItem>
                             ))}
@@ -145,9 +145,9 @@ export function FundFlowChart() {
                             <button
                                 key={range}
                                 onClick={() => setTimeRange(range)}
-                                className={`text-[9px] font-bold  px-3 py-1.5 rounded-lg transition-all ${timeRange === range
-                                    ? 'bg-orange-500 text-black shadow-lg'
-                                    : 'text-muted-foreground/40 hover:text-foreground hover:bg-secondary/20'
+                                className={`text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all ${timeRange === range
+                                    ? 'bg-primary text-white shadow-[0_0_15px_rgba(255,77,0,0.3)]'
+                                    : 'text-muted-foreground/40 hover:text-foreground hover:bg-white/5'
                                     }`}
                             >
                                 {range}
@@ -201,7 +201,7 @@ export function FundFlowChart() {
                                         const d = new Date(label);
                                         const dateStr = !isNaN(d.getTime()) ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : label;
                                         return (
-                                            <div className="bg-card/90 border border-border/20 p-4 rounded-2xl shadow-2xl min-w-[160px]">
+                                            <div className="bg-card border border-border/50 p-4 rounded-xl shadow-2xl min-w-[160px]">
                                                 <p className="text-[9px] text-muted-foreground/40 font-bold   mb-3">{dateStr}</p>
                                                 <div className="space-y-2">
                                                     {payload.map((entry: any, index: number) => (
@@ -281,7 +281,7 @@ export function FundFlowChart() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 bg-secondary/5 px-3 py-1.5 rounded-xl border border-border/5">
+                <div className="flex items-center gap-3 bg-white/5 px-3 py-1.5 rounded-xl border border-border/50">
                     <Checkbox
                         id="show-net-remaining"
                         checked={showNetRemaining}

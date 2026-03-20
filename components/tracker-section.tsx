@@ -16,7 +16,6 @@ import { MonthlyCalendar } from './monthly-calendar';
 import { PortfolioProvider } from '@/context/portfolio-context';
 import { getUserIdByAddress, fetchAllPositions, enrichPositions, type EnrichedPosition } from '@/lib/sodex-api';
 import { usePortfolio } from '@/context/portfolio-context';
-import { SearchingAnimation } from './searching-animation';
 
 // Loading Spinner Component
 function LoadingSpinner({ message }: { message: string }) {
@@ -147,8 +146,8 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
   // Render portfolio data when wallet is found
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[600px] w-full max-w-5xl mx-auto px-4">
-        <SearchingAnimation />
+      <div className="flex items-center justify-center min-h-[400px] w-full max-w-5xl mx-auto px-4">
+        <LoadingSpinner message="Searching SoDex registry..." />
       </div>
     );
   }

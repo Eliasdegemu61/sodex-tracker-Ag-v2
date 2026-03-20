@@ -208,12 +208,12 @@ export function OpenPositions({ accountId }: { accountId?: string | null }) {
   }
 
   return (
-    <Card className="p-5 bg-black/40 shadow-sm border border-border/20 rounded-3xl shadow-sm overflow-hidden">
+    <Card className="p-5 bg-card/40 backdrop-blur-3xl shadow-sm border border-border/10 rounded-3xl overflow-hidden">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
         <div className="flex items-center gap-3">
           <h3 className="text-xs font-semibold text-muted-foreground/60">Open Positions</h3>
-          <div className="flex items-center justify-center w-5 h-5 rounded-full bg-accent/10 border border-accent/20">
-            <div className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />
+          <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 border border-primary/20">
+            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
           </div>
         </div>
         {lastUpdateTime && (
@@ -226,19 +226,19 @@ export function OpenPositions({ accountId }: { accountId?: string | null }) {
       {/* Balance Info */}
       {balanceData && (
         <div className="grid grid-cols-3 gap-2 mb-8">
-          <div className="p-2 md:p-4 rounded-2xl bg-black/20 border border-border/5 space-y-1">
-            <p className="text-[7px] text-muted-foreground/30 font-bold">Wallet Balance</p>
+          <div className="p-2 md:p-4 rounded-2xl bg-secondary/5 backdrop-blur-md border border-border/5 space-y-1">
+            <p className="text-[7px] text-muted-foreground/40 font-bold uppercase tracking-widest leading-none">Wallet Balance</p>
             <p className="text-sm md:text-xl font-bold tracking-tight text-foreground/80">${parseFloat(balanceData.walletBalance).toFixed(2)}</p>
             <p className="text-[7px] text-muted-foreground/20 font-bold hidden sm:block">perpetuals (usdc)</p>
           </div>
-          <div className="p-2 md:p-4 rounded-2xl bg-black/20 border border-border/5 space-y-1">
-            <p className="text-[7px] text-muted-foreground/30 font-bold">Liquidity</p>
-            <p className="text-sm md:text-xl font-bold tracking-tight text-green-400">${parseFloat(balanceData.availableBalance).toFixed(2)}</p>
+          <div className="p-2 md:p-4 rounded-2xl bg-secondary/5 backdrop-blur-md border border-border/5 space-y-1">
+            <p className="text-[7px] text-muted-foreground/40 font-bold uppercase tracking-widest leading-none">Liquidity</p>
+            <p className="text-sm md:text-xl font-bold tracking-tight text-emerald-500/80">${parseFloat(balanceData.availableBalance).toFixed(2)}</p>
             <p className="text-[7px] text-muted-foreground/20 font-bold hidden sm:block">Available to trade</p>
           </div>
-          <div className="p-2 md:p-4 rounded-2xl bg-black/20 border border-border/5 space-y-1">
-            <p className="text-[7px] text-muted-foreground/30 font-bold">Exposure</p>
-            <p className="text-sm md:text-xl font-bold tracking-tight text-orange-400">${totalMarginInUse.toFixed(2)}</p>
+          <div className="p-2 md:p-4 rounded-2xl bg-secondary/5 backdrop-blur-md border border-border/5 space-y-1">
+            <p className="text-[7px] text-muted-foreground/40 font-bold uppercase tracking-widest leading-none">Exposure</p>
+            <p className="text-sm md:text-xl font-bold tracking-tight text-primary/80">${totalMarginInUse.toFixed(2)}</p>
             <p className="text-[7px] text-muted-foreground/20 font-bold hidden sm:block">Margin in use</p>
           </div>
         </div>
@@ -249,7 +249,7 @@ export function OpenPositions({ accountId }: { accountId?: string | null }) {
         {paginatedPositions.map((pos) => {
           const isProfit = pos.unrealized >= 0;
           return (
-            <Card key={pos.id} className="group relative overflow-hidden bg-black/40 shadow-sm border border-border/20 rounded-3xl transition-all hover:border-accent/10">
+            <Card key={pos.id} className="group relative overflow-hidden bg-card/30 backdrop-blur-2xl shadow-sm border border-border/10 rounded-3xl transition-all hover:border-primary/20">
               <div className={`absolute top-0 right-0 w-32 h-32 blur-[60px] opacity-10 transition-colors ${isProfit ? 'bg-green-500' : 'bg-red-500'}`} />
 
               <div className="p-4 md:p-5 space-y-3">
@@ -312,12 +312,12 @@ export function OpenPositions({ accountId }: { accountId?: string | null }) {
                   {[
                     { label: 'entry', val: `$${pos.entry.toFixed(2)}` },
                     { label: 'size', val: pos.size.toFixed(4) },
-                    { label: 'margin', val: `$${pos.margin.toFixed(2)}`, color: 'text-orange-400/80' },
-                    { label: 'liq. price', val: `$${pos.liquidation.toFixed(2)}`, color: 'text-red-500/80' }
+                    { label: 'margin', val: `$${pos.margin.toFixed(2)}`, color: 'text-primary/70' },
+                    { label: 'liq. price', val: `$${pos.liquidation.toFixed(2)}`, color: 'text-red-500/70' }
                   ].map((stat, i) => (
-                    <div key={i} className="p-2.5 rounded-2xl bg-black/20 border border-border/5">
-                      <p className="text-[7px] text-muted-foreground/40 uppercase font-bold mb-0.5">{stat.label}</p>
-                      <p className={`text-[10px] font-bold truncate ${stat.color || ''}`}>{stat.val}</p>
+                    <div key={i} className="p-2.5 rounded-2xl bg-secondary/5 border border-border/5">
+                      <p className="text-[7px] text-muted-foreground/50 uppercase font-black tracking-widest mb-0.5 leading-none">{stat.label}</p>
+                      <p className={`text-[10px] font-bold truncate ${stat.color || 'text-foreground/80'}`}>{stat.val}</p>
                     </div>
                   ))}
                 </div>

@@ -5,6 +5,7 @@ import React from "react"
 
 import { Suspense, useState, lazy, useEffect } from 'react'
 import { Moon, Sun, Activity, TrendingUp, Wallet, Trophy, Zap, Compass, BookOpen } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -15,7 +16,7 @@ import { VolumeChart } from '@/components/volume-chart'
 import { FundFlowChart } from '@/components/fund-flow-chart'
 import { TopPairsWidget } from '@/components/top-pairs-widget'
 import { TodayTopPairs } from '@/components/today-top-pairs'
-import { OverallDepositsCard, NetRemainingCard } from '@/components/overall-token-flow'
+import { NetRemainingCard } from '@/components/overall-token-flow'
 import { LeaderboardPage } from '@/components/leaderboard-page'
 import { TVLCard } from '@/components/tvl-card'
 import { VolumeRangeCard } from '@/components/volume-range-card'
@@ -25,11 +26,23 @@ import { MobileNavMenu } from '@/components/mobile-nav-menu'
 import { NewTradersTracker } from '@/components/new-traders-tracker'
 import { AnnouncementSidePanel } from '@/components/announcement-side-panel'
 import { PortfolioSection } from '@/components/portfolio-section'
+import dynamic from 'next/dynamic'
+import { Loader2 } from 'lucide-react'
+
+const OverallDepositsCard = dynamic(
+  () => import('@/components/overall-token-flow').then((mod) => mod.OverallDepositsCard),
+  { ssr: false, loading: () => <div className="h-[400px] flex flex-col items-center justify-center gap-4"><Loader2 className="w-8 h-8 text-primary animate-spin" /><span className="text-sm font-medium text-muted-foreground animate-pulse">Loading Assets...</span></div> }
+)
 
 import { TrackerSection } from '@/components/tracker-section'
 import { Footer } from '@/components/footer'
 import { SopointsAnalyzer } from '@/components/sopoints-analyzer'
 import { AboutSodex } from '@/components/about-sodex'
+import { SidebarNav } from '@/components/sidebar-nav'
+import { PortfolioProvider } from '@/context/portfolio-context';
+import { JournalPageClient } from '@/components/journal/journal-page-client';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { Search, Bell, Settings as SettingsIcon } from 'lucide-react'
 
 function LoadingCard() {
   return <Card className="p-4 md:p-6 bg-card border border-border h-64 animate-pulse" />
@@ -200,7 +213,7 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
 
 export default function Dashboard() {
   const { theme, toggleTheme, mounted } = useTheme()
-  const [currentPage, setCurrentPage] = useState<'dex-status' | 'tracker' | 'portfolio' | 'leaderboard' | 'analyzer' | 'about' | 'whale-tracker' | 'assets'>('dex-status')
+  const [currentPage, setCurrentPage] = useState<'dex-status' | 'tracker' | 'portfolio' | 'leaderboard' | 'analyzer' | 'about' | 'whale-tracker' | 'assets' | 'journal'>('dex-status')
   const [searchAddressInput, setSearchAddressInput] = useState('')
   const [trackerSearchAddress, setTrackerSearchAddress] = useState('')
   const [showMoreMenu, setShowMoreMenu] = useState(false)
@@ -269,273 +282,191 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <header 
-        className="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none"
-      >
-        <div 
-          className={`pointer-events-auto flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] gap-2 md:gap-4 mx-auto ${
-            isScrolled 
-              ? 'bg-background/40 dark:bg-black/40 backdrop-blur-3xl border border-border/30 dark:border-white/10 rounded-full px-6 py-2.5 shadow-[0_8px_30px_rgb(0,0,0,0.12)] max-w-fit w-[calc(100%-2rem)] md:w-auto translate-y-4' 
-              : 'bg-card/95 backdrop-blur-xl border-b border-border/50 rounded-none px-4 md:px-8 py-3 md:py-4 max-w-full w-full translate-y-0 shadow-none'
-          }`}
-        >
-          <div className={`flex items-center gap-2 flex-shrink-0 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isScrolled ? 'mr-4' : ''}`}>
-            <img
-              src={theme === 'dark' ? 'https://sodex.com/_next/image?url=%2Flogo%2Flogo.webp&w=256&q=75' : 'https://testnet.sodex.com/assets/SoDEX-Dh5Mk-Pl.svg'}
-              alt="Sodex Logo"
-              className={`transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] object-contain ${isScrolled ? 'h-6 w-6' : 'h-7 w-auto'}`}
-              loading="eager"
-              decoding="async"
-            />
-            {!isScrolled && <span className="text-xs md:text-sm font-semibold text-foreground">Tracker</span>}
-          </div>
+    <SidebarProvider>
+      <div className={cn(
+        "flex min-h-screen w-full font-sans transition-colors duration-500",
+        theme === 'light' ? "bg-[#F5F5F7]" : "bg-black"
+      )}>
+        {/* Sidebar Navigation */}
+        <SidebarNav currentPage={currentPage} onNavigate={setCurrentPage} />
 
-
-          <div className={`hidden md:flex items-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isScrolled ? 'gap-4' : 'gap-8'}`}>
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = currentPage === item.id;
-              
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setCurrentPage(item.id)}
-                  title={isScrolled ? item.label : undefined}
-                  className={`relative flex items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group ${
-                    isScrolled ? 'p-2 rounded-full hover:bg-white/5' : 'pb-1 border-b-2'
-                  } ${
-                    isActive 
-                      ? (isScrolled ? 'text-orange-400 bg-white/5' : 'text-foreground border-b-orange-400')
-                      : (isScrolled ? 'text-muted-foreground' : 'text-foreground border-transparent hover:text-orange-400 hover:border-b-orange-400')
-                  }`}
-                >
-                  <Icon className={`transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isActive ? 'scale-110' : 'group-hover:scale-110'} ${isScrolled ? 'w-5 h-5' : 'w-4 h-4'}`} />
-                  {(!isScrolled || isActive) && <span className="text-xs md:text-sm font-semibold whitespace-nowrap">{item.label}</span>}
-                  
-                  {isScrolled && isActive && (
-                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-orange-400 rounded-full" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-
-
-          <div className={`flex items-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isScrolled ? 'gap-2 ml-4' : 'gap-2 md:gap-4'}`}>
-            {mounted && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleTheme}
-                className={`text-muted-foreground hover:text-foreground transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isScrolled ? 'h-8 w-8' : 'h-9 w-9'}`}
-              >
-                {theme === 'light' ? (
-                  <Moon className={isScrolled ? "w-4 h-4" : "w-5 h-5"} />
-                ) : (
-                  <Sun className={isScrolled ? "w-4 h-4" : "w-5 h-5"} />
-                )}
-              </Button>
-            )}
-            {!isScrolled && (
-              <a href="https://sodex.com/join/TRADING" target="_blank" rel="noopener noreferrer">
-                <Button variant="ghost" className="hidden md:flex items-center gap-2 text-foreground hover:bg-secondary transition-all duration-300 px-3 h-9">
-                  <img
-                    src="https://ssi.sosovalue.com/_next/image?url=%2Fimages%2Fwhat-is-soso%2F%24soso.png&w=256&q=75"
-                    alt="SOSO"
-                    className="w-5 h-5"
+        {/* Main Content Area */}
+        <SidebarInset className={cn(
+          "flex-1 flex flex-col min-h-screen overflow-hidden relative transition-colors duration-500",
+          theme === 'light' ? "bg-[#F5F5F7]" : "bg-black"
+        )}>
+          
+          {/* Top Header / Search Bar */}
+          <header className={cn(
+            "sticky top-0 z-40 w-full transition-all duration-300 border-b",
+            theme === 'light' 
+              ? (isScrolled ? "bg-white/80 backdrop-blur-xl border-black/5" : "bg-white border-black/5") 
+              : (isScrolled ? "bg-black/80 backdrop-blur-xl border-white/5" : "bg-black border-white/5"),
+            isScrolled ? "py-3" : "py-4"
+          )}>
+            <div className="container px-6 flex items-center justify-between gap-4 max-w-full">
+              {/* Left Side: Search Bar */}
+              <div className="flex items-center gap-4 flex-1">
+                <div className="relative max-w-md w-full group">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                  <input
+                    type="text"
+                    placeholder="Search address..."
+                    value={searchAddressInput}
+                    onChange={(e) => setSearchAddressInput(e.target.value)}
+                    onKeyDown={handleSearchBarSubmit}
+                    className="w-full bg-secondary/30 border border-border/50 rounded-xl pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                   />
-                  <span className="text-sm font-semibold text-accent">Trade</span>
-                </Button>
-              </a>
-            )}
-            <MobileNavMenu currentPage={currentPage} onNavigate={(page: any) => setCurrentPage(page)} />
-          </div>
-        </div>
-      </header>
-      
-      {/* Spacer to push content down naturally */}
-      <div className="h-16 w-full flex-shrink-0" />
-
-
-      {/* Main Content - Only render active tab */}
-      {
-        currentPage === 'dex-status' && (
-          <Suspense fallback={<div className="w-full h-screen flex items-center justify-center"><div className="text-muted-foreground">Loading SoDex Status...</div></div>}>
-          <div className="flex flex-col w-full overflow-y-auto overflow-x-hidden">
-              <div className="flex flex-col lg:flex-row w-full">
-                {/* Left Sidebar - Desktop Only */}
-                {!isMobile && (
-                  <div className="hidden lg:block lg:w-64 p-3 md:p-4 space-y-4 lg:flex-shrink-0 lg:order-1">
-                    {/* Key Metrics */}
-                    <DashboardStats />
-
-                    {/* Overall Profit Efficiency */}
-                    <TVLCard />
-
-
-
-                    {/* Trade on SoDex Promo Card (Moved to Left) */}
-                    <div className="relative overflow-hidden rounded-lg border border-border hover:border-accent/50 transition-all duration-300 group">
-                      <img
-                        src="https://sodex.com/_next/image?url=%2Fimg%2Fhome%2Fcontent1-inner.webp&w=1920&q=75"
-                        alt="Trade on SoDex"
-                        className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                      <div className="absolute inset-0 flex flex-col items-center justify-end p-4">
-                        <a
-                          href="https://sodex.com/join/TRADING"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full"
-                        >
-                          <button
-                            type="button"
-                            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 font-sans"
-                          >
-                            Trade on SoDex
-                          </button>
-                        </a>
-                      </div>
-                    </div>
-
-                    {/* Announcements */}
-                    <AnnouncementsPanel />
-                  </div>
-                )}
-
-                {/* Main Content Area */}
-                <div className="flex-1 p-2 md:p-6 space-y-3 md:space-y-4 lg:flex-shrink-0 order-1 lg:order-2">
-                  {/* Top Stats - Mobile Only (Now part of the same space-y stack) */}
-                  <div className="lg:hidden">
-                    <DashboardStats variant="compact" />
-                  </div>
-
-                  <VolumeChart />
-                  <TodayTopPairs />
-                  <FundFlowChart />
-
-                  <div className="lg:hidden space-y-3">
-                    <TVLCard />
-                    <AnnouncementsPanel />
-
-                    {/* Trade on SoDex Promo at bottom */}
-                    <div className="relative overflow-hidden rounded-lg border border-border hover:border-accent/50 transition-all duration-300 group">
-                      <img
-                        src="https://sodex.com/_next/image?url=%2Fimg%2Fhome%2Fcontent1-inner.webp&w=1920&q=75"
-                        alt="Trade on SoDex"
-                        className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                      <div className="absolute inset-0 flex flex-col items-center justify-end p-4">
-                        <a
-                          href="https://sodex.com/join/TRADING"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full"
-                        >
-                          <button
-                            type="button"
-                            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 font-sans"
-                          >
-                            Trade on SoDex
-                          </button>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
 
-              {/* Full Width Bottom Content */}
-              <div className="w-full p-2 md:p-6 lg:pt-0">
-                {/* Historical Dominance (TopTradingPairs) */}
-                <TopPairsWidget />
+              {/* Right Side: Actions */}
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-xl">
+                  <Bell className="h-4 w-4" />
+                </Button>
+                
+                {mounted && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleTheme}
+                    className="text-muted-foreground hover:text-white hover:bg-white/5 rounded-xl"
+                  >
+                    {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                  </Button>
+                )}
+
+                <a href="https://sodex.com/join/TRADING" target="_blank" rel="noopener noreferrer" className="hidden md:block ml-2">
+                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-5 py-2 rounded-xl text-sm transition-all duration-300 shadow-[0_0_20px_rgba(255,77,0,0.15)]">
+                    + Trade
+                  </Button>
+                </a>
+
+                {/* Mobile Navigation Toggle (Top Right) */}
+                <div className="lg:hidden">
+                  <MobileNavMenu currentPage={currentPage} onNavigate={setCurrentPage as any} />
+                </div>
               </div>
             </div>
-          </Suspense>
-        )
-      }
+          </header>
 
-      {
-        currentPage === 'tracker' && (
-          <Suspense fallback={<LoadingCard />}>
-            <div className="p-4 md:p-6 overflow-y-auto w-full">
-              <TrackerSection initialSearchAddress={trackerSearchAddress} />
+          {/* Page Content */}
+          <main className={cn(
+            "flex-1 overflow-y-auto scroll-smooth p-6",
+            "lg:max-w-[1600px] lg:mx-auto w-full"
+          )}>
+            {/* Conditional Rendering of Tabs */}
+            <div className="space-y-8 animate-in fade-in duration-500">
+              {currentPage === 'dex-status' && (
+                <Suspense fallback={<div className="w-full h-[60vh] flex items-center justify-center text-muted-foreground">Loading Status...</div>}>
+                  <div className="space-y-8">
+                    {/* Hero Section / Welcome */}
+                    <div className="flex flex-col gap-1">
+                      <div className="lg:hidden flex items-center gap-3 mb-2">
+                        <img 
+                          src={theme === 'dark' 
+                            ? "https://sodex.com/_next/image?url=%2Flogo%2Flogo.webp&w=256&q=75"
+                            : "https://testnet.sodex.com/assets/SoDEX-Dh5Mk-Pl.svg"} 
+                          alt="SoDEX Logo" 
+                          className="h-8 w-auto object-contain" 
+                        />
+                        <span className="text-sm font-bold tracking-tight text-white mb-0.5 translate-y-[1px]">Tracker</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3 md:gap-6">
+                      {/* Dashboard Stats as Top Summary Cards */}
+                      <DashboardStats variant="compact" />
+                      <TVLCard />
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-6">
+                      <VolumeChart />
+                    </div>
+
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                      <TodayTopPairs />
+                      <FundFlowChart />
+                    </div>
+
+                    <TopPairsWidget />
+                  </div>
+                </Suspense>
+              )}
+
+              {currentPage === 'tracker' && (
+                <Suspense fallback={<LoadingCard />}>
+                  <TrackerSection initialSearchAddress={trackerSearchAddress} />
+                </Suspense>
+              )}
+
+              {currentPage === 'portfolio' && (
+                <Suspense fallback={<LoadingCard />}>
+                  <PortfolioSection />
+                </Suspense>
+              )}
+
+              {currentPage === 'leaderboard' && (
+                <Suspense fallback={<LoadingCard />}>
+                  <LeaderboardPage onBack={() => setCurrentPage('dex-status')} />
+                </Suspense>
+              )}
+
+              {currentPage === 'analyzer' && (
+                <Suspense fallback={<LoadingCard />}>
+                  <DistributionAnalyzerPage onBack={() => setCurrentPage('dex-status')} />
+                </Suspense>
+              )}
+
+              {currentPage === 'assets' && (
+                <Suspense fallback={<div className="h-[400px] flex flex-col items-center justify-center gap-4"><Loader2 className="w-8 h-8 text-primary animate-spin" /><span className="text-sm font-medium text-muted-foreground animate-pulse">Loading Assets...</span></div>}>
+                  <div className="space-y-6">
+                    <div className="flex flex-col gap-0.5">
+                      <h1 className="text-2xl font-black text-foreground tracking-tight">SoDex Token Retention</h1>
+                      <p className="text-[10px] text-muted-foreground/50 font-bold uppercase tracking-[0.2em]">analyze deposits and withdrawals of all availalbe tokens on SoDex</p>
+                    </div>
+                    <OverallDepositsCard />
+                  </div>
+                </Suspense>
+              )}
+
+              {currentPage === 'about' && (
+                <Suspense fallback={<LoadingCard />}>
+                  <AboutSodex />
+                </Suspense>
+              )}
+
+              {currentPage === 'journal' && (
+                <Suspense fallback={<LoadingCard />}>
+                  <PortfolioProvider>
+                    <JournalPageClient isDashboard />
+                  </PortfolioProvider>
+                </Suspense>
+              )}
             </div>
-          </Suspense>
-        )
-      }
 
-      {
-        currentPage === 'portfolio' && (
-          <Suspense fallback={<LoadingCard />}>
-            <div className="p-4 md:p-6 overflow-y-auto w-full space-y-6">
-              <PortfolioSection />
-            </div>
-          </Suspense>
-        )
-      }
-
-      {
-        currentPage === 'leaderboard' && (
-          <Suspense fallback={<LoadingCard />}>
-            <div className="">
-              <LeaderboardPage onBack={() => setCurrentPage('dex-status')} />
-            </div>
-          </Suspense>
-        )
-      }
-
-      {
-        currentPage === 'analyzer' && (
-          <Suspense fallback={<LoadingCard />}>
-            <div className="p-4 md:p-6">
-              <DistributionAnalyzerPage onBack={() => setCurrentPage('dex-status')} />
-            </div>
-          </Suspense>
-        )
-      }
-
-
-      {
-        currentPage === 'about' && (
-          <Suspense fallback={<LoadingCard />}>
-            <div className="">
-              <AboutSodex />
-            </div>
-          </Suspense>
-        )
-      }
-
-      {
-        currentPage === 'assets' && (
-          <Suspense fallback={<LoadingCard />}>
-            <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto w-full">
-              <div className="flex flex-col gap-1 mb-8">
-                <h1 className="text-3xl font-black text-foreground tracking-tight">SoDex Tokens Analysis</h1>
-                <p className="text-sm text-muted-foreground/60 font-medium tracking-tight">analyze deposits and withdrawals of all availalbe tokens on SoDex</p>
-                <p className="text-[10px] uppercase font-bold text-muted-foreground/30 mt-1">All USD calculations use current prices</p>
+            {/* Mobile Footer (Contact Links) */}
+            <div className="md:hidden mt-12 pb-12 pt-8 border-t border-border/10 flex flex-col items-center gap-6">
+              <div className="flex items-center gap-8">
+                <a href="https://x.com/Sodex" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-all hover:scale-110 active:scale-90">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                </a>
+                <a href="https://t.me/Sodex" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-all hover:scale-110 active:scale-90">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                </a>
               </div>
-              <OverallDepositsCard />
+              <p className="text-[10px] text-muted-foreground/30 text-center max-w-[280px] font-bold uppercase tracking-widest leading-relaxed">
+                Trading involves significant risk. SoDex tracker is for informational purposes only.
+              </p>
             </div>
-          </Suspense>
-        )
-      }
-
-      {/* Announcement Side Panel */}
-      <AnnouncementSidePanel />
-
-      {/* Footer - Only show on relevant pages */}
-      {
-        (currentPage === 'dex-status' || currentPage === 'about' || currentPage === 'assets') && (
-          <Footer />
-        )
-      }
-    </div >
+          </main>
+          
+          {/* Global Announcement Overlays */}
+          <AnnouncementSidePanel />
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   )
 }
 // Deployment Nudge: 03/14/2026 17:42:03
