@@ -42,7 +42,7 @@ import { SidebarNav } from '@/components/sidebar-nav'
 import { PortfolioProvider } from '@/context/portfolio-context';
 import { JournalPageClient } from '@/components/journal/journal-page-client';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
-import { Search, Bell, Settings as SettingsIcon } from 'lucide-react'
+import { Search, Settings as SettingsIcon } from 'lucide-react'
 
 function LoadingCard() {
   return <Card className="p-4 md:p-6 bg-card border border-border h-64 animate-pulse" />
@@ -322,9 +322,6 @@ export default function Dashboard() {
 
               {/* Right Side: Actions */}
               <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-xl">
-                  <Bell className="h-4 w-4" />
-                </Button>
                 
                 {mounted && (
                   <Button
