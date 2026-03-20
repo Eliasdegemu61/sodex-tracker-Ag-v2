@@ -21,7 +21,6 @@ import {
     Tooltip as RechartsTooltip,
 } from 'recharts'
 import { fetchTokenPrices, type TokenPriceMap, normalizeTokenName } from '@/lib/price-service'
-import { supabase } from '@/lib/supabase-client'
 
 interface TokenFlow {
     token: string
@@ -101,16 +100,16 @@ export function AssetIntelligenceDashboard() {
                 // 1. Fetch current prices
                 const prices: TokenPriceMap = await fetchTokenPrices()
 
-                // 2. Fetch data directly from Supabase site_data
+                // 2. Fetch data directly from Server APIs
                 const [totalsRes, dailyRes] = await Promise.all([
-                    supabase.from('site_data').select('data').eq('key', 'overall_sodex_totals').single(),
-                    supabase.from('site_data').select('data').eq('key', 'daily_net_flows').single()
+                    fetch('/api/site-data/overall-totals'),
+                    fetch('/api/site-data/daily-flows')
                 ]);
 
-                if (totalsRes.error || dailyRes.error) throw new Error('Failed to fetch from Supabase');
+                if (!totalsRes.ok || !dailyRes.ok) throw new Error('Failed to fetch from API');
 
-                const totalsData = (totalsRes.data?.data || []) as string[][];
-                const dailyData = (dailyRes.data?.data || []) as string[][];
+                const totalsData = await totalsRes.json() as string[][];
+                const dailyData = await dailyRes.json() as string[][];
 
                 // Process daily flows
                 const dailyFlowsByToken: Record<string, { date: string, net: number, depo: number, wth: number }[]> = {}

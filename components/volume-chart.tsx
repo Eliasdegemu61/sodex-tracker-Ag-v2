@@ -2,7 +2,6 @@
 
 import { VolumeChartClient } from '@/components/volume-chart-client'
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase-client'
 
 interface ChartDataPoint {
   day: string
@@ -19,17 +18,12 @@ export function VolumeChart() {
     const fetchData = async () => {
       try {
         setIsLoading(true)
-        const { data: dbData, error: dbError } = await supabase
-          .from('site_data')
-          .select('data')
-          .eq('key', 'volume_chart')
-          .single()
-        
-        if (dbError) throw new Error(`Supabase error: ${dbError.message}`)
-        if (!dbData || !dbData.data) throw new Error('Volume chart data not found')
-
-        const data = dbData.data as ChartDataPoint[]
-        console.log('[SUPABASE] Fetched volume chart data:', data.length, 'records')
+        const response = await fetch('/api/volume/chart')
+        if (!response.ok) {
+          throw new Error(`API error! status: ${response.status}`)
+        }
+        const data: ChartDataPoint[] = await response.json()
+        console.log('[API] Fetched volume chart data:', data.length, 'records')
         setChartData(data)
       } catch (error) {
         console.error('[SUPABASE] Error fetching volume data:', error)

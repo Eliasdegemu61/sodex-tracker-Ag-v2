@@ -7,7 +7,6 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { formatNumber } from '@/lib/format-number'
-import { supabase } from '@/lib/supabase-client'
 
 interface FlowData {
     date: string
@@ -35,10 +34,10 @@ export function FundFlowChart() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await supabase.from('site_data').select('data').eq('key', 'daily_net_flows').single()
-                if (response.error) throw new Error(`Failed to fetch from Supabase: ${response.error.message}`);
+                const response = await fetch('/api/site-data/daily-flows')
+                if (!response.ok) throw new Error(`Failed to fetch from API: ${response.status}`);
                 
-                const rows = (response.data?.data || []) as string[][]
+                const rows = await response.json() as string[][]
 
                 if (!rows || rows.length < 2) return
 

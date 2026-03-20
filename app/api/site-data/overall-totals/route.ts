@@ -3,15 +3,8 @@ import { supabaseAdmin, supabase } from '@/lib/supabase-client';
 
 const CACHE_DURATION = 300; // 5 minutes
 
-interface ChartDataPoint {
-  day: string;
-  spot_vol: number;
-  futures_vol: number;
-  total_day_vol: number;
-}
-
 // In-memory cache
-let cachedData: ChartDataPoint[] | null = null;
+let cachedData: string[][] | null = null;
 let lastCacheTime = 0;
 
 export async function GET() {
@@ -28,22 +21,22 @@ export async function GET() {
     const { data: dbData, error } = await client
       .from('site_data')
       .select('data')
-      .eq('key', 'volume_chart')
+      .eq('key', 'overall_sodex_totals')
       .single();
 
     if (error) throw new Error(`Supabase error: ${error.message}`);
-    if (!dbData || !dbData.data) throw new Error('Volume chart data not found');
+    if (!dbData || !dbData.data) throw new Error('overall_sodex_totals data not found');
 
-    const data = dbData.data as ChartDataPoint[];
+    const data = dbData.data as string[][];
 
     cachedData = data;
     lastCacheTime = now;
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('[SUPABASE] Failed to fetch volume chart:', error);
+    console.error('[SUPABASE] Failed to fetch overall_sodex_totals:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch volume chart' },
+      { error: 'Failed to fetch overall_sodex_totals' },
       { status: 500 }
     );
   }
