@@ -224,24 +224,20 @@ export default function Dashboard() {
     <div className="min-h-screen">
       {/* Header */}
       <header 
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out flex justify-center py-2 ${
-          isScrolled 
-            ? 'px-4' 
-            : 'px-0'
-        }`}
+        className="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none"
       >
         <div 
-          className={`flex items-center justify-between transition-all duration-300 ease-in-out gap-2 md:gap-4 ${
+          className={`pointer-events-auto flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] gap-2 md:gap-4 mx-auto ${
             isScrolled 
-              ? 'bg-card/70 dark:bg-black/40 backdrop-blur-xl border border-white/10 dark:border-white/5 rounded-full px-6 py-2 shadow-2xl max-w-fit' 
-              : 'w-full h-16 px-3 md:px-6 border-b border-border bg-card/50'
+              ? 'bg-card/70 dark:bg-black/60 backdrop-blur-2xl border border-white/10 dark:border-white/5 rounded-full px-6 py-2.5 shadow-[0_8px_30px_rgb(0,0,0,0.12)] max-w-fit w-[calc(100%-2rem)] md:w-auto translate-y-4' 
+              : 'bg-card/95 backdrop-blur-xl border-b border-border/50 rounded-none px-4 md:px-8 py-3 md:py-4 max-w-full w-full translate-y-0 shadow-none'
           }`}
         >
-          <div className={`flex items-center gap-2 flex-shrink-0 transition-all duration-300 ${isScrolled ? 'mr-4' : ''}`}>
+          <div className={`flex items-center gap-2 flex-shrink-0 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isScrolled ? 'mr-4' : ''}`}>
             <img
               src={theme === 'dark' ? 'https://sodex.com/_next/image?url=%2Flogo%2Flogo.webp&w=256&q=75' : 'https://testnet.sodex.com/assets/SoDEX-Dh5Mk-Pl.svg'}
               alt="Sodex Logo"
-              className={`transition-all duration-300 object-contain ${isScrolled ? 'h-6 w-6' : 'h-7 w-auto'}`}
+              className={`transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] object-contain ${isScrolled ? 'h-6 w-6' : 'h-7 w-auto'}`}
               loading="eager"
               decoding="async"
             />
@@ -249,7 +245,7 @@ export default function Dashboard() {
           </div>
 
 
-          <div className={`hidden md:flex items-center transition-all duration-300 ${isScrolled ? 'gap-4' : 'gap-8'}`}>
+          <div className={`hidden md:flex items-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isScrolled ? 'gap-4' : 'gap-8'}`}>
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentPage === item.id;
@@ -259,7 +255,7 @@ export default function Dashboard() {
                   key={item.id}
                   onClick={() => setCurrentPage(item.id)}
                   title={isScrolled ? item.label : undefined}
-                  className={`relative flex items-center gap-2 transition-all duration-300 group ${
+                  className={`relative flex items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group ${
                     isScrolled ? 'p-2 rounded-full hover:bg-white/5' : 'pb-1 border-b-2'
                   } ${
                     isActive 
@@ -267,7 +263,7 @@ export default function Dashboard() {
                       : (isScrolled ? 'text-muted-foreground' : 'text-foreground border-transparent hover:text-orange-400 hover:border-b-orange-400')
                   }`}
                 >
-                  <Icon className={`transition-all duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'} ${isScrolled ? 'w-5 h-5' : 'w-4 h-4'}`} />
+                  <Icon className={`transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isActive ? 'scale-110' : 'group-hover:scale-110'} ${isScrolled ? 'w-5 h-5' : 'w-4 h-4'}`} />
                   {(!isScrolled || isActive) && <span className="text-xs md:text-sm font-semibold whitespace-nowrap">{item.label}</span>}
                   
                   {isScrolled && isActive && (
@@ -280,13 +276,13 @@ export default function Dashboard() {
 
 
 
-          <div className={`flex items-center transition-all duration-300 ${isScrolled ? 'gap-2 ml-4' : 'gap-2 md:gap-4'}`}>
+          <div className={`flex items-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isScrolled ? 'gap-2 ml-4' : 'gap-2 md:gap-4'}`}>
             {mounted && (
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
-                className={`text-muted-foreground hover:text-foreground transition-all duration-300 ${isScrolled ? 'h-8 w-8' : 'h-9 w-9'}`}
+                className={`text-muted-foreground hover:text-foreground transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isScrolled ? 'h-8 w-8' : 'h-9 w-9'}`}
               >
                 {theme === 'light' ? (
                   <Moon className={isScrolled ? "w-4 h-4" : "w-5 h-5"} />
