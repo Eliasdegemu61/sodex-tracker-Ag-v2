@@ -2,6 +2,7 @@
 
 import { VolumeChartClient } from '@/components/volume-chart-client'
 import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase-client'
 
 interface ChartDataPoint {
   day: string
@@ -18,15 +19,20 @@ export function VolumeChart() {
     const fetchData = async () => {
       try {
         setIsLoading(true)
-        const response = await fetch('https://raw.githubusercontent.com/Eliasdegemu61/sodex-tracker-new-v1-data-2/main/volume_chart.json', { cache: 'no-store' })
-        if (!response.ok) {
-          throw new Error(`GitHub error! status: ${response.status}`)
-        }
-        const data: ChartDataPoint[] = await response.json()
-        console.log('[v0] Fetched volume chart data:', data.length, 'records')
+        const { data: dbData, error: dbError } = await supabase
+          .from('site_data')
+          .select('data')
+          .eq('key', 'volume_chart')
+          .single()
+        
+        if (dbError) throw new Error(`Supabase error: ${dbError.message}`)
+        if (!dbData || !dbData.data) throw new Error('Volume chart data not found')
+
+        const data = dbData.data as ChartDataPoint[]
+        console.log('[SUPABASE] Fetched volume chart data:', data.length, 'records')
         setChartData(data)
       } catch (error) {
-        console.error('[v0] Error fetching volume data:', error)
+        console.error('[SUPABASE] Error fetching volume data:', error)
         setChartData(null)
       } finally {
         setIsLoading(false)

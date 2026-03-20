@@ -21,6 +21,7 @@ import {
     Tooltip as RechartsTooltip,
 } from 'recharts'
 import { fetchTokenPrices, type TokenPriceMap, normalizeTokenName } from '@/lib/price-service'
+import { supabase } from '@/lib/supabase-client'
 
 interface TokenFlow {
     token: string
@@ -100,19 +101,16 @@ export function AssetIntelligenceDashboard() {
                 // 1. Fetch current prices
                 const prices: TokenPriceMap = await fetchTokenPrices()
 
-                // 2. Fetch data directly from GitHub CSVs
+                // 2. Fetch data directly from Supabase site_data
                 const [totalsRes, dailyRes] = await Promise.all([
-                    fetch('https://raw.githubusercontent.com/Eliasdegemu61/Fund-flow-sodex/main/overall_sodex_totals.csv', { cache: 'no-store' }),
-                    fetch('https://raw.githubusercontent.com/Eliasdegemu61/Fund-flow-sodex/main/daily_net_flows.csv', { cache: 'no-store' })
+                    supabase.from('site_data').select('data').eq('key', 'overall_sodex_totals').single(),
+                    supabase.from('site_data').select('data').eq('key', 'daily_net_flows').single()
                 ]);
 
-                if (!totalsRes.ok || !dailyRes.ok) throw new Error('Failed to fetch from GitHub');
+                if (totalsRes.error || dailyRes.error) throw new Error('Failed to fetch from Supabase');
 
-                const totalsText = await totalsRes.text();
-                const dailyText = await dailyRes.text();
-
-                const totalsData = totalsText.split('\n').filter(l => l.trim()).map(l => l.split(','));
-                const dailyData = dailyText.split('\n').filter(l => l.trim()).map(l => l.split(','));
+                const totalsData = (totalsRes.data?.data || []) as string[][];
+                const dailyData = (dailyRes.data?.data || []) as string[][];
 
                 // Process daily flows
                 const dailyFlowsByToken: Record<string, { date: string, net: number, depo: number, wth: number }[]> = {}
