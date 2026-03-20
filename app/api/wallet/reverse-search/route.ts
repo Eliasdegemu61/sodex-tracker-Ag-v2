@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase-client';
+import { supabaseAdmin } from '@/lib/supabase-client';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +15,11 @@ export async function GET(request: NextRequest) {
 
     console.log('[REVERSE-SEARCH] Searching for:', { prefix, suffix });
 
-    let query = supabase
+    if (!supabaseAdmin) {
+      throw new Error('Supabase Admin client not initialized');
+    }
+
+    let query = supabaseAdmin
       .from('registry')
       .select('address, user_id')
       .limit(100);
