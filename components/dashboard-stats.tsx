@@ -37,15 +37,8 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
     const fetchUserData = async () => {
       try {
         setUserLoading(true)
-        const dateNow = new Date()
-        const today = dateNow.toISOString().split('T')[0]
-        
-        // Calculate yesterday for start_date
-        const dateYesterday = new Date(dateNow)
-        dateYesterday.setDate(dateYesterday.getDate() - 1)
-        const yesterday = dateYesterday.toISOString().split('T')[0]
-
-        const response = await fetch(`https://mainnet-data.sodex.dev/api/v1/dashboard/users?start_date=${yesterday}&end_date=${today}`)
+        const today = new Date().toISOString().split('T')[0]
+        const response = await fetch(`https://mainnet-data.sodex.dev/api/v1/dashboard/users?start_date=2024-01-01&end_date=${today}`)
         const json = await response.json()
         if (json.code === 0 && json.data?.data) {
           setUserData(json.data.data)
