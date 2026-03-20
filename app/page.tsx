@@ -38,28 +38,24 @@ function LoadingCard() {
 function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
   const [reversePrefix, setReversePrefix] = useState('')
   const [reverseSuffix, setReverseSuffix] = useState('')
-  const [reverseResults, setReverseResults] = useState<any[]>([])
+  const [fullResults, setFullResults] = useState<any[]>([])
+  const [paginatedResults, setPaginatedResults] = useState<any[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
   const [isLoadingReverse, setIsLoadingReverse] = useState(false)
+  const [isLoadingPage, setIsLoadingPage] = useState(false)
+  
+  const ITEMS_PER_PAGE = 20
+  const totalPages = Math.ceil(fullResults.length / ITEMS_PER_PAGE)
 
-  const handleReverseSearch = async () => {
-    if (!reversePrefix && !reverseSuffix) return
-    setIsLoadingReverse(true)
+  const loadPageData = async (allData: any[], pageNum: number) => {
+    setIsLoadingPage(true)
     try {
-      // Optimized: Fetching only matching results from server
-      const params = new URLSearchParams()
-      if (reversePrefix) params.append('prefix', reversePrefix.toLowerCase())
-      if (reverseSuffix) params.append('suffix', reverseSuffix.toLowerCase())
+      const startIndex = (pageNum - 1) * ITEMS_PER_PAGE
+      const endIndex = startIndex + ITEMS_PER_PAGE
+      const currentSlice = allData.slice(startIndex, endIndex)
 
-      const response = await fetch(`/api/wallet/reverse-search?${params.toString()}`)
-      if (!response.ok) throw new Error('Search failed')
-
-      const { data } = await response.json()
-      const matched = data || []
-
-      // Fetch volume for the first 20 matches to avoid overwhelming the API
-      const limitedMatches = matched.slice(0, 20)
       const resultsWithVolume = await Promise.all(
-        limitedMatches.map(async (item: { address: string; userId: string | number }) => {
+        currentSlice.map(async (item: { address: string; userId: string | number }) => {
           try {
             const volResponse = await fetch(`https://mainnet-data.sodex.dev/api/v1/leaderboard/rank?window_type=ALL_TIME&sort_by=pnl&wallet_address=${item.address}`)
             if (volResponse.ok) {
@@ -76,10 +72,38 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
         })
       )
 
-      setReverseResults(resultsWithVolume)
+      setPaginatedResults(resultsWithVolume)
+      setCurrentPage(pageNum)
+    } finally {
+      setIsLoadingPage(false)
+    }
+  }
+
+  const handleReverseSearch = async () => {
+    if (!reversePrefix && !reverseSuffix) return
+    setIsLoadingReverse(true)
+    try {
+      const params = new URLSearchParams()
+      if (reversePrefix) params.append('prefix', reversePrefix.toLowerCase())
+      if (reverseSuffix) params.append('suffix', reverseSuffix.toLowerCase())
+
+      const response = await fetch(`/api/wallet/reverse-search?${params.toString()}`)
+      if (!response.ok) throw new Error('Search failed')
+
+      const { data } = await response.json()
+      const matched = data || []
+      
+      setFullResults(matched)
+      
+      if (matched.length > 0) {
+        await loadPageData(matched, 1)
+      } else {
+        setPaginatedResults([])
+      }
     } catch (error) {
       console.error('[v0] Error searching addresses:', error)
-      setReverseResults([])
+      setFullResults([])
+      setPaginatedResults([])
     } finally {
       setIsLoadingReverse(false)
     }
@@ -117,31 +141,55 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
             {isLoadingReverse ? 'Searching...' : 'Search'}
           </button>
 
-          {reverseResults.length > 0 && (
-            <div className="mt-8 space-y-3">
-              <p className="text-sm text-muted-foreground">Found {reverseResults.length} matching addresses (showing volume for up to 20)</p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border text-left">
-                      <th className="px-3 py-2 font-semibold">Address</th>
-                      <th className="px-3 py-2 font-semibold text-right">Volume (All-Time)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reverseResults.map((trader, i) => (
-                      <tr key={i} className="border-b border-border/50 hover:bg-secondary/20">
-                        <td className="px-3 py-2 font-mono text-xs">{trader.address || 'N/A'}</td>
-                        <td className="px-3 py-2 text-right font-mono text-xs text-accent">
-                          {trader.volume !== undefined
-                            ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(trader.volume))
-                            : 'Loading...'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {fullResults.length > 0 && (
+            <div className="mt-8 space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">Found {fullResults.length} matching addresses</p>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => loadPageData(fullResults, currentPage - 1)} 
+                    disabled={currentPage === 1 || isLoadingPage}
+                    className="px-3 py-1 bg-secondary text-foreground text-xs font-bold rounded hover:opacity-80 disabled:opacity-30 transition-opacity"
+                  >
+                    Prev
+                  </button>
+                  <span className="text-xs text-muted-foreground font-mono">Page {currentPage} / {totalPages || 1}</span>
+                  <button 
+                    onClick={() => loadPageData(fullResults, Math.min(totalPages, currentPage + 1))} 
+                    disabled={currentPage >= totalPages || isLoadingPage}
+                    className="px-3 py-1 bg-secondary text-foreground text-xs font-bold rounded hover:opacity-80 disabled:opacity-30 transition-opacity"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
+
+              {isLoadingPage ? (
+                <div className="py-8 text-center text-sm text-muted-foreground animate-pulse">Loading volume data for page...</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-left">
+                        <th className="px-3 py-2 font-semibold">Address</th>
+                        <th className="px-3 py-2 font-semibold text-right">Volume (All-Time)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedResults.map((trader, i) => (
+                        <tr key={i} className="border-b border-border/50 hover:bg-secondary/20">
+                          <td className="px-3 py-2 font-mono text-xs">{trader.address || 'N/A'}</td>
+                          <td className="px-3 py-2 text-right font-mono text-xs text-accent">
+                            {trader.volume !== undefined
+                              ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(trader.volume))
+                              : 'Loading...'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -229,7 +277,7 @@ export default function Dashboard() {
         <div 
           className={`pointer-events-auto flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] gap-2 md:gap-4 mx-auto ${
             isScrolled 
-              ? 'bg-card/70 dark:bg-black/60 backdrop-blur-2xl border border-white/10 dark:border-white/5 rounded-full px-6 py-2.5 shadow-[0_8px_30px_rgb(0,0,0,0.12)] max-w-fit w-[calc(100%-2rem)] md:w-auto translate-y-4' 
+              ? 'bg-background/40 dark:bg-black/40 backdrop-blur-3xl border border-border/30 dark:border-white/10 rounded-full px-6 py-2.5 shadow-[0_8px_30px_rgb(0,0,0,0.12)] max-w-fit w-[calc(100%-2rem)] md:w-auto translate-y-4' 
               : 'bg-card/95 backdrop-blur-xl border-b border-border/50 rounded-none px-4 md:px-8 py-3 md:py-4 max-w-full w-full translate-y-0 shadow-none'
           }`}
         >

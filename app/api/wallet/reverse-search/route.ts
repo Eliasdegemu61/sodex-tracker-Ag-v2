@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     let query = supabaseAdmin
       .from('registry')
       .select('address, user_id')
-      .limit(100);
+      .limit(1500);
 
     if (prefix) {
       query = query.like('address', `${prefix}%`);
