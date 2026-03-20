@@ -41,12 +41,11 @@ export function VolumeDataProvider({ children }: { children: ReactNode }) {
       try {
         setIsLoading(true)
         setError(null)
-        const response = await fetch('https://raw.githubusercontent.com/Eliasdegemu61/sodex-tracker-new-v1-data-2/main/volume_summary.json', { cache: 'no-store' })
+        const response = await fetch('/api/volume/summary')
         if (!response.ok) {
-          throw new Error(`GitHub error! status: ${response.status}`)
+          throw new Error(`API error! status: ${response.status}`)
         }
         const fetchedData: VolumeData = await response.json()
-        console.log('[GITHUB] Volume data loaded directly from GitHub Client-Side')
         setVolumeData(fetchedData)
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Unknown error'

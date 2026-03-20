@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
+import { supabaseAdmin, supabase } from '@/lib/supabase-client'
 
 interface LeaderboardEntry {
   userId: string
@@ -45,23 +46,23 @@ const redis = new Redis({
 const CACHE_DURATION = 30 * 60 // 30 minutes in seconds
 const CACHE_KEY = 'comprehensive-dex-cache'
 
-const GITHUB_URLS = {
-  traders: 'https://raw.githubusercontent.com/Eliasdegemu61/Sodex-Tracker-new-v1/main/live_stats.json',
-  volume: 'https://raw.githubusercontent.com/Eliasdegemu61/sodex-tracker-new-v1-data-2/main/volume_summary.json',
-}
-
 async function calculateComprehensiveData(): Promise<CacheData> {
   console.log('[v0] Server: Calculating comprehensive DEX and Leaderboard data')
 
   try {
-    // Fetch only volume data as traders data (live_stats.json) is removed
-    const volumeRes = await fetch(GITHUB_URLS.volume, { cache: 'no-store' })
+    // Fetch volume data from Supabase site_data table
+    const client = supabaseAdmin || supabase;
+    const { data: dbData, error } = await client
+      .from('site_data')
+      .select('data')
+      .eq('key', 'volume_summary')
+      .single();
 
-    if (!volumeRes.ok) {
-      throw new Error('Failed to fetch volume data from GitHub')
+    if (error) {
+      throw new Error(`Failed to fetch volume data from Supabase: ${error.message}`);
     }
 
-    const volumeData = await volumeRes.json()
+    const volumeData = dbData.data as any;
 
     // --- DEX STATUS CALCULATIONS ---
     // Trader stats removed as per user request to stop using live_stats.json

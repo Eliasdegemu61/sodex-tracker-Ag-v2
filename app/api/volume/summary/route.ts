@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
+import { supabaseAdmin, supabase } from '@/lib/supabase-client';
 
-const VOLUME_SUMMARY_URL = 'https://raw.githubusercontent.com/Eliasdegemu61/sodex-tracker-new-v1-data-2/main/volume_summary.json';
 const CACHE_DURATION = 300; // 5 minutes
 
 interface VolumeApiResponse {
@@ -32,15 +32,18 @@ export async function GET() {
       return NextResponse.json(cachedData);
     }
 
-    // Fetch from GitHub
-    const token = process.env.GITHUB_TOKEN;
-    const response = await fetch(VOLUME_SUMMARY_URL, {
-      headers: token ? { Authorization: `token ${token}` } : {},
-      cache: 'no-store'
-    });
+    // Fetch from Supabase
+    const client = supabaseAdmin || supabase;
+    const { data: dbData, error } = await client
+      .from('site_data')
+      .select('data')
+      .eq('key', 'volume_summary')
+      .single();
 
-    if (!response.ok) throw new Error(`API error: ${response.status}`);
-    const data: VolumeApiResponse = await response.json();
+    if (error) throw new Error(`Supabase error: ${error.message}`);
+    if (!dbData || !dbData.data) throw new Error('Volume summary data not found in Supabase');
+    
+    const data = dbData.data as VolumeApiResponse;
 
     cachedData = data;
     lastCacheTime = now;

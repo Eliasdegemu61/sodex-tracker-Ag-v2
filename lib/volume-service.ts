@@ -1,4 +1,5 @@
 import { cacheManager } from '@/lib/cache-manager'
+import { supabase, supabaseAdmin } from '@/lib/supabase-client'
 
 export interface PairVolume {
   pair: string
@@ -56,14 +57,21 @@ function getTodayDate(): string {
   return today.toISOString().split('T')[0]
 }
 
-// Fetch real data directly from GitHub (client-side)
+// Fetch real data directly from Supabase
 async function fetchVolumeFromApi(): Promise<VolumeApiResponse | null> {
   try {
-    const response = await fetch(API_URL, { cache: 'no-store' });
-    if (!response.ok) throw new Error(`GitHub error: ${response.status}`);
-    return await response.json();
+    const client = supabaseAdmin || supabase;
+    const { data: result, error } = await client
+      .from('site_data')
+      .select('data')
+      .eq('key', 'volume_summary')
+      .single();
+
+    if (error) throw new Error(error.message);
+    if (!result || !result.data) return null;
+    return result.data as VolumeApiResponse;
   } catch (error) {
-    console.error('[GITHUB] Failed to fetch volume data from GitHub:', error);
+    console.error('[SUPABASE] Failed to fetch volume data:', error);
     return null;
   }
 }
@@ -315,11 +323,18 @@ export function getTodayTopPairs(data: CachedVolumeData): {
 export async function fetchChartData(): Promise<ChartDataPoint[]> {
   return cacheManager.deduplicate(CHART_CACHE_KEY, async () => {
     try {
-      const response = await fetch(CHART_API_URL, { cache: 'no-store' });
-      if (!response.ok) throw new Error(`GitHub Chart error: ${response.status}`);
-      return await response.json();
+      const client = supabaseAdmin || supabase;
+      const { data: result, error } = await client
+        .from('site_data')
+        .select('data')
+        .eq('key', 'volume_chart')
+        .single();
+
+      if (error) throw new Error(error.message);
+      if (!result || !result.data) return generateMockChartData();
+      return result.data as ChartDataPoint[];
     } catch (error) {
-      console.error('[GITHUB] Failed to fetch chart data from GitHub, using mock data');
+      console.error('[SUPABASE] Failed to fetch chart data, using mock data:', error);
       return generateMockChartData();
     }
   });
