@@ -206,7 +206,7 @@ export function PlanForm({
                             onChange={(e) => set('walletAddress', e.target.value)}
                             placeholder="0x..."
                             className={cn(
-                                "w-full h-11 md:h-12 bg-secondary/5 border border-border/10 rounded-xl px-4 font-mono text-[13px] text-foreground outline-none focus:border-primary/40 focus:bg-secondary/10 transition-all",
+                                "w-full h-11 md:h-12 bg-secondary/20 dark:bg-white/5 border border-border/20 dark:border-white/10 rounded-xl px-4 font-mono text-[13px] text-foreground placeholder:text-muted-foreground/40 outline-none focus:border-primary/50 focus:bg-secondary/30 dark:focus:bg-white/10 transition-all",
                                 (errors.walletAddress || idLookupError) && "border-red-500/40"
                             )}
                         />
@@ -226,7 +226,7 @@ export function PlanForm({
                         onChange={(e) => set('notes', e.target.value)}
                         placeholder="Strategy details..."
                         rows={3}
-                        className="w-full px-4 py-3 rounded-2xl bg-secondary/5 border border-border/10 text-[13px] text-foreground/80 outline-none focus:border-primary/40 focus:bg-secondary/10 transition-all resize-none"
+                        className="w-full px-4 py-3 rounded-2xl bg-secondary/20 dark:bg-white/5 border border-border/20 dark:border-white/10 text-[13px] text-foreground/80 placeholder:text-muted-foreground/40 outline-none focus:border-primary/50 focus:bg-secondary/30 dark:focus:bg-white/10 transition-all resize-none"
                     />
                 </div>
             </div>
@@ -256,7 +256,7 @@ function Field({ label, id, value, onChange, error, type = 'text', placeholder =
             <input
                 id={id} type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
                 className={cn(
-                    "w-full h-11 md:h-12 px-4 rounded-xl bg-secondary/5 border border-border/5 text-[13px] font-bold text-foreground placeholder:text-muted-foreground/10 outline-none transition-all focus:border-primary/40 focus:bg-secondary/10",
+                    "w-full h-11 md:h-12 px-4 rounded-xl bg-secondary/20 dark:bg-white/5 border border-border/20 dark:border-white/10 text-[13px] font-bold text-foreground placeholder:text-muted-foreground/40 outline-none transition-all focus:border-primary/50 focus:bg-secondary/30 dark:focus:bg-white/10",
                     "appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
                     error && "border-red-500/40"
                 )}
@@ -292,10 +292,10 @@ function DateField({ label, value, onChange, error }: {
             <button
                 type="button" onClick={() => setIsOpen(!isOpen)}
                 className={cn(
-                    "w-full h-11 md:h-12 px-4 rounded-xl bg-secondary/5 border border-border/10 text-[13px] font-bold transition-all flex items-center justify-between",
-                    isOpen ? "border-primary/40 bg-secondary/10" : "hover:border-border/20",
+                    "w-full h-11 md:h-12 px-4 rounded-xl bg-secondary/20 dark:bg-white/5 border border-border/20 dark:border-white/10 text-[13px] font-bold transition-all flex items-center justify-between",
+                    isOpen ? "border-primary/50 bg-secondary/30 dark:bg-white/10" : "hover:border-border/30 dark:hover:border-white/20",
                     error ? "border-red-500/40" : "",
-                    value ? "text-foreground" : "text-muted-foreground/20"
+                    value ? "text-foreground" : "text-muted-foreground/40"
                 )}
             >
                 <span className="tracking-tight">{displayDate}</span>

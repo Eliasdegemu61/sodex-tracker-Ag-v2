@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { usePortfolio } from '@/context/portfolio-context';
 import { useTheme } from '@/app/providers';
+import { cn } from '@/lib/utils';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface DayTrades {
@@ -205,8 +206,14 @@ export function MonthlyCalendar() {
                 </span>
                 {/* Simplified PnL info — bottom right */}
                 {hasActivity && isCurrentMonth && dayTrades && (
-                  <div className="flex flex-col items-end text-right mt-auto gap-0.5">
-                    <span className={`text-[7px] sm:text-[10px] font-bold leading-tight ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                  <div className="flex flex-col items-end text-right mt-auto gap-0.5 min-w-0 overflow-hidden">
+                    <span className={cn(
+                      "font-bold leading-tight tabular-nums truncate w-full",
+                      (Math.abs(dayTrades.pnl).toFixed(2).length > 8) 
+                        ? "text-[6px] sm:text-[9px]" 
+                        : "text-[7px] sm:text-[10px]",
+                      isPositive ? 'text-green-500' : 'text-red-500'
+                    )}>
                       {isPositive ? '+' : '-'}${Math.abs(dayTrades.pnl).toFixed(2)}
                     </span>
                   </div>

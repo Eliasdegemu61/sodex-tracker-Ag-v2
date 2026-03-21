@@ -240,14 +240,10 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
 
 
 
-        {/* Calendar and Open Positions Side by Side */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          <div className="xl:col-span-1">
-            <MonthlyCalendar />
-          </div>
-          <div className="xl:col-span-2">
-            <OpenPositions />
-          </div>
+        {/* Calendar and Open Positions stacked */}
+        <div className="space-y-6">
+          <MonthlyCalendar />
+          <OpenPositions />
         </div>
       </div>
 
