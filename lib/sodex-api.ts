@@ -96,11 +96,11 @@ export async function fetchSpotTrades(
   accountId: string | number,
   cursor?: string
 ): Promise<{ trades: SpotTrade[]; nextCursor?: string }> {
-  const url = new URL('https://mainnet-data.sodex.dev/api/v1/spot/trades');
-  url.searchParams.append('account_id', String(accountId));
-  url.searchParams.append('limit', '1000');
+  // Use internal Next.js proxy to avoid CORS issues in client-side components
+  const url = new URL('/api/spot/trades', typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+  url.searchParams.set('account_id', String(accountId));
   if (cursor) {
-    url.searchParams.append('cursor', cursor);
+    url.searchParams.set('cursor', cursor);
   }
 
   const response = await fetch(url.toString());
@@ -108,32 +108,60 @@ export async function fetchSpotTrades(
     throw new Error(`Failed to fetch spot trades: ${response.statusText}`);
   }
 
-  const data: SpotTradesResponse = await response.json();
-  if (data.code !== 0) {
-    throw new Error(`API error: ${data.message}`);
+  const data = await response.json();
+  if (data.error) {
+    throw new Error(`API error: ${data.error}`);
   }
 
   return {
-    trades: data.data || [],
-    nextCursor: data.meta?.next_cursor,
+    trades: data.trades || [],
+    nextCursor: data.nextCursor,
   };
 }
 
 export async function fetchAllSpotTrades(
-  accountId: string | number
+  accountId: string | number,
+  onProgress?: (progress: { 
+    fetchedCount: number; 
+    isEstimate?: boolean; 
+    estimatedTotal?: number;
+    elapsedMs: number;
+    estimatedRemainingMs?: number;
+  }) => void
 ): Promise<SpotTrade[]> {
   const allTrades: SpotTrade[] = [];
   let cursor: string | undefined;
+  const startTime = Date.now();
+  const REQUEST_DELAY_MS = 2000; // 2.0s delay between requests for very conservative rate limit compliance
+  const BATCH_SIZE = 50; // Matches the limit set in the API route
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
     const { trades, nextCursor } = await fetchSpotTrades(accountId, cursor);
     allTrades.push(...trades);
 
+    const elapsedMs = Date.now() - startTime;
+    
+    if (onProgress) {
+      // If we got nextCursor, it means there are likely more.
+      // We don't know the exact total, so we estimate based on typical trade counts if needed,
+      // or just report current progress.
+      onProgress({
+        fetchedCount: allTrades.length,
+        isEstimate: true,
+        elapsedMs,
+        // Estimation logic: if we hit a full batch, assume at least one more page
+        estimatedRemainingMs: nextCursor ? Math.max(REQUEST_DELAY_MS, (elapsedMs / allTrades.length) * BATCH_SIZE) : 0
+      });
+    }
+
     if (!nextCursor) {
       break;
     }
     cursor = nextCursor;
+    
+    // Wait before next request
+    await new Promise(resolve => setTimeout(resolve, REQUEST_DELAY_MS));
   }
 
   return allTrades;

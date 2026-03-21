@@ -24,8 +24,7 @@ import type { TradingPlan, PlanMetrics } from '@/lib/journal-types';
 import { PlanForm } from './plan-form';
 import { PlanList } from './plan-list';
 import { PlanDashboard } from './plan-dashboard';
-import { fetchTotalBalance, fetchAllPositions, enrichPositions, fetchAllSpotTrades, fetchSymbols, type EnrichedPosition } from '@/lib/sodex-api';
-import { processSpotTradesToPositions } from '@/lib/spot-pnl-engine';
+import { fetchTotalBalance, fetchAllPositions, enrichPositions, fetchSymbols, type EnrichedPosition } from '@/lib/sodex-api';
 import { cn } from '@/lib/utils';
 import { CyberCard, GlowLine, CyberButton } from './cyber-elements';
 import { supabase } from '@/lib/supabase-client';
@@ -233,18 +232,15 @@ export function JournalPageClient({ isDashboard = false }: { isDashboard?: boole
         if (!selectedPlan?.userId) return;
         if (!isAuto) setIsDataLoading(true);
         try {
-            const [rawFutures, rawSpot, bal, symbols] = await Promise.all([
+            const [rawFutures, bal] = await Promise.all([
                 fetchAllPositions(selectedPlan.userId),
-                fetchAllSpotTrades(selectedPlan.userId),
-                fetchTotalBalance(selectedPlan.userId),
-                fetchSymbols()
+                fetchTotalBalance(selectedPlan.userId)
             ]);
             
             const enrichedFutures = await enrichPositions(rawFutures);
-            const spotPositions = processSpotTradesToPositions(rawSpot, symbols);
             
-            // Combine and sort by date descending
-            const allPos = [...enrichedFutures, ...spotPositions].sort((a, b) => b.created_at - a.created_at);
+            // Sort by date descending
+            const allPos = [...enrichedFutures].sort((a, b) => b.created_at - a.created_at);
             
             setPlanPositions(allPos);
             setPlanBalance(bal.totalBalance);

@@ -1,54 +1,53 @@
-// Spot trading API service
-
 import { cacheManager } from './cache';
+import { fetchAllSpotTrades } from './sodex-api';
 
 export interface SpotTradesData {
   totalVolume: number;
   totalFees: number;
   tradeCount: number;
+  progress?: {
+    fetchedCount: number;
+    estimatedRemainingMs?: number;
+  };
 }
 
 export async function fetchSpotTradesData(
-  userId: string | number
+  userId: string | number,
+  onProgress?: (progress: any) => void
 ): Promise<SpotTradesData> {
   const cacheKey = `spot_trades_data_${userId}`;
 
   return cacheManager.deduplicate(cacheKey, async () => {
     try {
-      console.log('[v0] Fetching spot trades data for user:', userId);
+      console.log('[v0] Fetching all spot trades for user:', userId);
 
-      const response = await fetch(`/api/spot/trades?account_id=${userId}`);
+      const allTrades = await fetchAllSpotTrades(userId, onProgress);
 
-      if (!response.ok) {
-        throw new Error(`Spot trades API error: ${response.status}`);
-      }
+      let totalVolume = 0;
+      let totalFees = 0;
 
-      const data = await response.json();
+      allTrades.forEach(trade => {
+        const qty = parseFloat(trade.quantity || '0');
+        const price = parseFloat(trade.price || '0');
+        const fee = parseFloat(trade.fee || '0');
+        
+        totalVolume += qty * price;
+        totalFees += fee;
+      });
 
-      if (data.error) {
-        console.error('[v0] Spot trades error:', data.error);
-        // Return zero values if no trades found
-        return {
-          totalVolume: 0,
-          totalFees: 0,
-          tradeCount: 0,
-        };
-      }
-
-      console.log('[v0] Spot trades data fetched:', {
-        volume: data.totalVolume,
-        fees: data.totalFees,
-        trades: data.tradeCount,
+      console.log('[v0] Spot trades data aggregated:', {
+        volume: totalVolume,
+        fees: totalFees,
+        trades: allTrades.length,
       });
 
       return {
-        totalVolume: data.totalVolume || 0,
-        totalFees: data.totalFees || 0,
-        tradeCount: data.tradeCount || 0,
+        totalVolume,
+        totalFees,
+        tradeCount: allTrades.length,
       };
     } catch (error) {
       console.error('[v0] Failed to fetch spot trades data:', error);
-      // Return zero values on error instead of throwing
       return {
         totalVolume: 0,
         totalFees: 0,

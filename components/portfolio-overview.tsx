@@ -71,6 +71,10 @@ export function PortfolioOverview() {
     metrics: false,
     vault: false
   });
+  const [spotProgress, setSpotProgress] = useState<{
+    fetchedCount: number;
+    estimatedRemainingMs?: number;
+  } | null>(null);
 
   // 1. Fetch Balances
   useEffect(() => {
@@ -111,8 +115,13 @@ export function PortfolioOverview() {
         const pnlData = await fetchPnLOverview(userId);
         const fVol = getVolumeFromPnLOverview(pnlData);
 
-        // Spot volume and fees
-        const spotData = await fetchSpotTradesData(userId);
+        // Spot volume and fees with progress tracking
+        const spotData = await fetchSpotTradesData(userId, (p) => {
+          setSpotProgress({
+            fetchedCount: p.fetchedCount,
+            estimatedRemainingMs: p.estimatedRemainingMs
+          });
+        });
 
         // 30D PnL from positions
         const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
@@ -135,6 +144,7 @@ export function PortfolioOverview() {
         console.error('[v0] Error fetching metrics:', err);
       } finally {
         setLoading(prev => ({ ...prev, metrics: false }));
+        setSpotProgress(null);
       }
     };
 
@@ -413,7 +423,15 @@ export function PortfolioOverview() {
                   <div className="flex flex-col">
                     <span className="text-[9px] font-bold text-muted-foreground/50 uppercase">Spot</span>
                     {loading.metrics && metrics.spotVolume === 0 ? (
-                      <LoadingShimmer className="h-5 w-16 mt-1" />
+                      <div className="flex flex-col gap-1">
+                        <LoadingShimmer className="h-5 w-16 mt-1" />
+                        {spotProgress && spotProgress.fetchedCount > 0 && (
+                          <span className="text-[7px] font-bold text-accent/40 uppercase tracking-tighter">
+                            {spotProgress.fetchedCount} trades... 
+                            {spotProgress.estimatedRemainingMs ? ` ~${(spotProgress.estimatedRemainingMs / 1000).toFixed(0)}s left` : ''}
+                          </span>
+                        )}
+                      </div>
                     ) : (
                       <span className="text-lg font-black text-foreground italic leading-none">${formatCompactNumber(metrics.spotVolume)}</span>
                     )}

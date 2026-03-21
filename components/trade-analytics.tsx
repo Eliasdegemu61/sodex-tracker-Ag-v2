@@ -29,7 +29,7 @@ import {
   LineChart as LineChartIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getUserIdByAddress, fetchAllPositions, enrichPositions, type EnrichedPosition } from '@/lib/sodex-api';
+import { getUserIdByAddress, fetchAllPositions, enrichPositions, fetchSymbols, type EnrichedPosition } from '@/lib/sodex-api';
 import {
   BarChart,
   Bar,
@@ -137,7 +137,8 @@ function calculateAnalytics(positions: EnrichedPosition[]): AnalyticsData {
       holding_time: holding_time_min,
       realized_pnl: raw_pnl,
       fee: fee,
-      net_pnl: net_pnl
+      net_pnl: net_pnl,
+      is_spot: p.is_spot || false
     };
   });
 
@@ -194,7 +195,8 @@ function calculateAnalytics(positions: EnrichedPosition[]): AnalyticsData {
       profit_factor: (pLosses.length === 0) ? 999 : pWins.reduce((acc, t) => acc + t.realized_pnl, 0) / Math.abs(pLosses.reduce((acc, t) => acc + t.realized_pnl, 0)),
       avg_leverage: pTrades.reduce((acc, t) => acc + t.leverage, 0) / pTrades.length,
       avg_holding_time: pTrades.reduce((acc, t) => acc + t.holding_time, 0) / pTrades.length,
-      pnl_contribution_percent: (pNet / total_net_pnl) * 100
+      pnl_contribution_percent: (pNet / total_net_pnl) * 100,
+      is_spot: pTrades.every((t: any) => t.is_spot)
     };
   }).sort((a, b) => b.net_pnl - a.net_pnl);
 
@@ -350,8 +352,9 @@ function calculateAnalytics(positions: EnrichedPosition[]): AnalyticsData {
 export function TradeAnalytics() {
   const [searchInput, setSearchInput] = useState('');
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [positions, setPositions] = useState<EnrichedPosition[]>([]);
+  const [userId, setUserId] = useState<string | number | null>(null);
+  const [futuresPositions, setFuturesPositions] = useState<EnrichedPosition[]>([]);
+  const [marketType] = useState<'futures' | 'spot'>('futures');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [timeframe, setTimeframe] = useState<'7d' | '30d' | '3m' | 'all'>('all');
@@ -359,6 +362,8 @@ export function TradeAnalytics() {
     key: 'net_pnl', 
     direction: 'desc' 
   });
+
+  const positions = futuresPositions;
 
   const analytics = useMemo(() => {
     if (positions.length === 0) return null;
@@ -379,7 +384,7 @@ export function TradeAnalytics() {
 
     if (filteredPositions.length === 0) return null;
     return calculateAnalytics(filteredPositions);
-  }, [positions, timeframe]);
+  }, [futuresPositions, timeframe]);
 
   const sortedPairAnalysis = useMemo(() => {
     if (!analytics) return [];
@@ -401,9 +406,13 @@ export function TradeAnalytics() {
       setWalletAddress(address);
       setUserId(foundUserId);
 
-      const allPos = await fetchAllPositions(foundUserId);
-      const enriched = await enrichPositions(allPos);
-      setPositions(enriched);
+      const rawFutures = await fetchAllPositions(foundUserId).catch(err => {
+        console.warn('Failed to fetch futures:', err);
+        return [];
+      });
+      
+      const enrichedFutures = await enrichPositions(rawFutures);
+      setFuturesPositions(enrichedFutures);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registry lookup failed');
     } finally {
@@ -414,7 +423,7 @@ export function TradeAnalytics() {
   const handleClear = () => {
     setWalletAddress(null);
     setUserId(null);
-    setPositions([]);
+    setFuturesPositions([]);
     setSearchInput('');
   };
 
@@ -474,20 +483,7 @@ export function TradeAnalytics() {
     );
   }
 
-  const {
-    portfolio_summary: summary,
-    pair_analysis,
-    direction_analysis,
-    pnl_distribution: pnlDist,
-    holding_time_analysis: holdAnalysis,
-    leverage_analysis: levAnalysis,
-    fee_analysis: feeAnalysis,
-    edge_detection: edge
-  } = analytics!;
-
-  return (
-    <div className="space-y-12 pb-24 animate-in fade-in duration-500 font-sans">
-      {/* Header */}
+  const renderHeader = (
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 pb-8 border-b border-border">
         <div className="flex items-center gap-6">
           <div>
@@ -507,7 +503,7 @@ export function TradeAnalytics() {
           </div>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 sm:gap-4">
           <div className="flex items-center p-1 bg-muted border border-border rounded-xl">
             {(['7d', '30d', '3m', 'all'] as const).map((t) => (
               <button
@@ -535,6 +531,40 @@ export function TradeAnalytics() {
           </Button>
         </div>
       </div>
+  );
+
+  if (!analytics || positions.length === 0) {
+    return (
+      <div className="space-y-12 pb-24 animate-in fade-in duration-500 font-sans">
+        {renderHeader}
+        <div className="flex flex-col items-center justify-center py-32 text-center space-y-4">
+          <div className="w-16 h-16 rounded-full bg-muted/20 border border-border/10 flex items-center justify-center mb-2">
+            <Activity className="w-6 h-6 text-muted-foreground/30" />
+          </div>
+          <h3 className="text-lg font-bold text-foreground tracking-tight">No Trades Found</h3>
+          <p className="text-xs font-semibold text-muted-foreground/40 uppercase tracking-widest max-w-sm">
+            This wallet has no {marketType} history in the selected timeframe.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const {
+    portfolio_summary: summary,
+    pair_analysis,
+    direction_analysis,
+    pnl_distribution: pnlDist,
+    holding_time_analysis: holdAnalysis,
+    leverage_analysis: levAnalysis,
+    fee_analysis: feeAnalysis,
+    edge_detection: edge
+  } = analytics;
+
+  return (
+    <div className="space-y-12 pb-24 animate-in fade-in duration-500 font-sans">
+      {/* Header */}
+      {renderHeader}
 
       {/* Primary Performance Indicators */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -635,25 +665,31 @@ export function TradeAnalytics() {
                   { 
                     label: 'Best Pair', 
                     value: edge.best_pair?.name, 
-                    sub: `${edge.best_pair?.profit >= 0 ? '+' : ''}$${edge.best_pair?.profit.toFixed(0)} • ${edge.best_pair?.leverage.toFixed(0)}x • ${edge.best_pair?.side}`, 
+                    sub: marketType === 'futures' 
+                      ? `${edge.best_pair?.profit >= 0 ? '+' : ''}$${edge.best_pair?.profit?.toFixed(0) || 0} • ${edge.best_pair?.leverage?.toFixed(0) || 0}x • ${edge.best_pair?.side || ''}`
+                      : `${edge.best_pair?.profit >= 0 ? '+' : ''}$${edge.best_pair?.profit?.toFixed(0) || 0}`,
                     color: 'text-emerald-500' 
                   },
                   { 
                     label: 'Worst Pair', 
                     value: edge.worst_pair?.name, 
-                    sub: `$${edge.worst_pair?.profit.toFixed(0)} • ${edge.worst_pair?.leverage.toFixed(0)}x`, 
+                    sub: marketType === 'futures'
+                      ? `$${edge.worst_pair?.profit?.toFixed(0) || 0} • ${edge.worst_pair?.leverage?.toFixed(0) || 0}x`
+                      : `$${edge.worst_pair?.profit?.toFixed(0) || 0}`,
                     color: 'text-orange-500' 
                   },
-                  { 
-                    label: 'Best Long', 
-                    value: edge.best_long?.pair, 
-                    sub: `+$${edge.best_long?.net.toFixed(0)} profit` 
-                  },
-                  { 
-                    label: 'Best Short', 
-                    value: edge.best_short?.pair, 
-                    sub: `+$${edge.best_short?.net.toFixed(0)} profit` 
-                  },
+                  ...(marketType === 'futures' ? [
+                    { 
+                      label: 'Best Long', 
+                      value: edge.best_long?.pair, 
+                      sub: `+$${edge.best_long?.net?.toFixed(0) || 0} profit` 
+                    },
+                    { 
+                      label: 'Best Short', 
+                      value: edge.best_short?.pair, 
+                      sub: `+$${edge.best_short?.net?.toFixed(0) || 0} profit` 
+                    }
+                  ] : [])
                 ].map((item, i) => (
                   <div key={i} className="flex flex-col group/item">
                     <div className="flex items-center justify-between mb-1.5">
@@ -665,35 +701,38 @@ export function TradeAnalytics() {
                     </div>
                   </div>
                 ))}
-              </div>             </div>
-          </Card>
-
-          <Card className="p-10 bg-card/40 backdrop-blur-md border-border/50 rounded-3xl shadow-none dark:shadow-2xl overflow-hidden group">
-             <div className="flex items-center gap-3 mb-8">
-               <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">Long vs Short</h3>
-             </div>
-
-             <div className="grid grid-cols-2 gap-4">
-                <div className="p-6 bg-card border-border/50 rounded-2xl space-y-4 hover:border-emerald-500/20 transition-all duration-500 group/long">
-                   <div className="flex items-center justify-between">
-                     <span className="text-[8px] font-bold text-emerald-500/50 uppercase">LONG</span>
-                   </div>
-                   <div className="space-y-1">
-                     <p className="text-base sm:text-xl font-bold text-foreground tracking-tighter tabular-nums">${direction_analysis.overall.long.net_pnl.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-                     <p className="text-[7px] sm:text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest">Win Rate: {direction_analysis.overall.long.win_rate.toFixed(0)}%</p>
-                   </div>
-                </div>
-                <div className="p-6 bg-card border-border/50 rounded-2xl space-y-4 hover:border-orange-500/20 transition-all duration-500 group/short">
-                   <div className="flex items-center justify-between">
-                     <span className="text-[8px] font-bold text-orange-500/50 uppercase">SHORT</span>
-                   </div>
-                   <div className="space-y-1">
-                     <p className="text-base sm:text-xl font-bold text-foreground tracking-tighter tabular-nums">${direction_analysis.overall.short.net_pnl.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-                     <p className="text-[7px] sm:text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest">Win Rate: {direction_analysis.overall.short.win_rate.toFixed(0)}%</p>
-                   </div>
-                </div>
+              </div>
              </div>
           </Card>
+
+          {marketType === 'futures' && (
+            <Card className="p-10 bg-card/40 backdrop-blur-md border-border/50 rounded-3xl shadow-none dark:shadow-2xl overflow-hidden group">
+               <div className="flex items-center gap-3 mb-8">
+                 <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">Long vs Short</h3>
+               </div>
+
+               <div className="grid grid-cols-2 gap-4">
+                  <div className="p-6 bg-card border-border/50 rounded-2xl space-y-4 hover:border-emerald-500/20 transition-all duration-500 group/long">
+                     <div className="flex items-center justify-between">
+                       <span className="text-[8px] font-bold text-emerald-500/50 uppercase">LONG</span>
+                     </div>
+                     <div className="space-y-1">
+                       <p className="text-base sm:text-xl font-bold text-foreground tracking-tighter tabular-nums">${direction_analysis.overall.long.net_pnl.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                       <p className="text-[7px] sm:text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest">Win Rate: {direction_analysis.overall.long.win_rate.toFixed(0)}%</p>
+                     </div>
+                  </div>
+                  <div className="p-6 bg-card border-border/50 rounded-2xl space-y-4 hover:border-orange-500/20 transition-all duration-500 group/short">
+                     <div className="flex items-center justify-between">
+                       <span className="text-[8px] font-bold text-orange-500/50 uppercase">SHORT</span>
+                     </div>
+                     <div className="space-y-1">
+                       <p className="text-base sm:text-xl font-bold text-foreground tracking-tighter tabular-nums">${direction_analysis.overall.short.net_pnl.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                       <p className="text-[7px] sm:text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest">Win Rate: {direction_analysis.overall.short.win_rate.toFixed(0)}%</p>
+                     </div>
+                  </div>
+               </div>
+            </Card>
+          )}
         </div>
       </div>
 
@@ -776,7 +815,7 @@ export function TradeAnalytics() {
 
       {/* Advanced Visual Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card className="p-10 bg-card/40 backdrop-blur-md border-border/50 rounded-3xl shadow-none dark:shadow-2xl">
+          <Card className={cn("p-10 bg-card/40 backdrop-blur-md border-border/50 rounded-3xl shadow-none dark:shadow-2xl", marketType === 'spot' ? "lg:col-span-2" : "")}>
             <div className="flex items-center gap-4 mb-10">
               <div>
                 <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">PnL by Hold Time</h3>
@@ -802,7 +841,18 @@ export function TradeAnalytics() {
                   <YAxis hide />
                   <Tooltip 
                     cursor={{ fill: 'rgba(255,255,255,0.02)' }} 
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '24px', padding: '16px' }} 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      backdropFilter: 'blur(16px)',
+                      WebkitBackdropFilter: 'blur(16px)',
+                      border: '1px solid hsl(var(--border))', 
+                      borderRadius: '16px', 
+                      padding: '12px 16px',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                      color: 'hsl(var(--foreground))',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                    }} 
                   />
                   <Bar dataKey="net_pnl" radius={[16, 16, 0, 0]} barSize={50}>
                     {holdAnalysis.map((entry, index) => (
@@ -814,46 +864,48 @@ export function TradeAnalytics() {
             </div>
           </Card>
 
-          <Card className="p-10 bg-card/40 backdrop-blur-md border-border/50 rounded-3xl shadow-none dark:shadow-2xl">
-            <div className="flex items-center gap-4 mb-10">
-              <div>
-                <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">PnL by Leverage</h3>
-                <p className="text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">Performance by risk exposure</p>
+          {marketType === 'futures' && (
+            <Card className="p-10 bg-card/40 backdrop-blur-md border-border/50 rounded-3xl shadow-none dark:shadow-2xl">
+              <div className="flex items-center gap-4 mb-10">
+                <div>
+                  <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">PnL by Leverage</h3>
+                  <p className="text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">Performance by risk exposure</p>
+                </div>
               </div>
-            </div>
 
-            <div className="h-[320px] w-full">
-               <ResponsiveContainer width="100%" height="100%">
-                 <AreaChart data={levAnalysis}>
-                   <defs>
-                     <linearGradient id="colorPnL" x1="0" y1="0" x2="0" y2="1">
-                       <stop offset="5%" stopColor="#FF4D00" stopOpacity={0.2}/>
-                       <stop offset="95%" stopColor="#FF4D00" stopOpacity={0}/>
-                     </linearGradient>
-                   </defs>
-                   <XAxis 
-                     dataKey="bucket" 
-                     axisLine={false} 
-                     tickLine={false} 
-                     tick={{ fill: 'hsl(var(--muted-foreground))', opacity: 0.5, fontSize: 9, fontWeight: 900 }} 
-                   />
-                   <YAxis hide />
-                   <Tooltip 
-                     contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '24px', padding: '16px' }} 
-                   />
-                   <Area 
-                    type="monotone" 
-                    dataKey="net_pnl" 
-                    stroke="#FF4D00" 
-                    strokeWidth={4} 
-                    fillOpacity={1} 
-                    fill="url(#colorPnL)" 
-                    animationDuration={2000}
-                   />
-                 </AreaChart>
-               </ResponsiveContainer>
-            </div>
-          </Card>
+              <div className="h-[320px] w-full">
+                 <ResponsiveContainer width="100%" height="100%">
+                   <AreaChart data={levAnalysis}>
+                     <defs>
+                       <linearGradient id="colorPnL" x1="0" y1="0" x2="0" y2="1">
+                         <stop offset="5%" stopColor="#FF4D00" stopOpacity={0.2}/>
+                         <stop offset="95%" stopColor="#FF4D00" stopOpacity={0}/>
+                       </linearGradient>
+                     </defs>
+                     <XAxis 
+                       dataKey="bucket" 
+                       axisLine={false} 
+                       tickLine={false} 
+                       tick={{ fill: 'hsl(var(--muted-foreground))', opacity: 0.5, fontSize: 9, fontWeight: 900 }} 
+                     />
+                     <YAxis hide />
+                     <Tooltip 
+                       contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '24px', padding: '16px' }} 
+                     />
+                     <Area 
+                      type="monotone" 
+                      dataKey="net_pnl" 
+                      stroke="#FF4D00" 
+                      strokeWidth={4} 
+                      fillOpacity={1} 
+                      fill="url(#colorPnL)" 
+                      animationDuration={2000}
+                     />
+                   </AreaChart>
+                 </ResponsiveContainer>
+              </div>
+            </Card>
+          )}
       </div>
 
       <div className="flex flex-col items-center gap-6 py-20">
