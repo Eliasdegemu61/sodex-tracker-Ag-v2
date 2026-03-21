@@ -58,17 +58,21 @@ export function TVLCard() {
   }
 
   return (
-    <Card className="p-4 lg:p-5 bg-card border border-border/50 rounded-2xl transition-all duration-300 hover:border-primary/30 group">
-      <div className="flex items-center justify-between mb-1">
-        <h3 className="text-[10px] lg:text-xs font-semibold text-muted-foreground/60 whitespace-nowrap text-zinc-500">Value Locked</h3>
-        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(255,77,0,0.5)]" />
-      </div>
-      <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
-        <div className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-foreground leading-none truncate">
-          {formatNumber(tvl)}
+    <Card className="p-4 lg:p-5 bg-card border border-border/50 rounded-2xl transition-all duration-300 hover:border-primary/30 group h-full flex flex-col justify-between min-h-[104px]">
+      <div className="flex flex-col h-full justify-between min-w-0">
+        <div className="flex items-center justify-between h-4">
+          <h3 className="text-[10px] lg:text-xs font-semibold text-muted-foreground/60 whitespace-nowrap text-zinc-500 leading-none">Value Locked</h3>
+          <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(255,77,0,0.5)]" />
         </div>
-        <div className="text-[7px] sm:text-[8px] text-muted-foreground/30 font-bold group-hover:text-primary/40 transition-colors whitespace-nowrap">
-          MAG7.SSI
+        <div className="flex items-center h-6">
+          <div className="text-lg lg:text-xl font-bold tracking-tight text-foreground leading-none truncate">
+            {formatNumber(tvl)}
+          </div>
+        </div>
+        <div className="flex items-end h-4">
+          <div className="text-[7px] sm:text-[8px] text-muted-foreground/30 font-bold group-hover:text-primary/40 transition-colors whitespace-nowrap">
+            MAG7.SSI
+          </div>
         </div>
       </div>
     </Card>

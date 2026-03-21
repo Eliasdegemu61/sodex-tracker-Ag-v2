@@ -105,32 +105,30 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
   // Revised User and Volume Cards for Mobile Merger
   const StatsHeader = () => {
     const SharedCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-      <Card className={cn("p-4 lg:p-5 bg-card border border-border/50 rounded-2xl group transition-all duration-300 hover:border-primary/30", className)}>
+      <Card className={cn("p-4 lg:p-5 bg-card border border-border/50 rounded-2xl group transition-all duration-300 hover:border-primary/30 h-full flex flex-col min-h-[104px]", className)}>
         {children}
       </Card>
     );
 
     const UserStats = () => (
-      <div className="flex-1 min-w-0">
-        <h3 className="text-[10px] lg:text-xs font-semibold text-muted-foreground/60 mb-1 whitespace-nowrap text-zinc-500">Total Users</h3>
-        <div className="flex flex-col">
-          <div className="text-xl lg:text-2xl font-bold tracking-tight text-foreground leading-none mb-1 lg:mb-2">
-            {totalUsers.toLocaleString()}
-          </div>
-          {userGain > 0 && (
-            <div className="flex items-center text-[11px] font-bold text-emerald-500 w-fit">
-              <TrendingUp className="w-3 h-3 mr-1" />
-              +{userGain.toLocaleString()} <span className="text-[9px] ml-1 opacity-80 font-medium tracking-tight">({userGainPercent.toFixed(2)}%)</span>
-            </div>
-          )}
+      <div className="flex-1 flex flex-col h-full min-w-0">
+        <h3 className="text-[10px] lg:text-xs font-semibold text-muted-foreground/60 mb-2 whitespace-nowrap text-zinc-500">Total Users</h3>
+        <div className="text-lg lg:text-xl font-bold tracking-tight text-foreground leading-none mb-1.5 lg:mb-2">
+          {totalUsers.toLocaleString()}
         </div>
+        {userGain > 0 && (
+          <div className="flex items-center text-[11px] font-bold text-emerald-500 w-fit mt-auto">
+            <TrendingUp className="w-3 h-3 mr-1" />
+            +{userGain.toLocaleString()} <span className="text-[9px] ml-1 opacity-80 font-medium tracking-tight">({userGainPercent.toFixed(2)}%)</span>
+          </div>
+        )}
       </div>
     );
 
     const VolumeStats = () => (
-      <div className="flex-1 min-w-0">
-        <h3 className="text-[10px] lg:text-xs font-semibold text-muted-foreground/60 mb-1 whitespace-nowrap text-zinc-500">Total Volume</h3>
-        <div className="text-xl lg:text-2xl font-bold tracking-tight text-foreground">${formatNumber(totalVolume)}</div>
+      <div className="flex-1 flex flex-col h-full min-w-0">
+        <h3 className="text-[10px] lg:text-xs font-semibold text-muted-foreground/60 mb-2 whitespace-nowrap text-zinc-500">Total Volume</h3>
+        <div className="text-lg lg:text-xl font-bold tracking-tight text-foreground leading-none">${formatNumber(totalVolume)}</div>
       </div>
     );
 
