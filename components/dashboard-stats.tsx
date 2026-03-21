@@ -105,7 +105,7 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
   // Revised User and Volume Cards for Mobile Merger
   const StatsHeader = () => {
     const SharedCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-      <Card className={cn("p-4 lg:p-5 bg-card border border-border/50 rounded-2xl group transition-all duration-300 hover:border-primary/30 h-full flex flex-col min-h-[104px]", className)}>
+      <Card className={cn("p-4 lg:p-5 bg-card border border-border/50 rounded-2xl group transition-all duration-300 h-full flex flex-col min-h-[104px]", className)}>
         {children}
       </Card>
     );
@@ -182,7 +182,7 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
       <StatsHeader />
 
       {/* Spot vs Futures Volume */}
-      <Card className="hidden lg:block p-5 bg-card border border-border/50 rounded-2xl overflow-hidden group transition-all duration-300 hover:border-primary/30">
+      <Card className="hidden lg:block p-5 bg-card border border-border/50 rounded-2xl overflow-hidden group transition-all duration-300">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60 text-zinc-500 uppercase tracking-wider">Volume Split</h3>
         </div>

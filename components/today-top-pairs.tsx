@@ -57,7 +57,7 @@ export function TodayTopPairs() {
   const todayData = volumeData?.today_stats
 
   return (
-    <Card className="p-6 bg-card border border-border/50 rounded-2xl flex flex-col transition-all duration-300 hover:border-primary/30 h-full">
+    <Card className="p-6 bg-card border border-border/50 rounded-2xl flex flex-col transition-all duration-300 h-full">
       <div className="flex items-center justify-between mb-6">
         <div className="flex flex-col">
           <h3 className="text-sm font-bold text-foreground/80 tracking-tight">Today's Top Performers</h3>

@@ -124,7 +124,7 @@ export function FundFlowChart() {
     }
 
     return (
-        <Card className="p-8 bg-card border border-border/50 rounded-2xl flex flex-col transition-all duration-300 hover:border-primary/30">
+        <Card className="p-8 bg-card border border-border/50 rounded-2xl flex flex-col transition-all duration-300">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
                 <div>
                     <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60 uppercase">Fund Flow</h3>
