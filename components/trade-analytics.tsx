@@ -78,25 +78,25 @@ function MetricCard({
 }) {
   return (
     <Card className={cn(
-      "p-3 sm:p-6 bg-card/40 backdrop-blur-sm border-border rounded-xl sm:rounded-3xl relative overflow-hidden group transition-all duration-500 hover:border-primary/20",
+      "p-3 min-[380px]:p-4 sm:p-6 bg-card/40 backdrop-blur-sm border-border rounded-xl sm:rounded-3xl relative overflow-hidden group transition-all duration-500 hover:border-primary/20",
       className
     )}>
-      <div className="flex flex-col gap-0.5 sm:gap-1 relative z-10">
-        <div className="flex items-center justify-between mb-1 sm:mb-2 max-w-full">
-          <div className="flex items-center gap-1 sm:gap-2 overflow-hidden w-full">
-            <span className="text-[6px] min-[380px]:text-[7px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-[0.1em] sm:tracking-[0.2em] truncate w-full">{label}</span>
+      <div className="flex flex-col gap-1 sm:gap-2 relative z-10 w-full">
+        <div className="flex items-center justify-between mb-1 sm:mb-2 w-full">
+          <div className="flex items-center w-full">
+            <span className="text-[7px] min-[380px]:text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest sm:tracking-[0.2em] truncate">{label}</span>
           </div>
         </div>
-        <div className="flex flex-col gap-0.5 sm:gap-1 max-w-full">
+        <div className="flex flex-col gap-0.5 sm:gap-1 w-full">
           <h4 className={cn(
-            "text-[9px] min-[380px]:text-[11px] sm:text-2xl font-bold tracking-tight tabular-nums transition-all duration-500 group-hover:translate-x-1 truncate max-w-full",
+            "text-base min-[380px]:text-lg sm:text-2xl font-black tracking-tighter tabular-nums transition-all duration-500 group-hover:translate-x-1 truncate",
             trend === 'up' ? "text-emerald-500" : trend === 'down' ? "text-orange-500" : "text-foreground"
           )}>
             {value}
           </h4>
           {subValue && (
-            <div className="flex items-center gap-1 sm:gap-1.5 overflow-hidden w-full">
-              <span className="text-[5px] min-[380px]:text-[6px] sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest truncate w-full">{subValue}</span>
+            <div className="flex items-center w-full mt-1">
+              <span className="text-[6px] min-[380px]:text-[7px] sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest sm:tracking-widest truncate">{subValue}</span>
             </div>
           )}
         </div>
@@ -537,7 +537,7 @@ export function TradeAnalytics() {
       </div>
 
       {/* Primary Performance Indicators */}
-      <div className="grid grid-cols-4 gap-2 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <MetricCard label="Net PnL" value={`$${summary.total_net_pnl.toFixed(2)}`} subValue="After fees" trend={summary.total_net_pnl >= 0 ? 'up' : 'down'} />
         <MetricCard label="Win Rate" value={`${summary.overall_win_rate.toFixed(1)}%`} subValue={`${summary.total_trades} trades`} trend={summary.overall_win_rate >= 50 ? 'up' : 'neutral'} />
         <MetricCard label="Profit Factor" value={summary.profit_factor > 99 ? '> 99' : summary.profit_factor.toFixed(2)} subValue="Wins ÷ losses" />
