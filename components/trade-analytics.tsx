@@ -78,25 +78,25 @@ function MetricCard({
 }) {
   return (
     <Card className={cn(
-      "p-6 bg-card/40 backdrop-blur-sm border-border rounded-3xl relative overflow-hidden group transition-all duration-500 hover:border-primary/20 hover:shadow-[0_0_40px_rgba(255,77,0,0.05)]",
+      "p-3 sm:p-6 bg-card/40 backdrop-blur-sm border-border rounded-xl sm:rounded-3xl relative overflow-hidden group transition-all duration-500 hover:border-primary/20",
       className
     )}>
-      <div className="flex flex-col gap-1 relative z-10">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">{label}</span>
+      <div className="flex flex-col gap-0.5 sm:gap-1 relative z-10">
+        <div className="flex items-center justify-between mb-1 sm:mb-2 max-w-full">
+          <div className="flex items-center gap-1 sm:gap-2 overflow-hidden w-full">
+            <span className="text-[7px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-[0.1em] sm:tracking-[0.2em] truncate w-full">{label}</span>
           </div>
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-0.5 sm:gap-1 max-w-full">
           <h4 className={cn(
-            "text-2xl font-bold tracking-tight tabular-nums transition-all duration-500 group-hover:translate-x-1",
+            "text-sm sm:text-2xl font-bold tracking-tight tabular-nums transition-all duration-500 group-hover:translate-x-1 truncate max-w-full",
             trend === 'up' ? "text-emerald-500" : trend === 'down' ? "text-orange-500" : "text-foreground"
           )}>
             {value}
           </h4>
           {subValue && (
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">{subValue}</span>
+            <div className="flex items-center gap-1 sm:gap-1.5 overflow-hidden w-full">
+              <span className="text-[6px] sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest truncate w-full">{subValue}</span>
             </div>
           )}
         </div>
@@ -537,7 +537,7 @@ export function TradeAnalytics() {
       </div>
 
       {/* Primary Performance Indicators */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 gap-2 sm:gap-4">
         <MetricCard label="Net PnL" value={`$${summary.total_net_pnl.toFixed(2)}`} subValue="After fees" trend={summary.total_net_pnl >= 0 ? 'up' : 'down'} />
         <MetricCard label="Win Rate" value={`${summary.overall_win_rate.toFixed(1)}%`} subValue={`${summary.total_trades} trades`} trend={summary.overall_win_rate >= 50 ? 'up' : 'neutral'} />
         <MetricCard label="Profit Factor" value={summary.profit_factor > 99 ? '> 99' : summary.profit_factor.toFixed(2)} subValue="Wins ÷ losses" />
@@ -580,38 +580,38 @@ export function TradeAnalytics() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-border/10">
-                  <th className="pb-6 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/20 font-black">Pair</th>
-                  <th className="pb-6 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/20 font-black text-right">Trades</th>
-                  <th className="pb-6 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/20 font-black text-right whitespace-nowrap">Net PnL</th>
-                  <th className="pb-6 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/20 font-black text-right">Profit Factor</th>
-                  <th className="pb-6 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/20 font-black text-right">PnL %</th>
+                  <th className="pb-4 sm:pb-6 text-[8px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] text-muted-foreground/20 font-black">Pair</th>
+                  <th className="pb-4 sm:pb-6 text-[8px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] text-muted-foreground/20 font-black text-right">Trades</th>
+                  <th className="pb-4 sm:pb-6 text-[8px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] text-muted-foreground/20 font-black text-right whitespace-nowrap">Net PnL</th>
+                  <th className="pb-4 sm:pb-6 text-[8px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] text-muted-foreground/20 font-black text-right">Profit Factor</th>
+                  <th className="pb-4 sm:pb-6 text-[8px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] text-muted-foreground/20 font-black text-right">PnL %</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/10">
                 {sortedPairAnalysis.slice(0, 10).map((p, i) => (
                   <tr key={i} className="group/row hover:bg-muted/50 transition-all duration-500">
-                    <td className="py-5">
-                      <div className="flex items-center gap-3">
+                    <td className="py-3 sm:py-5">
+                      <div className="flex items-center gap-2 sm:gap-3">
                         <div className="w-1.5 h-1.5 rounded-full bg-primary/20 group-hover/row:bg-primary transition-colors duration-500" />
-                        <span className="text-xs font-bold text-foreground tracking-tight group-hover/row:translate-x-1 transition-transform duration-500 uppercase">{p.pair}</span>
+                        <span className="text-[10px] sm:text-xs font-bold text-foreground tracking-tight group-hover/row:translate-x-1 transition-transform duration-500 uppercase">{p.pair}</span>
                       </div>
                     </td>
-                    <td className="py-5 text-xs font-bold text-foreground/30 text-right tabular-nums">{p.trade_count}</td>
+                    <td className="py-3 sm:py-5 text-[10px] sm:text-xs font-bold text-foreground/30 text-right tabular-nums">{p.trade_count}</td>
                     <td className={cn(
-                      "py-5 text-xs font-bold text-right tabular-nums tracking-tighter",
+                      "py-3 sm:py-5 text-[10px] sm:text-xs font-bold text-right tabular-nums tracking-tighter",
                       p.net_pnl >= 0 ? "text-emerald-500" : "text-orange-500"
                     )}>
                       {p.net_pnl >= 0 ? '+' : ''}${Math.abs(p.net_pnl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
-                    <td className="py-5 text-xs font-bold text-foreground/40 text-right tabular-nums">
+                    <td className="py-3 sm:py-5 text-[10px] sm:text-xs font-bold text-foreground/40 text-right tabular-nums">
                       <span className={cn(
-                        "px-2 py-0.5 rounded-md bg-muted/30 border border-border/30",
+                        "px-1.5 sm:px-2 py-0.5 rounded-md bg-muted/30 border border-border/30",
                         p.profit_factor >= 2 ? "text-emerald-400 border-emerald-500/20" : ""
                       )}>
                         {p.profit_factor > 10 ? '>10' : p.profit_factor.toFixed(2)}
                       </span>
                     </td>
-                    <td className="py-5 text-right font-mono text-[10px] text-muted-foreground/20">
+                    <td className="py-3 sm:py-5 text-right font-mono text-[8px] sm:text-[10px] text-muted-foreground/20">
                       {p.pnl_contribution_percent.toFixed(1)}%
                     </td>
                   </tr>
@@ -679,8 +679,8 @@ export function TradeAnalytics() {
                      <span className="text-[8px] font-bold text-emerald-500/50 uppercase">LONG</span>
                    </div>
                    <div className="space-y-1">
-                     <p className="text-xl font-bold text-foreground tracking-tighter tabular-nums">${direction_analysis.overall.long.net_pnl.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-                     <p className="text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest">Win Rate: {direction_analysis.overall.long.win_rate.toFixed(0)}%</p>
+                     <p className="text-base sm:text-xl font-bold text-foreground tracking-tighter tabular-nums">${direction_analysis.overall.long.net_pnl.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                     <p className="text-[7px] sm:text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest">Win Rate: {direction_analysis.overall.long.win_rate.toFixed(0)}%</p>
                    </div>
                 </div>
                 <div className="p-6 bg-card border-border/50 rounded-2xl space-y-4 hover:border-orange-500/20 transition-all duration-500 group/short">
@@ -688,8 +688,8 @@ export function TradeAnalytics() {
                      <span className="text-[8px] font-bold text-orange-500/50 uppercase">SHORT</span>
                    </div>
                    <div className="space-y-1">
-                     <p className="text-xl font-bold text-foreground tracking-tighter tabular-nums">${direction_analysis.overall.short.net_pnl.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-                     <p className="text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest">Win Rate: {direction_analysis.overall.short.win_rate.toFixed(0)}%</p>
+                     <p className="text-base sm:text-xl font-bold text-foreground tracking-tighter tabular-nums">${direction_analysis.overall.short.net_pnl.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                     <p className="text-[7px] sm:text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest">Win Rate: {direction_analysis.overall.short.win_rate.toFixed(0)}%</p>
                    </div>
                 </div>
              </div>
@@ -707,26 +707,26 @@ export function TradeAnalytics() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-12 gap-x-8">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-8 sm:gap-y-12 gap-x-4 sm:gap-x-8">
                <div className="space-y-1">
-                 <span className="text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.2em]">Avg Trade</span>
-                 <p className="text-xl font-bold text-foreground tracking-tight">${pnlDist.mean_trade_pnl.toFixed(2)}</p>
+                 <span className="text-[7px] sm:text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.1em] sm:tracking-[0.2em]">Avg Trade</span>
+                 <p className="text-base sm:text-xl font-bold text-foreground tracking-tight">${pnlDist.mean_trade_pnl.toFixed(2)}</p>
                </div>
                <div className="space-y-1">
-                 <span className="text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.2em]">Median Trade</span>
-                 <p className="text-xl font-bold text-foreground tracking-tight">${pnlDist.median_trade_pnl.toFixed(2)}</p>
+                 <span className="text-[7px] sm:text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.1em] sm:tracking-[0.2em]">Median Trade</span>
+                 <p className="text-base sm:text-xl font-bold text-foreground tracking-tight">${pnlDist.median_trade_pnl.toFixed(2)}</p>
                </div>
                <div className="space-y-1">
-                 <span className="text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.2em]">Std Dev</span>
-                 <p className="text-xl font-bold text-orange-400 tracking-tight">± ${pnlDist.std_dev_pnl.toFixed(0)}</p>
+                 <span className="text-[7px] sm:text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.1em] sm:tracking-[0.2em]">Std Dev</span>
+                 <p className="text-base sm:text-xl font-bold text-orange-400 tracking-tight">± ${pnlDist.std_dev_pnl.toFixed(0)}</p>
                </div>
                <div className="space-y-1">
-                 <span className="text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.2em]">Biggest Win</span>
-                 <p className="text-xl font-bold text-emerald-500 tracking-tight">+${pnlDist.largest_win.toFixed(0)}</p>
+                 <span className="text-[7px] sm:text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.1em] sm:tracking-[0.2em]">Biggest Win</span>
+                 <p className="text-base sm:text-xl font-bold text-emerald-500 tracking-tight">+${pnlDist.largest_win.toFixed(0)}</p>
                </div>
                <div className="space-y-1">
-                 <span className="text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.2em]">Biggest Loss</span>
-                 <p className="text-xl font-bold text-orange-600 tracking-tight">${pnlDist.largest_loss.toFixed(0)}</p>
+                 <span className="text-[7px] sm:text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.1em] sm:tracking-[0.2em]">Biggest Loss</span>
+                 <p className="text-base sm:text-xl font-bold text-orange-600 tracking-tight">${pnlDist.largest_loss.toFixed(0)}</p>
                </div>
             </div>
 
@@ -744,30 +744,30 @@ export function TradeAnalytics() {
             <div className="space-y-10">
                <div className="p-6 bg-muted/20 border border-border/50 rounded-2xl relative group/fee">
                  <div className="flex items-center justify-between mb-2">
-                   <span className="text-[9px] font-bold text-foreground/30 uppercase tracking-[0.2em]">Total Fees Paid</span>
+                   <span className="text-[7px] sm:text-[9px] font-bold text-foreground/30 uppercase tracking-[0.1em] sm:tracking-[0.2em]">Total Fees Paid</span>
                  </div>
                  <div className="flex items-baseline gap-3">
-                   <h4 className="text-3xl font-bold text-foreground tracking-tight">${feeAnalysis.total_fees.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h4>
+                   <h4 className="text-xl sm:text-3xl font-bold text-foreground tracking-tight">${feeAnalysis.total_fees.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h4>
                  </div>
                  <div className="mt-4 h-1 w-full bg-muted/30 rounded-full overflow-hidden">
                    <div className="h-full bg-orange-500/40 rounded-full" style={{ width: `${Math.min(feeAnalysis.fees_as_percent_of_gross_profit, 100)}%` }} />
                  </div>
                </div>
 
-               <div className="grid grid-cols-2 gap-6">
-                  <div className="p-6 bg-orange-500/[0.02] rounded-2xl border border-orange-500/10 hover:bg-orange-500/[0.04] transition-all duration-300">
+               <div className="grid grid-cols-2 gap-3 sm:gap-6">
+                  <div className="p-4 sm:p-6 bg-orange-500/[0.02] rounded-2xl border border-orange-500/10 hover:bg-orange-500/[0.04] transition-all duration-300">
                     <div className="flex items-center gap-2 mb-1.5">
-                       <span className="text-[8px] font-bold text-orange-500 uppercase tracking-widest">Flipped to losses</span>
+                       <span className="text-[6px] sm:text-[8px] font-bold text-orange-500 uppercase tracking-widest">Flipped to losses</span>
                     </div>
-                    <p className="text-2xl font-bold text-foreground tracking-tight">{feeAnalysis.trades_flipped_by_fees}</p>
-                    <p className="text-[8px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">Were profitable before fees</p>
+                    <p className="text-lg sm:text-2xl font-bold text-foreground tracking-tight">{feeAnalysis.trades_flipped_by_fees}</p>
+                    <p className="text-[6px] sm:text-[8px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">Were profitable before fees</p>
                   </div>
-                  <div className="p-6 bg-emerald-500/[0.02] rounded-2xl border border-emerald-500/10 hover:bg-emerald-500/[0.04] transition-all duration-300">
+                  <div className="p-4 sm:p-6 bg-emerald-500/[0.02] rounded-2xl border border-emerald-500/10 hover:bg-emerald-500/[0.04] transition-all duration-300">
                     <div className="flex items-center gap-2 mb-1.5">
-                       <span className="text-[8px] font-bold text-emerald-500 uppercase tracking-widest">Winning after fees</span>
+                       <span className="text-[6px] sm:text-[8px] font-bold text-emerald-500 uppercase tracking-widest">Winning after fees</span>
                     </div>
-                    <p className="text-2xl font-bold text-foreground tracking-tight">{feeAnalysis.profitable_trades_after_fees_percent.toFixed(1)}%</p>
-                    <p className="text-[8px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">Of all closed trades</p>
+                    <p className="text-lg sm:text-2xl font-bold text-foreground tracking-tight">{feeAnalysis.profitable_trades_after_fees_percent.toFixed(1)}%</p>
+                    <p className="text-[6px] sm:text-[8px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">Of all closed trades</p>
                   </div>
                </div>
             </div>
