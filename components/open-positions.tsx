@@ -93,7 +93,7 @@ export function OpenPositions({ accountId }: { accountId?: string | null }) {
     const refreshInterval = setInterval(() => {
       setIsRefreshing(true);
       loadOpenPositions(true).then(() => setIsRefreshing(false)); // true = skip cache
-    }, 1000); // 1 second
+    }, 5000); // 5 seconds
 
     return () => clearInterval(refreshInterval);
   }, [userId]);

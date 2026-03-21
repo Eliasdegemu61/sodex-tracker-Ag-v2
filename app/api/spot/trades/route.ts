@@ -39,7 +39,8 @@ export async function GET(request: NextRequest) {
 
     const url = new URL('https://mainnet-data.sodex.dev/api/v1/spot/trades');
     url.searchParams.set('account_id', accountId);
-    url.searchParams.set('limit', '50');
+    const limit = searchParams.get('limit') || '20';
+    url.searchParams.set('limit', limit);
     if (cursor) {
       url.searchParams.set('cursor', cursor);
     }

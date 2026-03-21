@@ -61,6 +61,35 @@ interface AnalyticsData {
 
 // --- Helper Components ---
 
+function CustomTooltip({ active, payload, label }: any) {
+  if (active && payload && payload.length) {
+    const value = payload[0].value;
+    const isPositive = value >= 0;
+    
+    return (
+      <div className="bg-card/80 backdrop-blur-xl border border-border/50 p-4 rounded-2xl shadow-2xl min-w-[140px] animate-in fade-in zoom-in duration-300 relative overflow-hidden">
+        <p className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em] mb-2">{label}</p>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[8px] font-bold text-muted-foreground/30 uppercase tracking-widest">Net PnL</span>
+          <p className={cn(
+            "text-lg font-black italic tracking-tighter tabular-nums",
+            isPositive ? "text-emerald-500" : "text-orange-500"
+          )}>
+            {isPositive ? '+' : ''}${Math.abs(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+        </div>
+        
+        {/* Decorative corner accent */}
+        <div className={cn(
+          "absolute top-0 right-0 w-8 h-8 opacity-10 blur-xl rounded-full",
+          isPositive ? "bg-emerald-500" : "bg-orange-500"
+        )} />
+      </div>
+    );
+  }
+  return null;
+}
+
 function MetricCard({ 
   label, 
   value, 
@@ -841,18 +870,7 @@ export function TradeAnalytics() {
                   <YAxis hide />
                   <Tooltip 
                     cursor={{ fill: 'rgba(255,255,255,0.02)' }} 
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))', 
-                      backdropFilter: 'blur(16px)',
-                      WebkitBackdropFilter: 'blur(16px)',
-                      border: '1px solid hsl(var(--border))', 
-                      borderRadius: '16px', 
-                      padding: '12px 16px',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                      color: 'hsl(var(--foreground))',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                    }} 
+                    content={<CustomTooltip />} 
                   />
                   <Bar dataKey="net_pnl" radius={[16, 16, 0, 0]} barSize={50}>
                     {holdAnalysis.map((entry, index) => (
@@ -890,7 +908,7 @@ export function TradeAnalytics() {
                      />
                      <YAxis hide />
                      <Tooltip 
-                       contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '24px', padding: '16px' }} 
+                       content={<CustomTooltip />} 
                      />
                      <Area 
                       type="monotone" 

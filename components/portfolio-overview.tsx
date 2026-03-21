@@ -68,7 +68,8 @@ export function PortfolioOverview() {
 
   const [loading, setLoading] = useState({
     balances: false,
-    metrics: false,
+    futuresMetrics: false,
+    spotMetrics: false,
     vault: false
   });
   const [spotProgress, setSpotProgress] = useState<{
@@ -109,13 +110,34 @@ export function PortfolioOverview() {
     if (!userId || !positions) return;
 
     const fetchMetrics = async () => {
-      setLoading(prev => ({ ...prev, metrics: true }));
+      setLoading(prev => ({ ...prev, futuresMetrics: true, spotMetrics: true }));
+      
+      // Part A: Futures Metrics (Fast)
       try {
-        // Futures volume from PnL overview
         const pnlData = await fetchPnLOverview(userId);
         const fVol = getVolumeFromPnLOverview(pnlData);
+        
+        const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+        const pnl30 = positions
+          .filter(p => (p.updated_at || 0) >= thirtyDaysAgo)
+          .reduce((sum, p) => sum + (p.realizedPnlValue || 0), 0);
 
-        // Spot volume and fees with progress tracking
+        const fFees = positions.reduce((sum, p) => sum + (parseFloat(p.cum_trading_fee || '0') || 0), 0);
+
+        setMetrics(prev => ({
+          ...prev,
+          futuresVolume: fVol,
+          futuresFees: fFees,
+          pnl30d: pnl30
+        }));
+      } catch (err) {
+        console.error('[v0] Error fetching futures metrics:', err);
+      } finally {
+        setLoading(prev => ({ ...prev, futuresMetrics: false }));
+      }
+
+      // Part B: Spot Metrics (Slow)
+      try {
         const spotData = await fetchSpotTradesData(userId, (p) => {
           setSpotProgress({
             fetchedCount: p.fetchedCount,
@@ -123,27 +145,15 @@ export function PortfolioOverview() {
           });
         });
 
-        // 30D PnL from positions
-        const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-        const pnl30 = positions
-          .filter(p => (p.updated_at || 0) >= thirtyDaysAgo)
-          .reduce((sum, p) => sum + (p.realizedPnlValue || 0), 0);
-
-        // Futures fees from current positions
-        const fFees = positions.reduce((sum, p) => sum + (parseFloat(p.cum_trading_fee || '0') || 0), 0);
-
         setMetrics(prev => ({
           ...prev,
-          futuresVolume: fVol,
           spotVolume: spotData.totalVolume,
-          futuresFees: fFees,
-          spotFees: spotData.totalFees,
-          pnl30d: pnl30
+          spotFees: spotData.totalFees
         }));
       } catch (err) {
-        console.error('[v0] Error fetching metrics:', err);
+        console.error('[v0] Error fetching spot metrics:', err);
       } finally {
-        setLoading(prev => ({ ...prev, metrics: false }));
+        setLoading(prev => ({ ...prev, spotMetrics: false }));
         setSpotProgress(null);
       }
     };
@@ -226,7 +236,7 @@ export function PortfolioOverview() {
   }, [walletAddress, sourceWalletAddress, rankOptions]);
 
   const totalNetWorth = balances.total + balances.vault;
-  const isSyncing = loading.balances || loading.metrics || loading.vault;
+  const isSyncing = loading.balances || loading.futuresMetrics || loading.spotMetrics || loading.vault;
 
   // Helper for formatting numbers with K/M suffixes
   const formatCompactNumber = (num: number) => {
@@ -392,7 +402,7 @@ export function PortfolioOverview() {
                 <Target className="w-2.5 h-2.5" /> Vault
               </p>
               <div className="flex items-baseline justify-between">
-                {loading.metrics && metrics.vaultShares === 0 ? (
+                {loading.futuresMetrics && metrics.vaultShares === 0 ? (
                   <LoadingShimmer className="h-8 w-24" />
                 ) : (
                   <p className="text-2xl font-black tracking-tighter text-orange-400">
@@ -414,7 +424,7 @@ export function PortfolioOverview() {
                 <div className="flex gap-10">
                   <div className="flex flex-col">
                     <span className="text-[9px] font-bold text-muted-foreground/50 uppercase">Futures</span>
-                    {loading.metrics && metrics.futuresVolume === 0 ? (
+                    {loading.futuresMetrics && metrics.futuresVolume === 0 ? (
                       <LoadingShimmer className="h-5 w-16 mt-1" />
                     ) : (
                       <span className="text-lg font-black text-foreground italic leading-none">${formatCompactNumber(metrics.futuresVolume)}</span>
@@ -422,7 +432,7 @@ export function PortfolioOverview() {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[9px] font-bold text-muted-foreground/50 uppercase">Spot</span>
-                    {loading.metrics && metrics.spotVolume === 0 ? (
+                    {loading.spotMetrics && metrics.spotVolume === 0 ? (
                       <div className="flex flex-col gap-1">
                         <LoadingShimmer className="h-5 w-16 mt-1" />
                         {spotProgress && spotProgress.fetchedCount > 0 && (
@@ -446,7 +456,7 @@ export function PortfolioOverview() {
                 <div className="flex gap-10">
                   <div className="flex flex-col">
                     <span className="text-[9px] font-bold text-muted-foreground/50 uppercase">Futures</span>
-                    {loading.metrics && metrics.futuresFees === 0 ? (
+                    {loading.futuresMetrics && metrics.futuresFees === 0 ? (
                       <LoadingShimmer className="h-5 w-16 mt-1" />
                     ) : (
                       <span className="text-lg font-black text-foreground/80 italic leading-none">${metrics.futuresFees.toFixed(1)}</span>
@@ -454,7 +464,7 @@ export function PortfolioOverview() {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[9px] font-bold text-muted-foreground/50 uppercase">Spot</span>
-                    {loading.metrics && metrics.spotFees === 0 ? (
+                    {loading.spotMetrics && metrics.spotFees === 0 ? (
                       <LoadingShimmer className="h-5 w-16 mt-1" />
                     ) : (
                       <span className="text-lg font-black text-foreground/80 italic leading-none">${metrics.spotFees.toFixed(1)}</span>
@@ -469,7 +479,7 @@ export function PortfolioOverview() {
         {isSyncing && (
           <div className="absolute bottom-4 right-8 flex items-center gap-2 text-[8px] text-muted-foreground/20 font-bold uppercase tracking-widest">
             <div className="w-1 h-1 bg-accent rounded-full animate-pulse" />
-            Syncing
+            {loading.spotMetrics ? 'Syncing Spot History' : 'Updating Data'}
           </div>
         )}
       </div>

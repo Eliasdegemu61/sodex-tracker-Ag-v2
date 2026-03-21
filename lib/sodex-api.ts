@@ -132,8 +132,8 @@ export async function fetchAllSpotTrades(
   const allTrades: SpotTrade[] = [];
   let cursor: string | undefined;
   const startTime = Date.now();
-  const REQUEST_DELAY_MS = 2000; // 2.0s delay between requests for very conservative rate limit compliance
-  const BATCH_SIZE = 50; // Matches the limit set in the API route
+  const REQUEST_DELAY_MS = 3000; // 3.0s delay between requests for very conservative rate limit compliance
+  const BATCH_SIZE = 20; // Lower batch size for more aggressive rate limit avoidance
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
