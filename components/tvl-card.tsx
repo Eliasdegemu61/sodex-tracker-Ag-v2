@@ -63,11 +63,11 @@ export function TVLCard() {
         <h3 className="text-[10px] lg:text-xs font-semibold text-muted-foreground/60 whitespace-nowrap text-zinc-500">Value Locked</h3>
         <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(255,77,0,0.5)]" />
       </div>
-      <div className="flex items-baseline gap-2">
-        <div className="text-xl lg:text-2xl font-bold tracking-tight text-foreground leading-none">
+      <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
+        <div className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-foreground leading-none truncate">
           {formatNumber(tvl)}
         </div>
-        <div className="text-[8px] text-muted-foreground/30 font-bold group-hover:text-primary/40 transition-colors">
+        <div className="text-[7px] sm:text-[8px] text-muted-foreground/30 font-bold group-hover:text-primary/40 transition-colors whitespace-nowrap">
           MAG7.SSI
         </div>
       </div>

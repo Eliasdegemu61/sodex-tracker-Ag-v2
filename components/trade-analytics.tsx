@@ -84,19 +84,19 @@ function MetricCard({
       <div className="flex flex-col gap-0.5 sm:gap-1 relative z-10">
         <div className="flex items-center justify-between mb-1 sm:mb-2 max-w-full">
           <div className="flex items-center gap-1 sm:gap-2 overflow-hidden w-full">
-            <span className="text-[7px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-[0.1em] sm:tracking-[0.2em] truncate w-full">{label}</span>
+            <span className="text-[6px] min-[380px]:text-[7px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-[0.1em] sm:tracking-[0.2em] truncate w-full">{label}</span>
           </div>
         </div>
         <div className="flex flex-col gap-0.5 sm:gap-1 max-w-full">
           <h4 className={cn(
-            "text-sm sm:text-2xl font-bold tracking-tight tabular-nums transition-all duration-500 group-hover:translate-x-1 truncate max-w-full",
+            "text-[9px] min-[380px]:text-[11px] sm:text-2xl font-bold tracking-tight tabular-nums transition-all duration-500 group-hover:translate-x-1 truncate max-w-full",
             trend === 'up' ? "text-emerald-500" : trend === 'down' ? "text-orange-500" : "text-foreground"
           )}>
             {value}
           </h4>
           {subValue && (
             <div className="flex items-center gap-1 sm:gap-1.5 overflow-hidden w-full">
-              <span className="text-[6px] sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest truncate w-full">{subValue}</span>
+              <span className="text-[5px] min-[380px]:text-[6px] sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest truncate w-full">{subValue}</span>
             </div>
           )}
         </div>
