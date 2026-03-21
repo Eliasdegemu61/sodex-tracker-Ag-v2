@@ -4,7 +4,7 @@
 import React from "react"
 
 import { Suspense, useState, lazy, useEffect } from 'react'
-import { Moon, Sun, Activity, TrendingUp, Wallet, Trophy, Zap, Compass, BookOpen } from 'lucide-react'
+import { Moon, Sun, Activity, TrendingUp, Wallet, Trophy, Zap, Compass, BookOpen, LineChart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -35,6 +35,7 @@ const OverallDepositsCard = dynamic(
 )
 
 import { TrackerSection } from '@/components/tracker-section'
+import { TradeAnalytics } from '@/components/trade-analytics'
 import { Footer } from '@/components/footer'
 import { SopointsAnalyzer } from '@/components/sopoints-analyzer'
 import { AboutSodex } from '@/components/about-sodex'
@@ -213,7 +214,7 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
 
 export default function Dashboard() {
   const { theme, toggleTheme, mounted } = useTheme()
-  const [currentPage, setCurrentPage] = useState<'dex-status' | 'tracker' | 'portfolio' | 'leaderboard' | 'analyzer' | 'about' | 'whale-tracker' | 'assets' | 'journal'>('dex-status')
+  const [currentPage, setCurrentPage] = useState<'dex-status' | 'tracker' | 'portfolio' | 'leaderboard' | 'analyzer' | 'about' | 'whale-tracker' | 'assets' | 'journal' | 'analytics'>('dex-status')
   const [searchAddressInput, setSearchAddressInput] = useState('')
   const [trackerSearchAddress, setTrackerSearchAddress] = useState('')
   const [showMoreMenu, setShowMoreMenu] = useState(false)
@@ -226,6 +227,7 @@ export default function Dashboard() {
     { id: 'portfolio', label: 'Portfolio', icon: Wallet },
     { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
     { id: 'analyzer', label: 'Reverse Search', icon: Zap },
+    { id: 'analytics', label: 'Trade analytics', icon: LineChart },
     { id: 'assets', label: 'Assets', icon: Compass },
   ] as const;
 
@@ -260,7 +262,7 @@ export default function Dashboard() {
       setTrackerSearchAddress(decodeURIComponent(addressParam));
     }
 
-    if (tabParam && ['dex-status', 'tracker', 'portfolio', 'leaderboard', 'analyzer', 'about', 'whale-tracker', 'assets'].includes(tabParam)) {
+    if (tabParam && ['dex-status', 'tracker', 'portfolio', 'leaderboard', 'analyzer', 'about', 'whale-tracker', 'assets', 'analytics'].includes(tabParam)) {
       setCurrentPage(tabParam);
     } else {
       // Default to dex-status on first load
@@ -439,6 +441,12 @@ export default function Dashboard() {
                   <PortfolioProvider>
                     <JournalPageClient isDashboard />
                   </PortfolioProvider>
+                </Suspense>
+              )}
+
+              {currentPage === 'analytics' && (
+                <Suspense fallback={<LoadingCard />}>
+                  <TradeAnalytics />
                 </Suspense>
               )}
             </div>

@@ -6,6 +6,12 @@ import { usePortfolio } from '@/context/portfolio-context';
 import { useTheme } from '@/app/providers';
 import { cn } from '@/lib/utils';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface DayTrades {
   date: Date;
@@ -225,76 +231,77 @@ export function MonthlyCalendar() {
       </Card>
 
       {/* Trade Details Popup */}
-      {selectedDay && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 animate-in fade-in duration-200" onClick={() => setSelectedDay(null)}>
-          <Card
-            className="w-full max-w-lg bg-card/90 border border-border/20 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-4 border-b border-border flex items-center justify-between bg-secondary/10">
-              <div className="flex flex-col">
-                <h3 className="text-lg font-bold text-foreground">
-                  Trades for {selectedDay.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                </h3>
-                <div className={`text-sm font-bold ${selectedDay.pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  Daily PnL: {selectedDay.pnl >= 0 ? '+' : '-'}${Math.abs(selectedDay.pnl).toFixed(2)}
+      <Dialog open={!!selectedDay} onOpenChange={(open) => !open && setSelectedDay(null)}>
+        <DialogContent className="max-w-lg p-0 bg-card/90 border-border/20 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" showCloseButton={false}>
+          {selectedDay && (
+            <>
+              <DialogHeader className="p-4 border-b border-border flex flex-row items-center justify-between bg-secondary/10 space-y-0 text-left">
+                <div className="flex flex-col">
+                  <DialogTitle className="text-lg font-bold text-foreground">
+                    Trades for {selectedDay.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </DialogTitle>
+                  <div className={`text-sm font-bold ${selectedDay.pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    Daily PnL: {selectedDay.pnl >= 0 ? '+' : '-'}${Math.abs(selectedDay.pnl).toFixed(2)}
+                  </div>
                 </div>
-              </div>
-              <button
-                onClick={() => setSelectedDay(null)}
-                className="p-2 rounded-full hover:bg-secondary/40 transition-colors"
-              >
-                <X className="w-5 h-5 text-muted-foreground" />
-              </button>
-            </div>
-            <div className="max-h-[60vh] overflow-y-auto p-2">
-              <div className="space-y-2">
-                {selectedDay.trades.map((trade, i) => (
-                  <div key={i} className="flex flex-col p-4 bg-secondary/5 rounded-xl border border-border/50 gap-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="text-base font-bold text-foreground">{trade.pairName}</span>
-                        <div className="flex gap-2 items-center">
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${trade.positionSideLabel === 'LONG' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
-                            {trade.positionSideLabel} {trade.leverage}x
-                          </span>
-                          <span className="text-[10px] text-muted-foreground uppercase">{new Date(trade.created_at).toLocaleTimeString()}</span>
+                <button
+                  onClick={() => setSelectedDay(null)}
+                  className="p-2 rounded-full hover:bg-secondary/40 transition-colors"
+                >
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </DialogHeader>
+              
+              <div className="max-h-[60vh] overflow-y-auto p-2">
+                <div className="space-y-2">
+                  {selectedDay.trades.map((trade, i) => (
+                    <div key={i} className="flex flex-col p-4 bg-secondary/5 rounded-xl border border-border/50 gap-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex flex-col">
+                          <span className="text-base font-bold text-foreground">{trade.pairName}</span>
+                          <div className="flex gap-2 items-center">
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${trade.positionSideLabel === 'LONG' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                              {trade.positionSideLabel} {trade.leverage}x
+                            </span>
+                            <span className="text-[10px] text-muted-foreground uppercase">{new Date(trade.created_at).toLocaleTimeString()}</span>
+                          </div>
+                        </div>
+                        <div className={`text-base font-bold ${trade.realizedPnlValue >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                          {trade.realizedPnlValue >= 0 ? '+' : '-'}${Math.abs(trade.realizedPnlValue).toFixed(2)}
                         </div>
                       </div>
-                      <div className={`text-base font-bold ${trade.realizedPnlValue >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        {trade.realizedPnlValue >= 0 ? '+' : '-'}${Math.abs(trade.realizedPnlValue).toFixed(2)}
-                      </div>
-                    </div>
 
-                    <div className="grid grid-cols-3 gap-4 border-t border-border/30 pt-3">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[10px] text-muted-foreground uppercase font-semibold">Entry</span>
-                        <span className="text-sm font-medium">${parseFloat(trade.avg_entry_price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}</span>
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[10px] text-muted-foreground uppercase font-semibold">Exit</span>
-                        <span className="text-sm font-medium">${parseFloat(trade.avg_close_price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}</span>
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[10px] text-muted-foreground uppercase font-semibold">Size</span>
-                        <span className="text-sm font-medium">{trade.closedSize.toLocaleString()}</span>
+                      <div className="grid grid-cols-3 gap-4 border-t border-border/30 pt-3">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] text-muted-foreground uppercase font-semibold">Entry</span>
+                          <span className="text-sm font-medium">${parseFloat(trade.avg_entry_price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}</span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] text-muted-foreground uppercase font-semibold">Exit</span>
+                          <span className="text-sm font-medium">${parseFloat(trade.avg_close_price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}</span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] text-muted-foreground uppercase font-semibold">Size</span>
+                          <span className="text-sm font-medium">{trade.closedSize.toLocaleString()}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-            <div className="p-4 bg-secondary/5 border-t border-border flex justify-end">
-              <button
-                onClick={() => setSelectedDay(null)}
-                className="px-6 py-2 bg-foreground text-background font-bold rounded-xl hover:opacity-90 transition-opacity"
-              >
-                Close
-              </button>
-            </div>
-          </Card>
-        </div>
-      )}
+              
+              <div className="p-4 bg-secondary/5 border-t border-border flex justify-end">
+                <button
+                  onClick={() => setSelectedDay(null)}
+                  className="px-6 py-2 bg-foreground text-background font-bold rounded-xl hover:opacity-90 transition-opacity"
+                >
+                  Close
+                </button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -16,7 +16,8 @@ import {
   FileText,
   User,
   Send,
-  BookOpen
+  BookOpen,
+  LineChart
 } from 'lucide-react'
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -60,6 +61,7 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
   ]
 
   const betaItems = [
+    { id: 'analytics', label: 'Trade analytics', icon: LineChart },
     { id: 'journal', label: 'Journal', icon: BookOpen },
   ]
 

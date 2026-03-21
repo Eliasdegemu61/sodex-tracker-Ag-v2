@@ -13,7 +13,8 @@ import {
   TrendingUp,
   Compass,
   Shield,
-  BookOpen
+  BookOpen,
+  LineChart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/app/providers';
@@ -38,6 +39,7 @@ export function MobileNavMenu({ currentPage, onNavigate }: MobileNavMenuProps) {
       { id: 'analyzer', label: 'Reverse Search', icon: Zap },
     ]},
     { section: 'Beta', items: [
+      { id: 'analytics', label: 'Trade analytics', icon: LineChart },
       { id: 'journal', label: 'Journal', icon: BookOpen },
     ]}
   ];
