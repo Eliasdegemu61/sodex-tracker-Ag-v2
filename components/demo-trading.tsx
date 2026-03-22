@@ -135,8 +135,8 @@ export function DemoTrading() {
   const positionsRef = useRef(positions);
   useEffect(() => { positionsRef.current = positions; }, [positions]);
 
-  const [showTPSL, setShowTPSL] = useState(true);
-  const [showFills, setShowFills] = useState(true);
+  const [showTPSL, setShowTPSL] = useState(false);
+  const [showFills, setShowFills] = useState(false);
   const [showChartTools, setShowChartTools] = useState(false);
   const lastCandleSeriesRef = useRef<any>(null);
   const [visibleTimeRange, setVisibleTimeRange] = useState<{ from: number, to: number } | null>(null);
