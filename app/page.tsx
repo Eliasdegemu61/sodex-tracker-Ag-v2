@@ -193,7 +193,7 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
                       {paginatedResults.map((trader, i) => (
                         <tr key={i} className="border-b border-border/50 hover:bg-secondary/20">
                           <td className="px-3 py-2 font-mono text-xs">{trader.address || 'N/A'}</td>
-                          <td className="px-3 py-2 text-right font-mono text-xs text-accent">
+                          <td className="px-3 py-2 text-right font-mono text-xs text-black dark:text-white">
                             {trader.volume !== undefined
                               ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(trader.volume))
                               : 'Loading...'}
