@@ -38,9 +38,9 @@ export function MobileNavMenu({ currentPage, onNavigate }: MobileNavMenuProps) {
       { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
       { id: 'assets', label: 'Assets', icon: Compass },
       { id: 'analyzer', label: 'Reverse Search', icon: Zap },
+      { id: 'analytics', label: 'Trade analytics', icon: LineChart },
     ]},
     { section: 'Beta', items: [
-      { id: 'analytics', label: 'Trade analytics', icon: LineChart },
       { id: 'journal', label: 'Journal', icon: BookOpen },
       { id: 'demo-trading', label: 'Demo Trading', icon: CandlestickChart },
     ]}
