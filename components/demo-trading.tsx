@@ -214,7 +214,7 @@ export function DemoTrading() {
       handleScale: {
         axisPressedMouseMove: {
           time: true,
-          price: false, // disable vertical drag on price scale
+          price: true, // re-enable vertical drag on price scale
         },
       },
     });
@@ -231,7 +231,12 @@ export function DemoTrading() {
     setCandlestickSeries(series as any);
 
     const handleResize = () => {
-      chart.applyOptions({ width: chartContainerRef.current?.clientWidth });
+      if (chartContainerRef.current) {
+        chart.applyOptions({ 
+          width: chartContainerRef.current.clientWidth,
+          height: chartContainerRef.current.clientHeight
+        });
+      }
     };
 
     window.addEventListener('resize', handleResize);
@@ -252,6 +257,13 @@ export function DemoTrading() {
       if (candlestickSeries && data.length > 0) {
         candlestickSeries.setData(data);
         setMarkPrices(prev => ({ ...prev, [activeSymbol]: data[data.length - 1].close }));
+        
+        // Ensure chart fits new data and price scale resets
+        if (chartInstance) {
+          chartInstance.timeScale().fitContent();
+          // Explicitly reset price scale to auto if it got stuck
+          chartInstance.priceScale('right').applyOptions({ autoScale: true });
+        }
       }
       setIsLoadingChart(false);
     };
@@ -789,30 +801,30 @@ export function DemoTrading() {
           <div className="h-6 w-[1px] bg-border/50 hidden md:block"></div>
           
           <div className="flex flex-col">
-            <span className="text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Mark Price</span>
-            <span className={cn("text-sm font-bold tracking-tighter tabular-nums", activePrice > 0 ? "text-foreground" : "text-muted-foreground")}>
+            <span className="text-[9px] md:text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Mark Price</span>
+            <span className={cn("text-xs md:text-sm font-bold tracking-tighter tabular-nums", activePrice > 0 ? "text-foreground" : "text-muted-foreground")}>
               {activePrice > 0 ? activePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) : '--'}
             </span>
           </div>
           
           <div className="flex flex-col">
-            <span className="text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">24h Change</span>
-            <span className={cn("text-sm font-bold tracking-tighter tabular-nums", dayStats.change >= 0 ? "text-emerald-500" : "text-red-500")}>
+            <span className="text-[9px] md:text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">24h Change</span>
+            <span className={cn("text-xs md:text-sm font-bold tracking-tighter tabular-nums", dayStats.change >= 0 ? "text-emerald-500" : "text-red-500")}>
               {dayStats.change >= 0 ? '+' : ''}{dayStats.change.toFixed(2)}%
             </span>
           </div>
           
           <div className="flex flex-col hidden sm:flex">
-            <span className="text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">24h Volume</span>
-            <span className="text-sm font-bold text-foreground tracking-tighter tabular-nums">--</span>
+            <span className="text-[9px] md:text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">24h Volume</span>
+            <span className="text-xs md:text-sm font-bold text-foreground tracking-tighter tabular-nums">--</span>
           </div>
         </div>
       </div>
 
       {/* --- Main Content Area --- */}
-      <div className="flex-1 flex flex-col lg:flex-row min-h-0 lg:overflow-hidden overflow-visible">
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 lg:h-[calc(100vh-140px)] lg:overflow-hidden overflow-visible">
         
-        {/* Left Side: Chart + Mobile Form strips */}
+        {/* Left Side: Chart + Integrated Tables */}
         <div className="flex-1 flex flex-col min-h-0 min-w-0">
 
           {/* Mobile: Order Form Top (Above Chart) - hidden on desktop */}
@@ -820,37 +832,243 @@ export function DemoTrading() {
             {orderFormTopUI}
           </div>
 
-          {/* Chart Section */}
-          <div className="flex-none lg:flex-1 flex flex-col min-h-[350px] lg:min-h-[400px]">
-            {/* Chart Tools Bar */}
-            <div className="px-4 py-2 flex items-center gap-4 bg-card border-b border-border">
-              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Time</span>
-              <div className="flex space-x-0.5">
-                 {INTERVALS.map((int) => (
-                   <button
-                     key={int}
-                     onClick={() => setActiveInterval(int)}
-                     className={cn(
-                       "px-2 py-0.5 text-xs font-semibold rounded transition-all",
-                       activeInterval === int ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                     )}
-                   >
-                     {int}
-                   </button>
-                 ))}
-               </div>
-            </div>
-            
-            <div className="relative flex-1 min-h-0 overflow-hidden bg-background">
-              {isLoadingChart && (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
-                  <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
+          {/* Integrated Panel (Chart + Tables) */}
+          <div className="flex-none lg:flex-1 flex flex-col min-h-[500px] lg:min-h-0 p-1.5 md:p-2 lg:p-4 min-w-0">
+            <Card className="flex-1 flex flex-col overflow-hidden border-border/50 bg-card/30 shadow-xl">
+              {/* Chart Tools Bar */}
+              <div className="px-3 md:px-4 py-1.5 md:py-2 flex items-center justify-between bg-muted/20 border-b border-border/50">
+                <div className="flex items-center gap-3 md:gap-4">
+                  <span className="text-[9px] md:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Time</span>
+                  <div className="flex space-x-0.5">
+                    {INTERVALS.map((int) => (
+                      <button
+                        key={int}
+                        onClick={() => setActiveInterval(int)}
+                        className={cn(
+                          "px-1.5 md:px-2 py-0.5 text-[10px] md:text-xs font-semibold rounded transition-all",
+                          activeInterval === int ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        {int}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              )}
-              <div className="absolute inset-0">
-                <div ref={chartContainerRef} className="w-full h-full" />
+                <div className="flex items-center gap-2">
+                  <button className="p-1 hover:bg-muted rounded transition-colors">
+                    <Settings className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
+                </div>
               </div>
-            </div>
+              
+              <div className="relative flex-1 min-h-0 overflow-hidden bg-background/50">
+                {isLoadingChart && (
+                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
+                    <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
+                  </div>
+                )}
+                <div className="absolute inset-0">
+                  <div ref={chartContainerRef} className="w-full h-full" />
+                </div>
+              </div>
+
+              {/* Desktop: Positions & Orders Table (Integrated into Chart Card) */}
+              <div className="hidden lg:flex h-[300px] flex-col border-t border-border bg-card/50">
+                 <div className="flex items-center border-b border-border/50 px-4 bg-muted/10">
+                    <button 
+                      onClick={() => setBottomTab('Positions')}
+                      className={cn("text-[10px] uppercase tracking-wider font-bold px-4 py-2.5 border-b-[2px] transition-all relative top-[1px]", bottomTab === 'Positions' ? "text-primary border-primary" : "text-muted-foreground border-transparent hover:text-foreground")}
+                    >
+                      Positions ({positions.length})
+                    </button>
+                    <button 
+                      onClick={() => setBottomTab('OpenOrders')}
+                      className={cn("text-[10px] uppercase tracking-wider font-bold px-4 py-2.5 border-b-[2px] transition-all relative top-[1px]", bottomTab === 'OpenOrders' ? "text-primary border-primary" : "text-muted-foreground border-transparent hover:text-foreground")}
+                    >
+                      Open Orders ({openOrders.length})
+                    </button>
+                    <button 
+                      onClick={() => setBottomTab('History')}
+                      className={cn("text-[10px] uppercase tracking-wider font-bold px-4 py-2.5 border-b-[2px] transition-all relative top-[1px] flex items-center gap-1.5", bottomTab === 'History' ? "text-primary border-primary" : "text-muted-foreground border-transparent hover:text-foreground")}
+                    >
+                      <History className="w-3 h-3" /> History
+                    </button>
+                 </div>
+                 
+                 <div className="flex-1 overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                   {bottomTab === 'Positions' && (
+                     <table className="w-full text-left whitespace-nowrap">
+                       <thead className="sticky top-0 z-10">
+                        <tr className="border-b border-border text-[9px] text-muted-foreground font-bold uppercase tracking-widest bg-muted/30 backdrop-blur-sm">
+                          <th className="px-4 py-2 font-medium">Symbol</th>
+                          <th className="px-4 py-2 font-medium text-right">Size</th>
+                          <th className="px-4 py-2 font-medium text-right">Entry</th>
+                          <th className="px-4 py-2 font-medium text-right">Mark</th>
+                          <th className="px-4 py-2 font-medium text-right">Liq.</th>
+                          <th className="px-4 py-2 font-medium text-right">Margin</th>
+                          <th className="px-4 py-2 font-medium text-right">PnL (ROE%)</th>
+                          <th className="px-4 py-2 font-medium text-right">TP/SL</th>
+                          <th className="px-4 py-2 font-medium text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/50">
+                        {positions.length === 0 ? (
+                          <tr>
+                            <td colSpan={9} className="py-12 text-center text-xs text-muted-foreground font-semibold">No open positions</td>
+                          </tr>
+                        ) : positions.map(pos => {
+                          const livePx = markPrices[pos.symbol] || pos.entryPrice;
+                          const pnl = calculatePnL(pos, livePx);
+                          const pnlROE = (pnl / pos.margin) * 100;
+                          const liqPx = getLiquidationPrice(pos);
+
+                          return (
+                            <tr key={pos.id} className="hover:bg-muted/10 text-[11px] font-mono transition-colors">
+                              <td className="px-4 py-2.5">
+                                <div className="flex items-center gap-2">
+                                  <span className={cn("w-[2px] h-3 rounded-full", pos.side === 'LONG' ? "bg-emerald-500" : "bg-red-500")} />
+                                  {getTokenLogo(pos.symbol) && <img src={getTokenLogo(pos.symbol)} alt={pos.symbol} className="w-4 h-4 rounded-full" />}
+                                  <span className="font-bold text-foreground font-sans uppercase">{pos.symbol}</span>
+                                  <span className={cn("text-[8px] font-bold px-1 rounded-sm", pos.side === 'LONG' ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500")}>
+                                    {pos.leverage}x
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-4 py-2.5 text-right font-medium text-foreground/80">{pos.sizeTokens.toFixed(4)}</td>
+                              <td className="px-4 py-2.5 text-right font-medium text-foreground/80">{pos.entryPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                              <td className="px-4 py-2.5 text-right font-medium text-foreground/80">{livePx.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                              <td className="px-4 py-2.5 text-right font-medium text-primary">{liqPx.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                              <td className="px-4 py-2.5 text-right font-medium text-foreground/80">{pos.margin.toFixed(2)}</td>
+                              <td className="px-4 py-2.5 text-right">
+                                 <span className={cn("font-bold", pnl >= 0 ? "text-emerald-500" : "text-red-500")}>
+                                   {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)} ({pnlROE >= 0 ? '+' : ''}{pnlROE.toFixed(2)}%)
+                                 </span>
+                              </td>
+                              <td className="px-4 py-2.5 text-right">
+                                <button 
+                                  onClick={() => {
+                                    setEditingTpSlPosId(pos.id);
+                                    setModalTpPrice(pos.tpPrice ? pos.tpPrice.toString() : '');
+                                    setModalSlPrice(pos.slPrice ? pos.slPrice.toString() : '');
+                                  }}
+                                  className="text-[9px] font-bold text-muted-foreground border-b border-dashed border-muted-foreground/50 hover:text-foreground hover:border-foreground/50 transition-colors"
+                                >
+                                  {pos.tpPrice || '--'} / {pos.slPrice || '--'}
+                                </button>
+                              </td>
+                              <td className="px-4 py-2.5 text-right">
+                                <div className="flex gap-1 justify-end">
+                                  <button onClick={() => {
+                                      setClosingLimitPosId(pos.id);
+                                      setModalLimitClosePrice('');
+                                    }} 
+                                    className="text-[9px] uppercase font-bold text-muted-foreground border border-border px-1.5 py-0.5 rounded hover:text-foreground hover:border-foreground/30 transition-colors"
+                                  >
+                                    Limit
+                                  </button>
+                                  <button onClick={() => handleClosePosition(pos.id, true)} className="text-[9px] uppercase font-bold text-muted-foreground border border-border px-1.5 py-0.5 rounded hover:text-foreground hover:border-foreground/30 transition-colors">
+                                    Market
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                     </table>
+                   )}
+
+                   {bottomTab === 'OpenOrders' && (
+                     <table className="w-full text-left whitespace-nowrap">
+                      <thead className="sticky top-0 z-10">
+                        <tr className="border-b border-border text-[9px] text-muted-foreground font-bold uppercase tracking-widest bg-muted/30 backdrop-blur-sm">
+                          <th className="px-4 py-2 font-medium">Symbol</th>
+                          <th className="px-4 py-2 font-medium text-right">Size</th>
+                          <th className="px-4 py-2 font-medium text-right">Order</th>
+                          <th className="px-4 py-2 font-medium text-right">Mark</th>
+                          <th className="px-4 py-2 font-medium text-right">Margin</th>
+                          <th className="px-4 py-2 font-medium text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/50">
+                        {openOrders.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="py-12 text-center text-xs text-muted-foreground font-semibold">No open limit orders</td>
+                          </tr>
+                        ) : openOrders.map(order => {
+                          const livePx = markPrices[order.symbol] || order.entryPrice;
+                          
+                          return (
+                            <tr key={order.id} className="hover:bg-muted/10 text-[11px] font-mono transition-colors">
+                              <td className="px-4 py-2.5">
+                                <div className="flex items-center gap-2">
+                                  <span className={cn("w-[2px] h-3 rounded-full", order.side === 'LONG' ? "bg-emerald-500" : "bg-red-500")} />
+                                  <span className="font-bold text-foreground font-sans uppercase">{order.symbol}</span>
+                                  <span className={cn("text-[8px] font-bold px-1 rounded-sm", order.side === 'LONG' ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500")}>
+                                    {order.leverage}x
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-4 py-2.5 text-right font-medium text-foreground/80">{order.sizeTokens.toFixed(4)}</td>
+                              <td className="px-4 py-2.5 text-right font-medium text-foreground/80">{order.entryPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                              <td className="px-4 py-2.5 text-right font-medium text-foreground/80">{livePx.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                              <td className="px-4 py-2.5 text-right font-medium text-foreground/80">{order.margin.toFixed(2)} USDC</td>
+                              <td className="px-4 py-2.5 text-right">
+                                <button onClick={() => handleCancelOrder(order.id)} className="text-[9px] uppercase font-bold text-red-500 border border-red-500/50 px-1.5 py-0.5 rounded hover:bg-red-500 hover:text-white transition-colors">
+                                  Cancel
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                     </table>
+                   )}
+
+                   {bottomTab === 'History' && (
+                     <table className="w-full text-left whitespace-nowrap">
+                      <thead className="sticky top-0 z-10">
+                        <tr className="border-b border-border text-[9px] text-muted-foreground font-bold uppercase tracking-widest bg-muted/30 backdrop-blur-sm">
+                          <th className="px-4 py-2 font-medium">Symbol</th>
+                          <th className="px-4 py-2 font-medium text-right">Size</th>
+                          <th className="px-4 py-2 font-medium text-right">Entry</th>
+                          <th className="px-4 py-2 font-medium text-right">Close</th>
+                          <th className="px-4 py-2 font-medium text-right">PnL</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/50">
+                        {closedPositions.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="py-12 text-center text-xs text-muted-foreground font-semibold">No position history</td>
+                          </tr>
+                        ) : closedPositions.map((pos, idx) => (
+                          <tr key={idx} className="hover:bg-muted/10 text-[11px] font-mono transition-colors">
+                            <td className="px-4 py-2.5">
+                              <div className="flex items-center gap-2">
+                                <span className={cn("w-[2px] h-3 rounded-full", pos.side === 'LONG' ? "bg-emerald-500" : "bg-red-500")} />
+                                {getTokenLogo(pos.symbol) && <img src={getTokenLogo(pos.symbol)} alt={pos.symbol} className="w-4 h-4 rounded-full" />}
+                                <span className="font-bold text-foreground font-sans uppercase">{pos.symbol}</span>
+                                <span className={cn("text-[8px] font-bold px-1 rounded-sm", pos.side === 'LONG' ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500")}>
+                                  {pos.leverage}x
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-2.5 text-right font-medium text-foreground/80">{pos.sizeTokens.toFixed(4)}</td>
+                            <td className="px-4 py-2.5 text-right font-medium text-foreground/80">{pos.entryPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                            <td className="px-4 py-2.5 text-right font-medium text-foreground/80">{pos.closePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                            <td className="px-4 py-2.5 text-right">
+                               <span className={cn("font-bold", pos.realizedPnl >= 0 ? "text-emerald-500" : "text-red-500")}>
+                                 {pos.realizedPnl >= 0 ? '+' : ''}{pos.realizedPnl.toFixed(2)}
+                               </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                     </table>
+                   )}
+                 </div>
+              </div>
+            </Card>
           </div>
 
           {/* Mobile: Order Form Bottom (Below Chart) - hidden on desktop */}
@@ -858,206 +1076,11 @@ export function DemoTrading() {
             {orderFormBottomUI}
           </div>
 
-          {/* Positions & Orders Tabs - Desktop only */}
-          <div className="hidden lg:flex h-[300px] flex-col border-t border-border bg-card">
-             <div className="flex items-center border-b border-border px-4">
-                <button 
-                  onClick={() => setBottomTab('Positions')}
-                  className={cn("text-xs font-bold px-4 py-3 border-b-[2px] transition-all relative top-[1px]", bottomTab === 'Positions' ? "text-primary border-primary" : "text-muted-foreground border-transparent hover:text-foreground")}
-                >
-                  Positions ({positions.length})
-                </button>
-                <button 
-                  onClick={() => setBottomTab('OpenOrders')}
-                  className={cn("text-xs font-bold px-4 py-3 border-b-[2px] transition-all relative top-[1px]", bottomTab === 'OpenOrders' ? "text-primary border-primary" : "text-muted-foreground border-transparent hover:text-foreground")}
-                >
-                  Open Orders ({openOrders.length})
-                </button>
-                <button 
-                  onClick={() => setBottomTab('History')}
-                  className={cn("text-xs font-bold px-4 py-3 border-b-[2px] transition-all relative top-[1px] flex items-center gap-1.5", bottomTab === 'History' ? "text-primary border-primary" : "text-muted-foreground border-transparent hover:text-foreground")}
-                >
-                  <History className="w-3.5 h-3.5" /> History
-                </button>
-             </div>
-             
-             <div className="flex-1 overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-               {bottomTab === 'Positions' && (
-                 <table className="w-full text-left whitespace-nowrap">
-                   <thead>
-                    <tr className="border-b border-border text-[10px] text-muted-foreground font-semibold uppercase tracking-widest bg-muted/20">
-                      <th className="px-4 py-2 font-medium">Symbol</th>
-                      <th className="px-4 py-2 font-medium text-right">Size</th>
-                      <th className="px-4 py-2 font-medium text-right">Entry Price</th>
-                      <th className="px-4 py-2 font-medium text-right">Mark Price</th>
-                      <th className="px-4 py-2 font-medium text-right">Liq. Price</th>
-                      <th className="px-4 py-2 font-medium text-right">Margin</th>
-                      <th className="px-4 py-2 font-medium text-right">Unrealized PnL</th>
-                      <th className="px-4 py-2 font-medium text-right">TP/SL</th>
-                      <th className="px-4 py-2 font-medium text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {positions.length === 0 ? (
-                      <tr>
-                        <td colSpan={9} className="py-12 text-center text-xs text-muted-foreground font-semibold">No open positions</td>
-                      </tr>
-                    ) : positions.map(pos => {
-                      const livePx = markPrices[pos.symbol] || pos.entryPrice;
-                      const pnl = calculatePnL(pos, livePx);
-                      const pnlROE = (pnl / pos.margin) * 100;
-                      const liqPx = getLiquidationPrice(pos);
 
-                      return (
-                        <tr key={pos.id} className="hover:bg-muted/50 text-xs font-mono transition-colors">
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <span className={cn("w-[2px] h-3 rounded-full", pos.side === 'LONG' ? "bg-emerald-500" : "bg-red-500")} />
-                              {getTokenLogo(pos.symbol) && <img src={getTokenLogo(pos.symbol)} alt={pos.symbol} className="w-4 h-4 rounded-full" />}
-                              <span className="font-bold text-foreground font-sans">{pos.symbol}</span>
-                              <span className={cn("text-[9px] font-bold px-1 rounded-sm", pos.side === 'LONG' ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500")}>
-                                {pos.leverage}x
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-right font-medium text-foreground/80">{pos.sizeTokens.toFixed(4)}</td>
-                          <td className="px-4 py-3 text-right font-medium text-foreground/80">{pos.entryPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
-                          <td className="px-4 py-3 text-right font-medium text-foreground/80">{livePx.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
-                          <td className="px-4 py-3 text-right font-medium text-primary">{liqPx.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                          <td className="px-4 py-3 text-right font-medium text-foreground/80">{pos.margin.toFixed(2)}</td>
-                          <td className="px-4 py-3 text-right">
-                             <span className={cn("font-bold", pnl >= 0 ? "text-emerald-500" : "text-red-500")}>
-                               {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)} ({pnlROE >= 0 ? '+' : ''}{pnlROE.toFixed(2)}%)
-                             </span>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <button 
-                              onClick={() => {
-                                setEditingTpSlPosId(pos.id);
-                                setModalTpPrice(pos.tpPrice ? pos.tpPrice.toString() : '');
-                                setModalSlPrice(pos.slPrice ? pos.slPrice.toString() : '');
-                              }}
-                              className="text-[10px] font-bold text-muted-foreground border-b border-dashed border-muted-foreground/50 hover:text-foreground hover:border-foreground/50 transition-colors"
-                            >
-                              {pos.tpPrice || '--'} / {pos.slPrice || '--'}
-                            </button>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <div className="flex gap-1 justify-end">
-                              <button onClick={() => {
-                                  setClosingLimitPosId(pos.id);
-                                  setModalLimitClosePrice('');
-                                }} 
-                                className="text-[10px] uppercase font-bold text-muted-foreground border border-border px-2 py-1 rounded hover:text-foreground hover:border-foreground/30 transition-colors"
-                              >
-                                Limit
-                              </button>
-                              <button onClick={() => handleClosePosition(pos.id, true)} className="text-[10px] uppercase font-bold text-muted-foreground border border-border px-2 py-1 rounded hover:text-foreground hover:border-foreground/30 transition-colors">
-                                Market
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                 </table>
-               )}
-
-               {bottomTab === 'OpenOrders' && (
-                 <table className="w-full text-left whitespace-nowrap">
-                  <thead>
-                    <tr className="border-b border-border text-[10px] text-muted-foreground font-semibold uppercase tracking-widest bg-muted/20">
-                      <th className="px-4 py-2 font-medium">Symbol</th>
-                      <th className="px-4 py-2 font-medium text-right">Size</th>
-                      <th className="px-4 py-2 font-medium text-right">Order Price</th>
-                      <th className="px-4 py-2 font-medium text-right">Mark Price</th>
-                      <th className="px-4 py-2 font-medium text-right">Margin Required</th>
-                      <th className="px-4 py-2 font-medium text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {openOrders.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="py-12 text-center text-xs text-muted-foreground font-semibold">No open limit orders</td>
-                      </tr>
-                    ) : openOrders.map(order => {
-                      const livePx = markPrices[order.symbol] || order.entryPrice;
-                      
-                      return (
-                        <tr key={order.id} className="hover:bg-muted/50 text-xs font-mono transition-colors">
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <span className={cn("w-[2px] h-3 rounded-full", order.side === 'LONG' ? "bg-emerald-500" : "bg-red-500")} />
-                              <span className="font-bold text-foreground font-sans">{order.symbol}</span>
-                              <span className={cn("text-[9px] font-bold px-1 rounded-sm", order.side === 'LONG' ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500")}>
-                                {order.leverage}x
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-right font-medium text-foreground/80">{order.sizeTokens.toFixed(4)}</td>
-                          <td className="px-4 py-3 text-right font-medium text-foreground/80">{order.entryPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
-                          <td className="px-4 py-3 text-right font-medium text-foreground/80">{livePx.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
-                          <td className="px-4 py-3 text-right font-medium text-foreground/80">{order.margin.toFixed(2)} USDC</td>
-                          <td className="px-4 py-3 text-right">
-                            <button onClick={() => handleCancelOrder(order.id)} className="text-[10px] uppercase font-bold text-red-500 border border-red-500/50 px-2 py-1 rounded hover:bg-red-500 hover:text-white transition-colors">
-                              Cancel
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                 </table>
-               )}
-
-               {bottomTab === 'History' && (
-                 <table className="w-full text-left whitespace-nowrap">
-                  <thead>
-                    <tr className="border-b border-border text-[10px] text-muted-foreground font-semibold uppercase tracking-widest bg-muted/20">
-                      <th className="px-4 py-2 font-medium">Symbol</th>
-                      <th className="px-4 py-2 font-medium text-right">Size</th>
-                      <th className="px-4 py-2 font-medium text-right">Entry Price</th>
-                      <th className="px-4 py-2 font-medium text-right">Close Price</th>
-                      <th className="px-4 py-2 font-medium text-right">Realized PnL</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {closedPositions.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="py-12 text-center text-xs text-muted-foreground font-semibold">No position history</td>
-                      </tr>
-                    ) : closedPositions.map((pos, idx) => (
-                      <tr key={idx} className="hover:bg-muted/50 text-xs font-mono transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <span className={cn("w-[2px] h-3 rounded-full", pos.side === 'LONG' ? "bg-emerald-500" : "bg-red-500")} />
-                            {getTokenLogo(pos.symbol) && <img src={getTokenLogo(pos.symbol)} alt={pos.symbol} className="w-4 h-4 rounded-full" />}
-                            <span className="font-bold text-foreground font-sans">{pos.symbol}</span>
-                            <span className={cn("text-[9px] font-bold px-1 rounded-sm", pos.side === 'LONG' ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500")}>
-                              {pos.leverage}x
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-right font-medium text-foreground/80">{pos.sizeTokens.toFixed(4)}</td>
-                        <td className="px-4 py-3 text-right font-medium text-foreground/80">{pos.entryPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
-                        <td className="px-4 py-3 text-right font-medium text-foreground/80">{pos.closePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
-                        <td className="px-4 py-3 text-right">
-                           <span className={cn("font-bold", pos.realizedPnl >= 0 ? "text-emerald-500" : "text-red-500")}>
-                             {pos.realizedPnl >= 0 ? '+' : ''}{pos.realizedPnl.toFixed(2)}
-                           </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                 </table>
-               )}
-             </div>
-          </div>
         </div>
 
         {/* Desktop: Full Order Form sidebar (Hidden on Mobile) */}
-        <div className="hidden lg:flex w-[320px] border-l border-border bg-card/30 flex-col flex-none overflow-y-auto">
+        <div className="hidden lg:flex w-[320px] flex-none border-l border-border bg-card/30 flex-col overflow-y-auto">
           {orderFormTopUI}
           {orderFormBottomUI}
         </div>
@@ -1116,29 +1139,29 @@ export function DemoTrading() {
                        </div>
                      </div>
                    </div>
-                   <div className="grid grid-cols-3 gap-3 text-xs">
+                   <div className="grid grid-cols-3 gap-2 text-[10px]">
                      <div>
-                       <div className="text-muted-foreground/80 mb-0.5">Size</div>
+                       <div className="text-muted-foreground/70 mb-0.5">Size</div>
                        <div className="font-semibold">{pos.sizeTokens.toFixed(4)}</div>
                      </div>
                      <div>
-                       <div className="text-muted-foreground/80 mb-0.5">Margin</div>
+                       <div className="text-muted-foreground/70 mb-0.5">Margin</div>
                        <div className="font-semibold">{pos.margin.toFixed(2)}</div>
                      </div>
                      <div>
-                       <div className="text-muted-foreground/80 mb-0.5">Entry Price</div>
+                       <div className="text-muted-foreground/70 mb-0.5">Entry</div>
                        <div className="font-semibold">{pos.entryPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</div>
                      </div>
                      <div>
-                       <div className="text-muted-foreground/80 mb-0.5">Mark Price</div>
+                       <div className="text-muted-foreground/70 mb-0.5">Mark</div>
                        <div className="font-semibold">{livePx.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</div>
                      </div>
                      <div>
-                       <div className="text-muted-foreground/80 mb-0.5">Liq. Price</div>
+                       <div className="text-muted-foreground/70 mb-0.5">Liq.</div>
                        <div className="font-semibold text-primary">{liqPx.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                      </div>
                      <div>
-                       <div className="text-muted-foreground/80 mb-0.5">TP/SL</div>
+                       <div className="text-muted-foreground/70 mb-0.5">TP/SL</div>
                        <button 
                           onClick={() => {
                             setEditingTpSlPosId(pos.id);
@@ -1189,21 +1212,21 @@ export function DemoTrading() {
                         Cancel
                      </button>
                    </div>
-                   <div className="grid grid-cols-2 gap-3 text-xs">
+                   <div className="grid grid-cols-2 gap-2 text-[10px]">
                      <div>
-                       <div className="text-muted-foreground/80 mb-0.5">Size</div>
+                       <div className="text-muted-foreground/70 mb-0.5">Size</div>
                        <div className="font-semibold">{order.sizeTokens.toFixed(4)}</div>
                      </div>
                      <div>
-                       <div className="text-muted-foreground/80 mb-0.5">Order Price</div>
+                       <div className="text-muted-foreground/70 mb-0.5">Order</div>
                        <div className="font-semibold">{order.entryPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</div>
                      </div>
                      <div>
-                       <div className="text-muted-foreground/80 mb-0.5">Mark Price</div>
+                       <div className="text-muted-foreground/70 mb-0.5">Mark</div>
                        <div className="font-semibold">{livePx.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</div>
                      </div>
                      <div>
-                       <div className="text-muted-foreground/80 mb-0.5">Margin</div>
+                       <div className="text-muted-foreground/70 mb-0.5">Margin</div>
                        <div className="font-semibold">{order.margin.toFixed(2)} USDC</div>
                      </div>
                    </div>
@@ -1232,17 +1255,17 @@ export function DemoTrading() {
                        </div>
                    </div>
                  </div>
-                 <div className="grid grid-cols-3 gap-3 text-xs">
+                 <div className="grid grid-cols-3 gap-2 text-[10px]">
                    <div>
-                     <div className="text-muted-foreground/80 mb-0.5">Size</div>
+                     <div className="text-muted-foreground/70 mb-0.5">Size</div>
                      <div className="font-semibold">{pos.sizeTokens.toFixed(4)}</div>
                    </div>
                    <div>
-                     <div className="text-muted-foreground/80 mb-0.5">Entry Price</div>
+                     <div className="text-muted-foreground/70 mb-0.5">Entry</div>
                      <div className="font-semibold">{pos.entryPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</div>
                    </div>
                    <div>
-                     <div className="text-muted-foreground/80 mb-0.5">Close Price</div>
+                     <div className="text-muted-foreground/70 mb-0.5">Close</div>,StartLine:1100,TargetContent:
                      <div className="font-semibold">{pos.closePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</div>
                    </div>
                  </div>
