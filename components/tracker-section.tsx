@@ -5,7 +5,7 @@ import React, { useEffect } from "react"
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Search, X, Loader2 } from 'lucide-react';
+import { Search, X, Loader2, Share2 } from 'lucide-react';
 import { PortfolioOverview } from './portfolio-overview';
 import { PnLChart } from './pnl-chart';
 import { PositionsTable } from './positions-table';
@@ -13,6 +13,7 @@ import { OpenPositions } from './open-positions';
 import { FundFlowTable } from './fund-flow-table';
 import { AssetFlowCard } from './asset-flow-card';
 import { MonthlyCalendar } from './monthly-calendar';
+import { ShareStatsModal } from './share-stats-modal';
 import { PortfolioProvider } from '@/context/portfolio-context';
 import { getUserIdByAddress, fetchAllPositions, enrichPositions, type EnrichedPosition } from '@/lib/sodex-api';
 import { usePortfolio } from '@/context/portfolio-context';
@@ -201,21 +202,37 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
     >
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+          <div className="space-y-1.5">
             <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">Wallet Tracker</h1>
-            <p className="text-xs md:text-sm text-muted-foreground">
-              Tracking: <span className="inline-block align-middle ml-1">{walletAddress}</span>
+            <p className="text-xs md:text-sm text-muted-foreground break-all max-w-full">
+              Tracking: <span className="text-foreground/80">{walletAddress}</span>
             </p>
           </div>
-          <Button
-            variant="outline"
-            onClick={handleClear}
-            className="gap-2 text-muted-foreground hover:text-foreground bg-transparent"
-          >
-            <X className="w-4 h-4" />
-            Clear
-          </Button>
+          <div className="flex items-center gap-2">
+            <ShareStatsModal 
+              walletAddress={walletAddress} 
+              userId={userId || ''} 
+              sourceWalletAddress={sourceWalletAddress || undefined}
+              trigger={
+                <Button
+                  variant="outline"
+                  className="gap-1.5 md:gap-2 text-orange-500 hover:text-orange-400 bg-orange-500/5 hover:bg-orange-500/10 border-orange-500/20 rounded-xl px-3 md:px-4 h-9 md:h-10 text-[11px] md:text-xs font-bold"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  Share Results
+                </Button>
+              }
+            />
+            <Button
+              variant="outline"
+              onClick={handleClear}
+              className="gap-1.5 md:gap-2 text-muted-foreground hover:text-foreground bg-transparent border-white/5 rounded-xl px-3 md:px-4 h-9 md:h-10 text-[11px] md:text-xs font-bold"
+            >
+              <X className="w-3.5 h-3.5" />
+              Clear
+            </Button>
+          </div>
         </div>
 
         {/* Overview Stats */}

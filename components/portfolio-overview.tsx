@@ -136,26 +136,8 @@ export function PortfolioOverview() {
         setLoading(prev => ({ ...prev, futuresMetrics: false }));
       }
 
-      // Part B: Spot Metrics (Slow)
-      try {
-        const spotData = await fetchSpotTradesData(userId, (p) => {
-          setSpotProgress({
-            fetchedCount: p.fetchedCount,
-            estimatedRemainingMs: p.estimatedRemainingMs
-          });
-        });
-
-        setMetrics(prev => ({
-          ...prev,
-          spotVolume: spotData.totalVolume,
-          spotFees: spotData.totalFees
-        }));
-      } catch (err) {
-        console.error('[v0] Error fetching spot metrics:', err);
-      } finally {
-        setLoading(prev => ({ ...prev, spotMetrics: false }));
-        setSpotProgress(null);
-      }
+      // Part B: Spot Metrics removed due to rate limits
+      setLoading(prev => ({ ...prev, spotMetrics: false }));
     };
 
     fetchMetrics();
@@ -415,64 +397,7 @@ export function PortfolioOverview() {
               </div>
             </div>
 
-            {/* Volume & Fees Detailed Grid */}
-            <div className="grid grid-cols-1 gap-6 pl-2">
-              <div className="space-y-2">
-                <p className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-[0.22em] flex items-center gap-2">
-                  <BarChart3 className="w-2.5 h-2.5" /> Total Volume
-                </p>
-                <div className="flex gap-10">
-                  <div className="flex flex-col">
-                    <span className="text-[9px] font-bold text-muted-foreground/50 uppercase">Futures</span>
-                    {loading.futuresMetrics && metrics.futuresVolume === 0 ? (
-                      <LoadingShimmer className="h-5 w-16 mt-1" />
-                    ) : (
-                      <span className="text-lg font-black text-foreground italic leading-none">${formatCompactNumber(metrics.futuresVolume)}</span>
-                    )}
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[9px] font-bold text-muted-foreground/50 uppercase">Spot</span>
-                    {loading.spotMetrics && metrics.spotVolume === 0 ? (
-                      <div className="flex flex-col gap-1">
-                        <LoadingShimmer className="h-5 w-16 mt-1" />
-                        {spotProgress && spotProgress.fetchedCount > 0 && (
-                          <span className="text-[7px] font-bold text-accent/40 uppercase tracking-tighter">
-                            {spotProgress.fetchedCount} trades... 
-                            {spotProgress.estimatedRemainingMs ? ` ~${(spotProgress.estimatedRemainingMs / 1000).toFixed(0)}s left` : ''}
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-lg font-black text-foreground italic leading-none">${formatCompactNumber(metrics.spotVolume)}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-[0.22em] flex items-center gap-2">
-                  <Zap className="w-2.5 h-2.5" /> Total Fees Paid
-                </p>
-                <div className="flex gap-10">
-                  <div className="flex flex-col">
-                    <span className="text-[9px] font-bold text-muted-foreground/50 uppercase">Futures</span>
-                    {loading.futuresMetrics && metrics.futuresFees === 0 ? (
-                      <LoadingShimmer className="h-5 w-16 mt-1" />
-                    ) : (
-                      <span className="text-lg font-black text-foreground/80 italic leading-none">${metrics.futuresFees.toFixed(1)}</span>
-                    )}
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[9px] font-bold text-muted-foreground/50 uppercase">Spot</span>
-                    {loading.spotMetrics && metrics.spotFees === 0 ? (
-                      <LoadingShimmer className="h-5 w-16 mt-1" />
-                    ) : (
-                      <span className="text-lg font-black text-foreground/80 italic leading-none">${metrics.spotFees.toFixed(1)}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+            <div className="flex-1" />
           </div>
         </div>
 
