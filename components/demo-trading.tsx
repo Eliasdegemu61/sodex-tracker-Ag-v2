@@ -9,6 +9,14 @@ import { Loader2, Settings, Minimize2, Check, ChevronDown, Search, History } fro
 import { getTokenLogo } from '@/lib/token-logos';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/app/providers';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { toast, Toaster } from 'sonner';
 
 // --- Types ---
 interface KlineData {
@@ -103,6 +111,7 @@ export function DemoTrading() {
   
   // -- View State --
   const [bottomTab, setBottomTab] = useState<'Positions' | 'OpenOrders' | 'History'>('Positions');
+  const [isMobileOrderFormOpen, setIsMobileOrderFormOpen] = useState(false);
 
   // -- Chart State --
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -206,7 +215,7 @@ export function DemoTrading() {
         scaleMargins: { top: 0.1, bottom: 0.1 },
       },
       handleScroll: {
-        vertTouchDrag: false,
+        vertTouchDrag: true,
         pressedMouseMove: true,
         mouseWheel: true,
         horzTouchDrag: true,
@@ -214,8 +223,9 @@ export function DemoTrading() {
       handleScale: {
         axisPressedMouseMove: {
           time: true,
-          price: true, // re-enable vertical drag on price scale
+          price: true,
         },
+        mouseWheel: true,
       },
     });
 
@@ -225,6 +235,13 @@ export function DemoTrading() {
       borderVisible: false,
       wickUpColor: '#2ebd85',
       wickDownColor: '#e0294a',
+    });
+
+    chart.timeScale().applyOptions({
+      // @ts-ignore - Some versions of v4 might not have scrollbar in types but have it in runtime
+      scrollbar: {
+        visible: false,
+      },
     });
 
     setChartInstance(chart);
@@ -258,9 +275,15 @@ export function DemoTrading() {
         candlestickSeries.setData(data);
         setMarkPrices(prev => ({ ...prev, [activeSymbol]: data[data.length - 1].close }));
         
-        // Ensure chart fits new data and price scale resets
+        // Ensure chart zooms to a standard level (last 80-100 candles)
         if (chartInstance) {
-          chartInstance.timeScale().fitContent();
+          const lastIndex = data.length - 1;
+          const fromIndex = Math.max(0, lastIndex - 80);
+          chartInstance.timeScale().setVisibleLogicalRange({
+            from: fromIndex as any,
+            to: (lastIndex + 5) as any, // Add some small breathing room on the right
+          });
+          
           // Explicitly reset price scale to auto if it got stuck
           chartInstance.priceScale('right').applyOptions({ autoScale: true });
         }
@@ -430,15 +453,20 @@ export function DemoTrading() {
     setBalance(prev => prev - margin);
     if (orderType === 'Limit') {
       setOpenOrders(prev => [newPosition, ...prev]);
+      toast.success(`${orderSide} Limit order placed at $${entryPx.toFixed(2)}`);
     } else {
       setPositions(prev => [newPosition, ...prev]);
+      toast.success(`${orderSide} Position opened at $${entryPx.toFixed(2)}`);
     }
   };
   
   const handleCancelOrder = (id: string) => {
     setOpenOrders(prev => {
       const order = prev.find(o => o.id === id);
-      if (order) setBalance(b => b + order.margin);
+      if (order) {
+        setBalance(b => b + order.margin);
+        toast.info("Order cancelled");
+      }
       return prev.filter(o => o.id !== id);
     });
   };
@@ -488,6 +516,8 @@ export function DemoTrading() {
       // Update balance
       setBalance(b => b + pos.margin + pnl);
       setClosedPositions(c => [{ ...pos, closePrice: px, realizedPnl: pnl, closedAt: Date.now() }, ...c]);
+      
+      toast.info(`Position closed: ${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)} USDC`);
       
       return prev.filter(p => p.id !== id);
     });
@@ -732,94 +762,94 @@ export function DemoTrading() {
   return (
     <div className="flex flex-col animate-in fade-in duration-500 font-sans min-h-screen bg-background text-foreground">
       
-      {/* --- Top Ticker Bar --- */}
-      <div className="flex-none h-14 border-b border-border bg-card/50 flex items-center justify-between px-4 sticky top-0 z-10">
-        
+      {/* --- Top Ticker Bar (Desktop Only) --- */}
+      <div className="hidden lg:flex h-14 border-b border-border bg-card/50 items-center justify-between px-4 sticky top-0 z-10">
         <div className="flex items-center gap-6">
-          <div className="relative">
-            <button 
-              onClick={() => setShowPairSelector(!showPairSelector)}
-              className="flex items-center gap-2 hover:bg-muted/50 py-1.5 px-2 rounded-lg transition-colors group"
-            >
-              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border border-border overflow-hidden">
-                {getTokenLogo(activeSymbol) ? (
-                   <img src={getTokenLogo(activeSymbol)} alt={activeSymbol} className="w-full h-full object-cover" />
-                ) : (
-                   <span className="text-[10px] font-bold text-foreground">{activeSymbol.split('-')[0]}</span>
-                )}
+          <button 
+            onClick={() => setShowPairSelector(!showPairSelector)}
+            className="flex items-center gap-2 hover:bg-muted/50 py-1.5 px-2 rounded-lg transition-colors group"
+          >
+            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border border-border overflow-hidden">
+              {getTokenLogo(activeSymbol) ? (
+                 <img src={getTokenLogo(activeSymbol)} alt={activeSymbol} className="w-full h-full object-cover" />
+              ) : (
+                 <div className="text-[10px] font-bold">{activeSymbol[0]}</div>
+              )}
+            </div>
+            <div className="flex flex-col items-start translate-y-[1px]">
+              <div className="flex items-center gap-1.5">
+                <span className="text-base font-bold tracking-tight text-foreground">{activeSymbol}</span>
+                <ChevronDown className={cn("w-3.5 h-3.5 text-muted-foreground transition-transform", showPairSelector && "rotate-180")} />
               </div>
-              <div className="flex flex-col items-start translate-y-[1px]">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-base font-bold tracking-tight text-foreground">{activeSymbol}</span>
-                  <ChevronDown className={cn("w-3.5 h-3.5 text-muted-foreground transition-transform", showPairSelector && "rotate-180")} />
-                </div>
-                <span className="text-[10px] uppercase font-bold tracking-[0.05em] text-muted-foreground/80 leading-none">Perpetual</span>
-              </div>
-            </button>
-
-            {/* Pair Selector Dropdown */}
-            {showPairSelector && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowPairSelector(false)} />
-                <div className="absolute top-12 left-0 w-64 bg-card border border-border shadow-2xl rounded-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
-                   <div className="p-2 border-b border-border/50 bg-muted/20 relative">
-                     <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-4 top-1/2 -translate-y-1/2" />
-                     <input 
-                       type="text" 
-                       placeholder="Search Pairs" 
-                       value={searchQuery}
-                       onChange={(e) => setSearchQuery(e.target.value)}
-                       className="w-full bg-transparent border-none text-xs font-medium focus:outline-none pl-8 text-foreground placeholder:text-muted-foreground/50"
-                     />
-                   </div>
-                   <div className="flex flex-col py-1 max-h-[300px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                     {symbols.filter(sym => sym.toLowerCase().includes(searchQuery.toLowerCase())).map(sym => (
-                       <button
-                         key={sym}
-                         onClick={() => {
-                           setActiveSymbol(sym);
-                           setShowPairSelector(false);
-                           setSearchQuery('');
-                         }}
-                         className={cn("flex items-center justify-between px-4 py-2.5 text-sm hover:bg-muted/50 transition-colors", activeSymbol === sym && "bg-muted/30")}
-                       >
-                         <div className="flex items-center gap-2">
-                            {getTokenLogo(sym) && <img src={getTokenLogo(sym)} alt={sym} className="w-5 h-5 rounded-full bg-background/50 p-0.5 border border-border/10" />}
-                            <span className="font-bold text-foreground">{sym}</span>
-                         </div>
-                         <span className="text-xs font-mono text-muted-foreground">
-                            {markPrices[sym] ? markPrices[sym].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) : '--'}
-                         </span>
-                       </button>
-                     ))}
-                   </div>
-                </div>
-              </>
-            )}
-          </div>
+              <span className="text-[10px] uppercase font-bold tracking-[0.05em] text-muted-foreground/80 leading-none">Perpetual</span>
+            </div>
+          </button>
           
-          <div className="h-6 w-[1px] bg-border/50 hidden md:block"></div>
+          <div className="h-6 w-[1px] bg-border/50"></div>
           
           <div className="flex flex-col">
-            <span className="text-[9px] md:text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Mark Price</span>
-            <span className={cn("text-xs md:text-sm font-bold tracking-tighter tabular-nums", activePrice > 0 ? "text-foreground" : "text-muted-foreground")}>
+            <span className="text-[9px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Mark Price</span>
+            <span className={cn("text-xs font-bold tracking-tighter tabular-nums", activePrice > 0 ? "text-foreground" : "text-muted-foreground")}>
               {activePrice > 0 ? activePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) : '--'}
             </span>
           </div>
           
           <div className="flex flex-col">
-            <span className="text-[9px] md:text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">24h Change</span>
-            <span className={cn("text-xs md:text-sm font-bold tracking-tighter tabular-nums", dayStats.change >= 0 ? "text-emerald-500" : "text-red-500")}>
+            <span className="text-[9px] font-medium uppercase tracking-[0.1em] text-muted-foreground">24h Change</span>
+            <span className={cn("text-xs font-bold tracking-tighter tabular-nums", dayStats.change >= 0 ? "text-emerald-500" : "text-red-500")}>
               {dayStats.change >= 0 ? '+' : ''}{dayStats.change.toFixed(2)}%
             </span>
           </div>
-          
-          <div className="flex flex-col hidden sm:flex">
-            <span className="text-[9px] md:text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">24h Volume</span>
-            <span className="text-xs md:text-sm font-bold text-foreground tracking-tighter tabular-nums">--</span>
-          </div>
         </div>
       </div>
+
+      {/* Desktop Pair Selector Dropdown (Hidden on Mobile) */}
+      <div className="hidden lg:block">
+        {showPairSelector && (
+          <div className="fixed inset-0 z-[100] flex items-start justify-start pt-14 pl-6">
+            <div className="fixed inset-0 bg-background/40 backdrop-blur-sm" onClick={() => setShowPairSelector(false)} />
+            <div className="relative w-full max-w-[280px] bg-card border border-border/50 shadow-2xl rounded-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+               <div className="p-3 border-b border-border/50 bg-muted/30 relative">
+                 <Search className="w-4 h-4 text-muted-foreground absolute left-6 top-1/2 -translate-y-1/2" />
+                 <input 
+                   type="text" 
+                   placeholder="Search pairs..." 
+                   value={searchQuery}
+                   autoFocus
+                   onChange={(e) => setSearchQuery(e.target.value)}
+                   className="w-full bg-background/50 border border-border/50 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+                 />
+               </div>
+               <div className="flex flex-col py-2 max-h-[350px] overflow-y-auto custom-scrollbar">
+                 {symbols.filter(sym => sym.toLowerCase().includes(searchQuery.toLowerCase())).map(sym => (
+                   <button
+                     key={sym}
+                     onClick={() => {
+                       setActiveSymbol(sym);
+                       setShowPairSelector(false);
+                       setSearchQuery('');
+                     }}
+                     className={cn("flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-all group", activeSymbol === sym && "bg-primary/5")}
+                   >
+                     <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded-full bg-background flex items-center justify-center border border-border/50 p-0.5 overflow-hidden group-hover:scale-110 transition-transform">
+                          {getTokenLogo(sym) ? <img src={getTokenLogo(sym)} alt={sym} className="w-full h-full object-cover" /> : <div className="text-[10px] font-bold">{sym[0]}</div>}
+                        </div>
+                        <span className={cn("font-bold text-sm", activeSymbol === sym ? "text-primary" : "text-foreground")}>{sym}</span>
+                     </div>
+                     <div className="text-right">
+                       <div className="text-xs font-mono font-bold">{markPrices[sym]?.toLocaleString(undefined, { minimumFractionDigits: 2 }) || '--'}</div>
+                       <div className="text-[9px] text-muted-foreground uppercase opacity-0 group-hover:opacity-100 transition-opacity">Select</div>
+                     </div>
+                   </button>
+                 ))}
+               </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <Toaster position="top-right" richColors theme={theme === 'dark' ? 'dark' : 'light'} />
 
       {/* --- Main Content Area --- */}
       <div className="flex-1 flex flex-col lg:flex-row min-h-0 lg:h-[calc(100vh-140px)] lg:overflow-hidden overflow-visible">
@@ -827,9 +857,74 @@ export function DemoTrading() {
         {/* Left Side: Chart + Integrated Tables */}
         <div className="flex-1 flex flex-col min-h-0 min-w-0">
 
-          {/* Mobile: Order Form Top (Above Chart) - hidden on desktop */}
-          <div className="lg:hidden w-full bg-card/10 flex-none border-b border-border">
-            {orderFormTopUI}
+          {/* Mobile: Floating Pair Picker and Stats Header */}
+          <div className="lg:hidden w-full flex-none p-2 z-20 sticky top-0 bg-background/60 backdrop-blur-lg border-b border-border/50">
+             <div className="flex items-center justify-between gap-2">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <button 
+                      className="flex items-center gap-1.5 bg-muted/40 hover:bg-muted/60 transition-colors px-2.5 py-1.5 rounded-full border border-border/50"
+                    >
+                       {getTokenLogo(activeSymbol) && <img src={getTokenLogo(activeSymbol)} alt={activeSymbol} className="w-4 h-4 rounded-full" />}
+                       <span className="font-bold text-xs uppercase tracking-tight">{activeSymbol.split('-')[0]}</span>
+                       <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                    </button>
+                  </SheetTrigger>
+                  <SheetContent side="bottom" className="h-[70vh] p-0 rounded-t-3xl bg-background border-t border-border/20">
+                     <SheetHeader className="p-4 border-b border-border/30">
+                        <SheetTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                          <Search className="w-4 h-4" /> Select Asset
+                        </SheetTitle>
+                     </SheetHeader>
+                     <div className="p-3">
+                       <input 
+                         type="text" 
+                         placeholder="Search pairs..." 
+                         value={searchQuery}
+                         onChange={(e) => setSearchQuery(e.target.value)}
+                         className="w-full bg-muted border border-border/50 rounded-xl py-3 px-4 text-sm mb-4 focus:outline-none focus:ring-1 focus:ring-primary/50"
+                       />
+                       <div className="flex flex-col gap-1 max-h-[50vh] overflow-y-auto">
+                         {symbols.filter(sym => sym.toLowerCase().includes(searchQuery.toLowerCase())).map(sym => (
+                           <button
+                             key={sym}
+                             onClick={() => {
+                               setActiveSymbol(sym);
+                               setSearchQuery('');
+                             }}
+                             className={cn("flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-all", activeSymbol === sym && "bg-primary/5")}
+                           >
+                             <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center border border-border/30 overflow-hidden">
+                                  {getTokenLogo(sym) ? <img src={getTokenLogo(sym)} alt={sym} className="w-full h-full object-cover" /> : <div className="text-xs font-bold">{sym[0]}</div>}
+                                </div>
+                                <span className={cn("font-bold", activeSymbol === sym ? "text-primary" : "text-foreground")}>{sym}</span>
+                             </div>
+                             <div className="text-right">
+                               <div className="text-sm font-mono font-bold">{markPrices[sym]?.toLocaleString(undefined, { minimumFractionDigits: 2 }) || '--'}</div>
+                             </div>
+                           </button>
+                         ))}
+                       </div>
+                     </div>
+                  </SheetContent>
+                </Sheet>
+
+                <div className="flex items-center gap-4 overflow-x-auto [&::-webkit-scrollbar]:hidden py-1 px-1">
+                  <div>
+                    <div className="text-[9px] text-muted-foreground leading-tight">Price</div>
+                    <div className={cn("text-xs font-mono font-bold leading-tight", dayStats.change >= 0 ? "text-emerald-500" : "text-red-500")}>
+                      {activePrice?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[9px] text-muted-foreground leading-tight">24h</div>
+                    <div className={cn("text-xs font-bold leading-tight", dayStats.change >= 0 ? "text-emerald-500" : "text-red-500")}>
+                      {(dayStats.change >= 0 ? '+' : '') + dayStats.change.toFixed(2)}%
+                    </div>
+                  </div>
+                </div>
+             </div>
           </div>
 
           {/* Integrated Panel (Chart + Tables) */}
@@ -1071,10 +1166,33 @@ export function DemoTrading() {
             </Card>
           </div>
 
-          {/* Mobile: Order Form Bottom (Below Chart) - hidden on desktop */}
-          <div className="lg:hidden w-full border-t border-border bg-card/30 flex-none pb-4">
-            {orderFormBottomUI}
+          {/* Mobile Action Bar (Floating at bottom) */}
+          <div className="lg:hidden flex items-center gap-2 p-3 bg-gradient-to-t from-background via-background/90 to-transparent pt-8 -mt-8 z-10 sticky bottom-0">
+             <button 
+               onClick={() => { setOrderSide('LONG'); setIsMobileOrderFormOpen(true); }}
+               className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 active:scale-95 transition-all text-sm uppercase tracking-wider"
+             >
+               Buy / Long
+             </button>
+             <button 
+               onClick={() => { setOrderSide('SHORT'); setIsMobileOrderFormOpen(true); }}
+               className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-red-500/20 active:scale-95 transition-all text-sm uppercase tracking-wider"
+             >
+               Sell / Short
+             </button>
           </div>
+
+          <Sheet open={isMobileOrderFormOpen} onOpenChange={setIsMobileOrderFormOpen}>
+            <SheetContent side="bottom" className="h-[85vh] p-0 border-t-0 bg-background rounded-t-[32px] overflow-hidden">
+               <SheetHeader className="p-4 border-b border-border/50">
+                  <SheetTitle className="text-center text-sm font-bold uppercase tracking-widest text-muted-foreground">Place Order</SheetTitle>
+               </SheetHeader>
+               <div className="p-4 h-full overflow-y-auto pb-20">
+                  {orderFormTopUI}
+                  {orderFormBottomUI}
+               </div>
+            </SheetContent>
+          </Sheet>
 
 
         </div>
@@ -1087,29 +1205,29 @@ export function DemoTrading() {
       </div>
 
       {/* Mobile Positions & Orders Tabs (Hidden on Desktop) */}
-      <div className="lg:hidden flex flex-col border-t border-border bg-card flex-none">
-         <div className="flex items-center border-b border-border px-4 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+      <div className="lg:hidden flex flex-col border-t border-border bg-card flex-none min-h-[400px]">
+         <div className="flex items-center p-1 bg-muted/30 rounded-full mx-3 my-2 border border-border/50 backdrop-blur-sm">
             <button 
               onClick={() => setBottomTab('Positions')}
-              className={cn("whitespace-nowrap text-xs font-bold px-4 py-3 border-b-[2px] transition-all relative top-[1px]", bottomTab === 'Positions' ? "text-primary border-primary" : "text-muted-foreground border-transparent hover:text-foreground")}
+              className={cn("flex-1 text-[10px] font-bold py-2 rounded-full transition-all", bottomTab === 'Positions' ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}
             >
               Positions ({positions.length})
             </button>
             <button 
               onClick={() => setBottomTab('OpenOrders')}
-              className={cn("whitespace-nowrap text-xs font-bold px-4 py-3 border-b-[2px] transition-all relative top-[1px]", bottomTab === 'OpenOrders' ? "text-primary border-primary" : "text-muted-foreground border-transparent hover:text-foreground")}
+              className={cn("flex-1 text-[10px] font-bold py-2 rounded-full transition-all", bottomTab === 'OpenOrders' ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}
             >
-              Open Orders ({openOrders.length})
+              Orders ({openOrders.length})
             </button>
             <button 
               onClick={() => setBottomTab('History')}
-              className={cn("whitespace-nowrap text-xs font-bold px-4 py-3 border-b-[2px] transition-all relative top-[1px] flex items-center gap-1.5", bottomTab === 'History' ? "text-primary border-primary" : "text-muted-foreground border-transparent hover:text-foreground")}
+              className={cn("flex-1 text-[10px] font-bold py-2 rounded-full transition-all flex items-center justify-center gap-1.5", bottomTab === 'History' ? "bg-background text-primary shadow-sm" : "text-muted-foreground border-transparent hover:text-foreground")}
             >
-              <History className="w-3.5 h-3.5" /> History
+              <History className="w-3 h-3" /> History
             </button>
          </div>
          
-         <div className="p-3 space-y-3">
+         <div className="p-3 space-y-3 overflow-y-auto flex-1 h-0">
            {bottomTab === 'Positions' && (
              positions.length === 0 ? (
                <div className="py-8 text-center text-xs text-muted-foreground font-semibold">No open positions</div>
@@ -1120,12 +1238,12 @@ export function DemoTrading() {
                const liqPx = getLiquidationPrice(pos);
 
                return (
-                 <div key={pos.id} className="bg-muted/30 border border-border/50 rounded-lg p-4 space-y-4">
+                 <div key={pos.id} className="bg-background/40 backdrop-blur-md border border-border/50 rounded-xl p-2.5 space-y-2.5 shadow-sm">
                    <div className="flex justify-between items-center">
                      <div className="flex items-center gap-2">
                        <span className={cn("w-[2px] h-3 rounded-full", pos.side === 'LONG' ? "bg-emerald-500" : "bg-red-500")} />
                        {getTokenLogo(pos.symbol) && <img src={getTokenLogo(pos.symbol)} alt={pos.symbol} className="w-6 h-6 rounded-full" />}
-                       <span className="font-bold text-base">{pos.symbol}</span>
+                       <span className="font-bold text-sm tracking-tight">{pos.symbol}</span>
                        <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded-sm", pos.side === 'LONG' ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500")}>
                          {pos.side} {pos.leverage}x
                        </span>
@@ -1198,12 +1316,12 @@ export function DemoTrading() {
              ) : openOrders.map(order => {
                const livePx = markPrices[order.symbol] || order.entryPrice;
                return (
-                 <div key={order.id} className="bg-muted/30 border border-border/50 rounded-lg p-4 space-y-4">
+                 <div key={order.id} className="bg-background/40 backdrop-blur-md border border-border/50 rounded-xl p-2.5 space-y-2.5 shadow-sm">
                    <div className="flex justify-between items-center">
                      <div className="flex items-center gap-2">
                        <span className={cn("w-[2px] h-3 rounded-full", order.side === 'LONG' ? "bg-emerald-500" : "bg-red-500")} />
                        {getTokenLogo(order.symbol) && <img src={getTokenLogo(order.symbol)} alt={order.symbol} className="w-6 h-6 rounded-full" />}
-                       <span className="font-bold text-base">{order.symbol}</span>
+                       <span className="font-bold text-sm tracking-tight">{order.symbol}</span>
                        <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded-sm", order.side === 'LONG' ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500")}>
                          {order.side} {order.leverage}x
                        </span>
@@ -1239,12 +1357,12 @@ export function DemoTrading() {
              closedPositions.length === 0 ? (
                <div className="py-8 text-center text-xs text-muted-foreground font-semibold">No position history</div>
              ) : closedPositions.map((pos, idx) => (
-               <div key={idx} className="bg-muted/30 border border-border/50 rounded-lg p-4 space-y-4">
+               <div key={idx} className="bg-background/40 backdrop-blur-md border border-border/50 rounded-xl p-2.5 space-y-2.5 shadow-sm">
                  <div className="flex justify-between items-center">
                    <div className="flex items-center gap-2">
                      <span className={cn("w-[2px] h-3 rounded-full", pos.side === 'LONG' ? "bg-emerald-500" : "bg-red-500")} />
                      {getTokenLogo(pos.symbol) && <img src={getTokenLogo(pos.symbol)} alt={pos.symbol} className="w-6 h-6 rounded-full" />}
-                     <span className="font-bold text-base">{pos.symbol}</span>
+                     <span className="font-bold text-sm tracking-tight">{pos.symbol}</span>
                      <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded-sm", pos.side === 'LONG' ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500")}>
                        {pos.side} {pos.leverage}x
                      </span>
@@ -1265,7 +1383,7 @@ export function DemoTrading() {
                      <div className="font-semibold">{pos.entryPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</div>
                    </div>
                    <div>
-                     <div className="text-muted-foreground/70 mb-0.5">Close</div>,StartLine:1100,TargetContent:
+                     <div className="text-muted-foreground/70 mb-0.5">Close</div>
                      <div className="font-semibold">{pos.closePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</div>
                    </div>
                  </div>
@@ -1361,9 +1479,9 @@ export function DemoTrading() {
                   </>
                 );
              })()}
-          </div>
-        </div>
-      )}
+           </div>
+         </div>
+       )}
 
       {/* Limit Close Modal */}
       {closingLimitPosId && (
