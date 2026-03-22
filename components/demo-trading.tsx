@@ -772,10 +772,10 @@ export function DemoTrading() {
   );
 
   return (
-    <div className="flex flex-col animate-in fade-in duration-500 font-sans min-h-screen bg-background text-foreground">
+    <div className="flex flex-col animate-in fade-in duration-500 font-sans min-h-screen">
       
       {/* --- Top Ticker Bar (Desktop Only) --- */}
-      <div className="hidden lg:flex h-14 border-b border-border bg-card/50 items-center justify-between px-4 sticky top-0 z-10">
+      <div className="hidden lg:flex h-14 border-b border-border bg-transparent items-center justify-between px-4 sticky top-0 z-10">
         <div className="flex items-center gap-6">
           <button 
             onClick={() => setShowPairSelector(!showPairSelector)}
@@ -946,9 +946,9 @@ export function DemoTrading() {
 
           {/* Integrated Panel (Chart + Tables) */}
           <div className="flex-none lg:flex-1 flex flex-col min-h-[500px] lg:min-h-0 p-1.5 md:p-2 lg:p-4 min-w-0">
-            <Card className="flex-1 flex flex-col overflow-hidden border-border/50 bg-card/30 shadow-xl">
+            <Card className="flex-1 flex flex-col overflow-hidden border-none bg-transparent shadow-none">
               {/* Chart Tools Bar */}
-              <div className="px-3 md:px-4 py-1.5 md:py-2 flex items-center justify-between bg-muted/20 border-b border-border/50">
+              <div className="px-3 md:px-4 py-1.5 md:py-2 flex items-center justify-between bg-transparent border-b border-border/50">
                 <div className="flex items-center gap-3 md:gap-4">
                   <span className="text-[9px] md:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Time</span>
                   <div className="flex space-x-0.5">
@@ -973,9 +973,9 @@ export function DemoTrading() {
                 </div>
               </div>
               
-              <div className="relative flex-1 min-h-0 overflow-hidden bg-background/50">
+              <div className="relative flex-1 min-h-0 overflow-hidden bg-transparent">
                 {isLoadingChart && (
-                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
+                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-transparent backdrop-blur-sm">
                     <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
                   </div>
                 )}
@@ -985,8 +985,8 @@ export function DemoTrading() {
               </div>
 
               {/* Desktop: Positions & Orders Table (Integrated into Chart Card) */}
-              <div className="hidden lg:flex h-[300px] flex-col border-t border-border bg-card/50">
-                 <div className="flex items-center border-b border-border/50 px-4 bg-muted/10">
+              <div className="hidden lg:flex h-[300px] flex-col border-t border-border bg-transparent">
+                 <div className="flex items-center border-b border-border/50 px-4 bg-transparent">
                     <button 
                       onClick={() => setBottomTab('Positions')}
                       className={cn("text-[10px] uppercase tracking-wider font-bold px-4 py-2.5 border-b-[2px] transition-all relative top-[1px]", bottomTab === 'Positions' ? "text-primary border-primary" : "text-muted-foreground border-transparent hover:text-foreground")}
@@ -1215,15 +1215,15 @@ export function DemoTrading() {
         </div>
 
         {/* Desktop: Full Order Form sidebar (Hidden on Mobile) */}
-        <div className="hidden lg:flex w-[320px] flex-none border-l border-border bg-card/30 flex-col overflow-y-auto">
+        <div className="hidden lg:flex w-[320px] flex-none border-l border-border bg-transparent flex-col overflow-y-auto">
           {orderFormTopUI}
           {orderFormBottomUI}
         </div>
       </div>
 
       {/* Mobile Positions & Orders Tabs (Hidden on Desktop) */}
-      <div className="lg:hidden flex flex-col border-t border-border bg-card flex-none min-h-[400px]">
-         <div className="flex items-center p-1 bg-muted/30 rounded-full mx-3 my-2 border border-border/50 backdrop-blur-sm">
+      <div className="lg:hidden flex flex-col border-t border-border bg-transparent flex-none min-h-[400px]">
+         <div className="flex items-center p-1 bg-transparent rounded-full mx-3 my-2 border border-border/50 backdrop-blur-sm">
             <button 
               onClick={() => setBottomTab('Positions')}
               className={cn("flex-1 text-[10px] font-bold py-2 rounded-full transition-all", bottomTab === 'Positions' ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}
@@ -1255,7 +1255,7 @@ export function DemoTrading() {
                const liqPx = getLiquidationPrice(pos);
 
                return (
-                 <div key={pos.id} className="bg-background/40 backdrop-blur-md border border-border/50 rounded-xl p-2.5 space-y-2.5 shadow-sm">
+                 <div key={pos.id} className="bg-transparent border-b border-border/50 py-3 space-y-2.5">
                    <div className="flex justify-between items-center">
                      <div className="flex items-center gap-2">
                        <span className={cn("w-[2px] h-3 rounded-full", pos.side === 'LONG' ? "bg-emerald-500" : "bg-red-500")} />
@@ -1333,7 +1333,7 @@ export function DemoTrading() {
              ) : openOrders.map(order => {
                const livePx = markPrices[order.symbol] || order.entryPrice;
                return (
-                 <div key={order.id} className="bg-background/40 backdrop-blur-md border border-border/50 rounded-xl p-2.5 space-y-2.5 shadow-sm">
+                 <div key={order.id} className="bg-transparent border-b border-border/50 py-3 space-y-2.5">
                    <div className="flex justify-between items-center">
                      <div className="flex items-center gap-2">
                        <span className={cn("w-[2px] h-3 rounded-full", order.side === 'LONG' ? "bg-emerald-500" : "bg-red-500")} />
@@ -1374,7 +1374,7 @@ export function DemoTrading() {
              closedPositions.length === 0 ? (
                <div className="py-8 text-center text-xs text-muted-foreground font-semibold">No position history</div>
              ) : closedPositions.map((pos, idx) => (
-               <div key={idx} className="bg-background/40 backdrop-blur-md border border-border/50 rounded-xl p-2.5 space-y-2.5 shadow-sm">
+               <div key={idx} className="bg-transparent border-b border-border/50 py-3 space-y-2.5">
                  <div className="flex justify-between items-center">
                    <div className="flex items-center gap-2">
                      <span className={cn("w-[2px] h-3 rounded-full", pos.side === 'LONG' ? "bg-emerald-500" : "bg-red-500")} />
