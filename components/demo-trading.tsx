@@ -126,6 +126,17 @@ export function DemoTrading() {
   const [chartInstance, setChartInstance] = useState<IChartApi | null>(null);
   const [candlestickSeries, setCandlestickSeries] = useState<ISeriesApi<"Candlestick"> | null>(null);
   const [isLoadingChart, setIsLoadingChart] = useState(true);
+  const [showTPSL, setShowTPSL] = useState(true);
+  const [showChartTools, setShowChartTools] = useState(false);
+  const [crosshairMode, setCrosshairMode] = useState<'normal' | 'magnet'>('normal');
+  const [tpslOverlay, setTpslOverlay] = useState<{ id: string; type: 'TP'|'SL'|'ENTRY'; side: 'LONG'|'SHORT'; price: number; label: string }[]>([]);
+
+
+  // -- Chart Drag State --
+  const draggingLineRef = useRef<{ posId: string, type: 'TP' | 'SL', line: any } | null>(null);
+  const priceLinesRef = useRef<{ [key: string]: { tp?: any, sl?: any, entry?: any } }>({});
+  const positionsRef = useRef(positions);
+  useEffect(() => { positionsRef.current = positions; }, [positions]);
 
   // Helper: Current price of the active symbol
   const activePrice = markPrices[activeSymbol] || 0;
@@ -165,34 +176,41 @@ export function DemoTrading() {
     }
   }, []);
 
-  // Fetch all available pairs on mount
+  // Fetch all available pairs on mount + refresh prices every 5 seconds
   useEffect(() => {
-    fetch('https://mainnet-gw.sodex.dev/futures/fapi/market/v1/public/q/agg-tickers')
-      .then(res => res.json())
-      .then(json => {
-        if (json.code === 0 && json.data) {
-          const allSymbols: string[] = [];
-          const initialPrices: Record<string, number> = {};
-          
-          json.data.forEach((ticker: any) => {
-            if (ticker.s && ticker.s.endsWith('-USD')) {
-               allSymbols.push(ticker.s);
-               initialPrices[ticker.s] = parseFloat(ticker.c);
+    const fetchAllPrices = () => {
+      fetch('https://mainnet-gw.sodex.dev/futures/fapi/market/v1/public/q/agg-tickers')
+        .then(res => res.json())
+        .then(json => {
+          if (json.code === 0 && json.data) {
+            const updatedPrices: Record<string, number> = {};
+            const allSymbols: string[] = [];
+
+            json.data.forEach((ticker: any) => {
+              if (ticker.s && ticker.s.endsWith('-USD')) {
+                allSymbols.push(ticker.s);
+                updatedPrices[ticker.s] = parseFloat(ticker.c);
+              }
+            });
+
+            if (allSymbols.length > 0) {
+              const topPairs = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'LINK-USD'];
+              const others = allSymbols.filter(s => !topPairs.includes(s)).sort();
+              setSymbols([...topPairs.filter(s => allSymbols.includes(s)), ...others]);
             }
-          });
-          
-          if (allSymbols.length > 0) {
-            // Sort to keep major pairs on top, then alphabetical
-            const topPairs = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'LINK-USD'];
-            const others = allSymbols.filter(s => !topPairs.includes(s)).sort();
-            setSymbols([...topPairs.filter(s => allSymbols.includes(s)), ...others]);
+
+            // Merge: keep active symbol price from chart polling, update rest from tickers
+            setMarkPrices(prev => ({ ...prev, ...updatedPrices }));
           }
-          
-          setMarkPrices(prev => ({ ...initialPrices, ...prev }));
-        }
-      })
-      .catch(console.error);
+        })
+        .catch(console.error);
+    };
+
+    fetchAllPrices(); // run immediately on mount
+    const tickerInterval = setInterval(fetchAllPrices, 5000);
+    return () => clearInterval(tickerInterval);
   }, []);
+
 
   // Initialize Chart
   useEffect(() => {
@@ -313,6 +331,198 @@ export function DemoTrading() {
       });
     }
   }, [activeSymbol, activeInterval, candlestickSeries, fetchKlines]);
+
+  // -- Render TP/SL/Entry price lines for all positions on active symbol --
+  useEffect(() => {
+    if (!candlestickSeries) return;
+
+    // Clean up old lines
+    const existingIds = Object.keys(priceLinesRef.current);
+    const currentIds = positions.filter(p => p.symbol === activeSymbol).map(p => p.id);
+    existingIds.forEach(id => {
+      if (!currentIds.includes(id)) {
+        const lines = priceLinesRef.current[id];
+        if (lines?.tp) try { candlestickSeries.removePriceLine(lines.tp); } catch {}
+        if (lines?.sl) try { candlestickSeries.removePriceLine(lines.sl); } catch {}
+        if (lines?.entry) try { candlestickSeries.removePriceLine(lines.entry); } catch {}
+        delete priceLinesRef.current[id];
+      }
+    });
+
+    positions.filter(p => p.symbol === activeSymbol).forEach(pos => {
+      const existing = priceLinesRef.current[pos.id] || {};
+
+      // Entry line
+      const entryOpts = {
+        price: pos.entryPrice,
+        color: pos.side === 'LONG' ? '#22c55e' : '#ef4444',
+        lineWidth: 1 as any,
+        lineStyle: 1 as any, // dashed
+        axisLabelVisible: true,
+        title: `Entry`,
+      };
+      if (!existing.entry) {
+        existing.entry = candlestickSeries.createPriceLine(entryOpts);
+      } else {
+        existing.entry.applyOptions(entryOpts);
+      }
+
+      // TP line
+      if (pos.tpPrice) {
+        const tpOpts = {
+          price: pos.tpPrice,
+          color: '#22c55e',
+          lineWidth: 2 as any,
+          lineStyle: 0 as any,
+          axisLabelVisible: true,
+          title: `TP ↕ drag`,
+        };
+        if (!existing.tp) {
+          existing.tp = candlestickSeries.createPriceLine(tpOpts);
+        } else {
+          existing.tp.applyOptions(tpOpts);
+        }
+      } else if (existing.tp) {
+        try { candlestickSeries.removePriceLine(existing.tp); } catch {}
+        existing.tp = undefined;
+      }
+
+      // SL line
+      if (pos.slPrice) {
+        const slOpts = {
+          price: pos.slPrice,
+          color: '#ef4444',
+          lineWidth: 2 as any,
+          lineStyle: 0 as any,
+          axisLabelVisible: true,
+          title: `SL ↕ drag`,
+        };
+        if (!existing.sl) {
+          existing.sl = candlestickSeries.createPriceLine(slOpts);
+        } else {
+          existing.sl.applyOptions(slOpts);
+        }
+      } else if (existing.sl) {
+        try { candlestickSeries.removePriceLine(existing.sl); } catch {}
+        existing.sl = undefined;
+      }
+
+      priceLinesRef.current[pos.id] = existing;
+    });
+  }, [positions, activeSymbol, candlestickSeries]);
+
+  // -- Compute TP/SL overlay positions (pixel Y) for React overlay rendering --
+  useEffect(() => {
+    if (!candlestickSeries || !showTPSL) {
+      setTpslOverlay([]);
+      return;
+    }
+    const items: typeof tpslOverlay = [];
+    positions.filter(p => p.symbol === activeSymbol).forEach(pos => {
+      items.push({ id: pos.id, type: 'ENTRY', side: pos.side, price: pos.entryPrice, label: 'ENTRY' });
+      if (pos.tpPrice) items.push({ id: pos.id, type: 'TP', side: pos.side, price: pos.tpPrice, label: `TP  $${pos.tpPrice.toFixed(2)}` });
+      if (pos.slPrice) items.push({ id: pos.id, type: 'SL', side: pos.side, price: pos.slPrice, label: `SL  $${pos.slPrice.toFixed(2)}` });
+    });
+    setTpslOverlay(items);
+  }, [positions, activeSymbol, candlestickSeries, showTPSL, markPrices]);
+
+  // -- Update crosshair mode when changed --
+  useEffect(() => {
+    if (!chartInstance) return;
+    chartInstance.applyOptions({
+      crosshair: { mode: crosshairMode === 'magnet' ? 2 : 1 },
+    });
+  }, [crosshairMode, chartInstance]);
+
+  // -- Drag Interaction for TP/SL Lines --
+  useEffect(() => {
+    if (!chartContainerRef.current || !chartInstance || !candlestickSeries) return;
+    const container = chartContainerRef.current;
+
+    const getChartPrice = (clientY: number): number | null => {
+      const rect = container.getBoundingClientRect();
+      const y = clientY - rect.top;
+      return candlestickSeries.coordinateToPrice(y);
+    };
+
+    const onMouseDown = (e: MouseEvent | TouchEvent) => {
+      const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
+      const rect = container.getBoundingClientRect();
+      const clickY = clientY - rect.top; // pixel Y relative to chart container
+
+      const PIXEL_THRESHOLD = 12; // pixels of tolerance for clicking a line
+      const currentPositions = positionsRef.current.filter(p => p.symbol === activeSymbol);
+
+      for (const pos of currentPositions) {
+        const lines = priceLinesRef.current[pos.id];
+        if (!lines) continue;
+
+        if (pos.tpPrice) {
+          const tpY = candlestickSeries.priceToCoordinate(pos.tpPrice);
+          if (tpY !== null && Math.abs(clickY - tpY) <= PIXEL_THRESHOLD) {
+            draggingLineRef.current = { posId: pos.id, type: 'TP', line: lines.tp };
+            e.preventDefault();
+            return;
+          }
+        }
+        if (pos.slPrice) {
+          const slY = candlestickSeries.priceToCoordinate(pos.slPrice);
+          if (slY !== null && Math.abs(clickY - slY) <= PIXEL_THRESHOLD) {
+            draggingLineRef.current = { posId: pos.id, type: 'SL', line: lines.sl };
+            e.preventDefault();
+            return;
+          }
+        }
+      }
+    };
+
+    const onMouseMove = (e: MouseEvent | TouchEvent) => {
+      if (!draggingLineRef.current) return;
+      e.preventDefault();
+      const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
+      const newPrice = getChartPrice(clientY);
+      if (newPrice === null || newPrice <= 0) return;
+
+      // Update the visual line in real time
+      draggingLineRef.current.line?.applyOptions({
+        price: newPrice,
+        title: `${draggingLineRef.current.type} ↕ drag`,
+      });
+    };
+
+    const onMouseUp = (e: MouseEvent | TouchEvent) => {
+      if (!draggingLineRef.current) return;
+      const clientY = 'changedTouches' in e ? e.changedTouches[0].clientY : (e as MouseEvent).clientY;
+      const finalPrice = getChartPrice(clientY);
+      if (finalPrice !== null && finalPrice > 0) {
+        const { posId, type } = draggingLineRef.current;
+        setPositions(prev => prev.map(p => {
+          if (p.id !== posId) return p;
+          if (type === 'TP') return { ...p, tpPrice: finalPrice };
+          if (type === 'SL') return { ...p, slPrice: finalPrice };
+          return p;
+        }));
+        toast.success(`${draggingLineRef.current.type} updated to $${finalPrice.toFixed(2)}`);
+      }
+      draggingLineRef.current = null;
+    };
+
+    container.addEventListener('mousedown', onMouseDown);
+    container.addEventListener('touchstart', onMouseDown, { passive: false });
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('touchmove', onMouseMove, { passive: false });
+    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('touchend', onMouseUp);
+
+    return () => {
+      container.removeEventListener('mousedown', onMouseDown);
+      container.removeEventListener('touchstart', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('touchmove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('touchend', onMouseUp);
+    };
+  }, [chartInstance, candlestickSeries, activeSymbol]);
 
   const getLiquidationPrice = useCallback((pos: Position) => {
     if (pos.mode === 'Isolated') {
@@ -966,10 +1176,73 @@ export function DemoTrading() {
                     ))}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button className="p-1 hover:bg-muted rounded transition-colors">
-                    <Settings className="w-3.5 h-3.5 text-muted-foreground" />
+                <div className="flex items-center gap-1.5">
+                  {/* TP/SL Overlay Toggle */}
+                  <button
+                    onClick={() => setShowTPSL(v => !v)}
+                    title="Toggle TP/SL overlay"
+                    className={cn(
+                      "px-2 py-0.5 rounded text-[10px] font-bold transition-all border",
+                      showTPSL
+                        ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/30"
+                        : "text-muted-foreground border-border/50 hover:text-foreground"
+                    )}
+                  >
+                    TP/SL
                   </button>
+                  {/* Crosshair Mode Toggle */}
+                  <button
+                    onClick={() => setCrosshairMode(m => m === 'normal' ? 'magnet' : 'normal')}
+                    title={crosshairMode === 'magnet' ? 'Magnet crosshair (click to disable)' : 'Enable magnet crosshair'}
+                    className={cn(
+                      "p-1 rounded transition-all",
+                      crosshairMode === 'magnet' ? "text-amber-500 bg-amber-500/10" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    )}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                      <path d="M12 18.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13z" /><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22" />
+                    </svg>
+                  </button>
+                  {/* Settings / Chart Tools Dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowChartTools(v => !v)}
+                      className={cn("p-1 rounded transition-colors", showChartTools ? "bg-primary/10 text-primary" : "hover:bg-muted text-muted-foreground hover:text-foreground")}
+                    >
+                      <Settings className="w-3.5 h-3.5" />
+                    </button>
+                    {showChartTools && (
+                      <div className="absolute right-0 top-8 z-50 w-52 bg-card border border-border/50 rounded-xl shadow-2xl p-2 flex flex-col gap-1 animate-in fade-in zoom-in-95 duration-150">
+                        <div className="text-[9px] uppercase font-bold tracking-widest text-muted-foreground px-2 py-1">Chart Tools</div>
+                        <button
+                          onClick={() => { setCrosshairMode('normal'); }}
+                          className={cn("flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors", crosshairMode === 'normal' ? 'bg-primary/10 text-primary' : 'hover:bg-muted text-foreground')}
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5"><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                          Normal Crosshair
+                        </button>
+                        <button
+                          onClick={() => { setCrosshairMode('magnet'); }}
+                          className={cn("flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors", crosshairMode === 'magnet' ? 'bg-amber-500/10 text-amber-500' : 'hover:bg-muted text-foreground')}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5"><path d="M12 18.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13z" /><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22" /></svg>
+                          Magnet Crosshair
+                        </button>
+                        <div className="border-t border-border/50 my-1" />
+                        <div className="text-[9px] uppercase font-bold tracking-widest text-muted-foreground px-2 py-1">Overlays</div>
+                        <button
+                          onClick={() => setShowTPSL(v => !v)}
+                          className={cn("flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors", showTPSL ? 'bg-emerald-500/10 text-emerald-500' : 'hover:bg-muted text-foreground')}
+                        >
+                          <span className="w-3.5 h-3.5 rounded-sm border-2 border-current flex items-center justify-center">{showTPSL && '✓'}</span>
+                          Show TP / SL Lines
+                        </button>
+                        <div onClick={() => setShowChartTools(false)} className="border-t border-border/50 mt-1 pt-1">
+                          <button className="w-full text-xs text-muted-foreground hover:text-foreground py-1 transition-colors">Close</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               
@@ -982,6 +1255,34 @@ export function DemoTrading() {
                 <div className="absolute inset-0">
                   <div ref={chartContainerRef} className="w-full h-full" />
                 </div>
+                {/* TP/SL Overlay Labels */}
+                {showTPSL && tpslOverlay.length > 0 && candlestickSeries && (
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    {tpslOverlay.map((item, i) => {
+                      const yPx = candlestickSeries.priceToCoordinate(item.price);
+                      if (yPx === null || yPx < 0) return null;
+                      const isTP = item.type === 'TP';
+                      const isSL = item.type === 'SL';
+                      const isEntry = item.type === 'ENTRY';
+                      return (
+                        <div
+                          key={`${item.id}-${item.type}-${i}`}
+                          className="absolute left-2 flex items-center gap-1.5 -translate-y-1/2"
+                          style={{ top: yPx }}
+                        >
+                          <div className={cn(
+                            "text-[9px] font-bold px-1.5 py-0.5 rounded-sm border shadow-sm",
+                            isTP && "bg-emerald-500/20 text-emerald-500 border-emerald-500/50",
+                            isSL && "bg-red-500/20 text-red-500 border-red-500/50",
+                            isEntry && "bg-muted/80 text-muted-foreground border-border/50",
+                          )}>
+                            {item.label}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Desktop: Positions & Orders Table (Integrated into Chart Card) */}
