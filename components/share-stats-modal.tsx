@@ -228,21 +228,21 @@ export function ShareStatsModal({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-md p-0 overflow-hidden bg-black border-white/10 rounded-[2.5rem] shadow-2xl">
-        <div ref={cardRef} className="relative aspect-[4/5] w-full overflow-hidden bg-[#050505] p-10 flex flex-col justify-between">
+      <DialogContent className="max-w-md p-0 overflow-hidden bg-black border-white/10 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-[90vw] md:w-full">
+        <div ref={cardRef} className="relative aspect-[4/5] w-full overflow-hidden bg-[#050505] p-6 md:p-10 flex flex-col justify-between">
           
           <div className={cn("absolute left-0 top-1/4 bottom-1/4 w-1 rounded-r-full", isPositive ? "bg-emerald-500" : "bg-rose-500")} />
 
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-black tracking-[0.3em] text-white opacity-40 uppercase">SoDex Tracker</h3>
+              <h3 className="text-[10px] md:text-sm font-black tracking-[0.3em] text-white opacity-40 uppercase">SoDex Tracker</h3>
               <div className="flex bg-white/5 rounded-xl p-1 no-screenshot">
                 {(['24H', '7D', '30D', 'ALL_TIME'] as const).map((t) => (
                   <button
                     key={t}
                     onClick={() => setWindowType(t)}
                     className={cn(
-                      "px-3 py-1 rounded-lg text-[8px] font-black transition-all uppercase tracking-wider",
+                      "px-2 md:px-3 py-0.5 md:py-1 rounded-lg text-[6px] md:text-[8px] font-black transition-all uppercase tracking-wider",
                       windowType === t
                         ? "bg-white text-black"
                         : "text-white/40 hover:text-white"
@@ -255,77 +255,77 @@ export function ShareStatsModal({
             </div>
             
             <div className="space-y-1">
-              <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">{walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}</p>
+              <p className="text-[8px] md:text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">{walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}</p>
             </div>
           </div>
 
           {loading ? (
             <div className="flex flex-col items-center justify-center flex-1 gap-4">
-              <Loader2 className="w-8 h-8 text-white/20 animate-spin" />
+              <Loader2 className="w-6 h-6 md:w-8 md:h-8 text-white/20 animate-spin" />
             </div>
           ) : (
-            <div className="space-y-10">
-              <div className="space-y-2">
-                <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Net Performance ({windowType})</span>
-                <p className={cn("text-5xl font-black italic tracking-tighter leading-none", accentColor)}>
+            <div className="space-y-6 md:space-y-10">
+              <div className="space-y-1 md:space-y-2">
+                <span className="text-[8px] md:text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Net Performance ({windowType})</span>
+                <p className={cn("text-3xl md:text-5xl font-black italic tracking-tighter leading-none", accentColor)}>
                   {isPositive ? '+' : '-'}{formatCurrency(Math.abs(data?.periodPnL || 0))}
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-x-12 gap-y-6">
+              <div className="grid grid-cols-2 gap-x-6 md:gap-x-12 gap-y-4 md:gap-y-6">
                 <div className="space-y-1">
-                  <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">Balance</span>
-                  <p className="text-lg font-black italic text-white leading-none">{formatCurrency(data?.totalBalance || 0)}</p>
+                  <span className="text-[7px] md:text-[9px] font-black text-white/20 uppercase tracking-widest">Balance</span>
+                  <p className="text-sm md:text-lg font-black italic text-white leading-none">{formatCurrency(data?.totalBalance || 0)}</p>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">Rank (Volume) [{windowType}]</span>
-                  <p className="text-lg font-black italic text-orange-500 leading-none">#{data?.rank}</p>
+                  <span className="text-[7px] md:text-[9px] font-black text-white/20 uppercase tracking-widest">Rank (Volume) [{windowType}]</span>
+                  <p className="text-sm md:text-lg font-black italic text-orange-500 leading-none">#{data?.rank}</p>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">Vault</span>
-                  <p className="text-lg font-black italic text-white leading-none">{data?.vaultStats?.shares.toFixed(1)} <span className="text-[8px] text-white/20">MAG7</span></p>
+                  <span className="text-[7px] md:text-[9px] font-black text-white/20 uppercase tracking-widest">Vault</span>
+                  <p className="text-sm md:text-lg font-black italic text-white leading-none">{data?.vaultStats?.shares.toFixed(1)} <span className="text-[6px] md:text-[8px] text-white/20">MAG7</span></p>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">Volume ({windowType})</span>
-                  <p className="text-lg font-black italic text-white leading-none">${formatCompact(data?.volume || 0)}</p>
+                  <span className="text-[7px] md:text-[9px] font-black text-white/20 uppercase tracking-widest">Volume ({windowType})</span>
+                  <p className="text-sm md:text-lg font-black italic text-white leading-none">${formatCompact(data?.volume || 0)}</p>
                 </div>
                 {/* Fund Flow with Token Names */}
                 <div className="space-y-1 h-fit">
-                  <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">Deposits ({windowType})</span>
-                  <p className="text-[11px] font-black italic text-emerald-500 leading-tight">{data?.depositsStr}</p>
+                  <span className="text-[7px] md:text-[9px] font-black text-white/20 uppercase tracking-widest">Deposits ({windowType})</span>
+                  <p className="text-[9px] md:text-[11px] font-black italic text-emerald-500 leading-tight">{data?.depositsStr}</p>
                 </div>
                 <div className="space-y-1 h-fit">
-                  <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">Withdrawals ({windowType})</span>
-                  <p className="text-[11px] font-black italic text-rose-500 leading-tight">{data?.withdrawalsStr}</p>
+                  <span className="text-[7px] md:text-[9px] font-black text-white/20 uppercase tracking-widest">Withdrawals ({windowType})</span>
+                  <p className="text-[9px] md:text-[11px] font-black italic text-rose-500 leading-tight">{data?.withdrawalsStr}</p>
                 </div>
               </div>
             </div>
           )}
 
-          <div className="flex items-center justify-between opacity-20">
-            <span className="text-[9px] font-black italic tracking-[0.4em] text-white">SoDexTracker.com</span>
-            <div className="h-px bg-white/20 flex-1 ml-6" />
+          <div className="flex items-center justify-between opacity-20 mt-4 md:mt-0">
+            <span className="text-[7px] md:text-[9px] font-black italic tracking-[0.4em] text-white">SoDexTracker.com</span>
+            <div className="h-px bg-white/20 flex-1 ml-4 md:ml-6" />
           </div>
         </div>
 
-        <div className="p-8 pt-0 flex items-center justify-center gap-6 bg-[#050505] pb-10">
+        <div className="p-6 md:p-8 pt-0 flex items-center justify-center gap-4 md:gap-6 bg-[#050505] pb-6 md:pb-10">
           <Button 
             variant="ghost" 
             size="icon" 
-            className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/10 transition-all group"
+            className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/10 transition-all group"
             onClick={handleCopy}
             title="Copy Image to Clipboard"
           >
-            {copied ? <Check className="w-5 h-5 text-emerald-500" /> : <Copy className="w-5 h-5 text-white/40 group-hover:text-white" />}
+            {copied ? <Check className="w-4 h-4 md:w-5 md:h-5 text-emerald-500" /> : <Copy className="w-4 h-4 md:w-5 md:h-5 text-white/40 group-hover:text-white" />}
           </Button>
           <Button 
             variant="ghost" 
             size="icon" 
-            className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/10 transition-all group"
+            className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/10 transition-all group"
             onClick={handleDownload}
             title="Download Snapshot"
           >
-            <Download className="w-5 h-5 text-white/40 group-hover:text-white" />
+            <Download className="w-4 h-4 md:w-5 md:h-5 text-white/40 group-hover:text-white" />
           </Button>
         </div>
       </DialogContent>
