@@ -36,6 +36,7 @@ const OverallDepositsCard = dynamic(
 
 import { TrackerSection } from '@/components/tracker-section'
 import { TradeAnalytics } from '@/components/trade-analytics'
+import { DemoTrading } from '@/components/demo-trading'
 import { Footer } from '@/components/footer'
 import { SopointsAnalyzer } from '@/components/sopoints-analyzer'
 import { AboutSodex } from '@/components/about-sodex'
@@ -214,7 +215,7 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
 
 export default function Dashboard() {
   const { theme, toggleTheme, mounted } = useTheme()
-  const [currentPage, setCurrentPage] = useState<'dex-status' | 'tracker' | 'portfolio' | 'leaderboard' | 'analyzer' | 'about' | 'whale-tracker' | 'assets' | 'journal' | 'analytics'>('dex-status')
+  const [currentPage, setCurrentPage] = useState<'dex-status' | 'tracker' | 'portfolio' | 'leaderboard' | 'analyzer' | 'about' | 'whale-tracker' | 'assets' | 'journal' | 'analytics' | 'demo-trading'>('dex-status')
   const [searchAddressInput, setSearchAddressInput] = useState('')
   const [trackerSearchAddress, setTrackerSearchAddress] = useState('')
   const [showMoreMenu, setShowMoreMenu] = useState(false)
@@ -262,7 +263,7 @@ export default function Dashboard() {
       setTrackerSearchAddress(decodeURIComponent(addressParam));
     }
 
-    if (tabParam && ['dex-status', 'tracker', 'portfolio', 'leaderboard', 'analyzer', 'about', 'whale-tracker', 'assets', 'analytics'].includes(tabParam)) {
+    if (tabParam && ['dex-status', 'tracker', 'portfolio', 'leaderboard', 'analyzer', 'about', 'whale-tracker', 'assets', 'analytics', 'demo-trading'].includes(tabParam)) {
       setCurrentPage(tabParam);
     } else {
       // Default to dex-status on first load
@@ -447,6 +448,12 @@ export default function Dashboard() {
               {currentPage === 'analytics' && (
                 <Suspense fallback={<LoadingCard />}>
                   <TradeAnalytics />
+                </Suspense>
+              )}
+
+              {currentPage === 'demo-trading' && (
+                <Suspense fallback={<LoadingCard />}>
+                  <DemoTrading />
                 </Suspense>
               )}
             </div>

@@ -17,7 +17,8 @@ import {
   User,
   Send,
   BookOpen,
-  LineChart
+  LineChart,
+  CandlestickChart
 } from 'lucide-react'
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -63,6 +64,7 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
   const betaItems = [
     { id: 'analytics', label: 'Trade analytics', icon: LineChart },
     { id: 'journal', label: 'Journal', icon: BookOpen },
+    { id: 'demo-trading', label: 'Demo Trading', icon: CandlestickChart },
   ]
 
   const { theme, toggleTheme } = useTheme()
@@ -83,7 +85,7 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
         </div>
       </SidebarHeader>
       
-      <SidebarContent className="px-3">
+      <SidebarContent className="px-3 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>

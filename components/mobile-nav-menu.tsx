@@ -14,7 +14,8 @@ import {
   Compass,
   Shield,
   BookOpen,
-  LineChart
+  LineChart,
+  CandlestickChart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/app/providers';
@@ -41,6 +42,7 @@ export function MobileNavMenu({ currentPage, onNavigate }: MobileNavMenuProps) {
     { section: 'Beta', items: [
       { id: 'analytics', label: 'Trade analytics', icon: LineChart },
       { id: 'journal', label: 'Journal', icon: BookOpen },
+      { id: 'demo-trading', label: 'Demo Trading', icon: CandlestickChart },
     ]}
   ];
 
