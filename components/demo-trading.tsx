@@ -5,7 +5,7 @@ import { createChart, ColorType, IChartApi, ISeriesApi, Time } from 'lightweight
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Settings, Minimize2, Check, ChevronDown, Search, History } from 'lucide-react';
+import { Loader2, Settings, Minimize2, Check, ChevronDown, Search, History, Target, Layers } from 'lucide-react';
 import { getTokenLogo } from '@/lib/token-logos';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/app/providers';
@@ -126,10 +126,7 @@ export function DemoTrading() {
   const [chartInstance, setChartInstance] = useState<IChartApi | null>(null);
   const [candlestickSeries, setCandlestickSeries] = useState<ISeriesApi<"Candlestick"> | null>(null);
   const [isLoadingChart, setIsLoadingChart] = useState(true);
-  const [showTPSL, setShowTPSL] = useState(true);
-  const [showChartTools, setShowChartTools] = useState(false);
   const [crosshairMode, setCrosshairMode] = useState<'normal' | 'magnet'>('normal');
-  const [tpslOverlay, setTpslOverlay] = useState<{ id: string; type: 'TP'|'SL'|'ENTRY'; side: 'LONG'|'SHORT'; price: number; label: string }[]>([]);
 
 
   // -- Chart Drag State --
@@ -138,6 +135,12 @@ export function DemoTrading() {
   const positionsRef = useRef(positions);
   useEffect(() => { positionsRef.current = positions; }, [positions]);
 
+  const [showTPSL, setShowTPSL] = useState(true);
+  const [showFills, setShowFills] = useState(true);
+  const [showChartTools, setShowChartTools] = useState(false);
+  const lastCandleSeriesRef = useRef<any>(null);
+  const [visibleTimeRange, setVisibleTimeRange] = useState<{ from: number, to: number } | null>(null);
+  
   // Helper: Current price of the active symbol
   const activePrice = markPrices[activeSymbol] || 0;
 
@@ -263,6 +266,9 @@ export function DemoTrading() {
       wickDownColor: '#e0294a',
     });
 
+    // Request more history to ensure entry times for positions are visible
+    chart.timeScale().setVisibleLogicalRange({ from: -500, to: 100 });
+
     chart.timeScale().applyOptions({
       // @ts-ignore - Some versions of v4 might not have scrollbar in types but have it in runtime
       scrollbar: {
@@ -281,6 +287,12 @@ export function DemoTrading() {
         });
       }
     };
+
+    chart.timeScale().subscribeVisibleTimeRangeChange((range) => {
+      if (range) {
+        setVisibleTimeRange({ from: range.from as number, to: range.to as number });
+      }
+    });
 
     window.addEventListener('resize', handleResize);
 
@@ -335,8 +347,16 @@ export function DemoTrading() {
   // -- Render TP/SL/Entry price lines for all positions on active symbol --
   useEffect(() => {
     if (!candlestickSeries) return;
+    
+    // Theme change fix: if the series instance itself changed, 
+    // the old lines are already gone from the DOM (destroyed with the old chart),
+    // so we clear our stale references to avoid "duplicate" logic issues.
+    if (lastCandleSeriesRef.current !== candlestickSeries) {
+      priceLinesRef.current = {};
+      lastCandleSeriesRef.current = candlestickSeries;
+    }
 
-    // Clean up old lines
+    // Clean up lines for positions that were closed or are for a different symbol
     const existingIds = Object.keys(priceLinesRef.current);
     const currentIds = positions.filter(p => p.symbol === activeSymbol).map(p => p.id);
     existingIds.forEach(id => {
@@ -410,21 +430,6 @@ export function DemoTrading() {
       priceLinesRef.current[pos.id] = existing;
     });
   }, [positions, activeSymbol, candlestickSeries]);
-
-  // -- Compute TP/SL overlay positions (pixel Y) for React overlay rendering --
-  useEffect(() => {
-    if (!candlestickSeries || !showTPSL) {
-      setTpslOverlay([]);
-      return;
-    }
-    const items: typeof tpslOverlay = [];
-    positions.filter(p => p.symbol === activeSymbol).forEach(pos => {
-      items.push({ id: pos.id, type: 'ENTRY', side: pos.side, price: pos.entryPrice, label: 'ENTRY' });
-      if (pos.tpPrice) items.push({ id: pos.id, type: 'TP', side: pos.side, price: pos.tpPrice, label: `TP  $${pos.tpPrice.toFixed(2)}` });
-      if (pos.slPrice) items.push({ id: pos.id, type: 'SL', side: pos.side, price: pos.slPrice, label: `SL  $${pos.slPrice.toFixed(2)}` });
-    });
-    setTpslOverlay(items);
-  }, [positions, activeSymbol, candlestickSeries, showTPSL, markPrices]);
 
   // -- Update crosshair mode when changed --
   useEffect(() => {
@@ -662,7 +667,7 @@ export function DemoTrading() {
       margin,
       leverage,
       mode: marginMode,
-      openedAt: Date.now(),
+      openedAt: Math.floor(Date.now() / 1000),
       sizeTokens,
       tpPrice: useTpSl && !isNaN(tp) ? tp : undefined,
       slPrice: useTpSl && !isNaN(sl) ? sl : undefined,
@@ -719,7 +724,7 @@ export function DemoTrading() {
          id: Math.random().toString(36).substr(2, 9),
          side: pos.side === 'LONG' ? 'SHORT' : 'LONG', // Opposite side to close
          entryPrice: priceOverride, // The limit price
-         openedAt: Date.now()
+         openedAt: Math.floor(Date.now() / 1000)
        };
        setOpenOrders(o => [closeOrder, ...o]);
        setPositions(prev => prev.filter(p => p.id !== id)); 
@@ -1157,10 +1162,10 @@ export function DemoTrading() {
           {/* Integrated Panel (Chart + Tables) */}
           <div className="flex-none lg:flex-1 flex flex-col min-h-[500px] lg:min-h-0 p-1.5 md:p-2 lg:p-4 min-w-0">
             <Card className="flex-1 flex flex-col overflow-hidden border-none bg-transparent shadow-none">
-              {/* Chart Tools Bar */}
-              <div className="px-3 md:px-4 py-1.5 md:py-2 flex items-center justify-between bg-transparent border-b border-border/50">
-                <div className="flex items-center gap-3 md:gap-4">
-                  <span className="text-[9px] md:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Time</span>
+              {/* Chart Tools Bar - Stacked on mobile, row on desktop */}
+              <div className="px-3 md:px-4 py-2 flex flex-col sm:flex-row sm:items-center justify-between bg-transparent border-b border-border/50 gap-2.5 sm:gap-4">
+                <div className="flex items-center gap-2 md:gap-4 w-full sm:w-auto overflow-x-auto [&::-webkit-scrollbar]:hidden pb-1 sm:pb-0">
+                  <span className="text-[9px] md:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest hidden xs:inline">Time</span>
                   <div className="flex space-x-0.5">
                     {INTERVALS.map((int) => (
                       <button
@@ -1176,19 +1181,35 @@ export function DemoTrading() {
                     ))}
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  {/* TP/SL Overlay Toggle */}
+                <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto justify-between sm:justify-start border-t sm:border-t-0 border-border/30 pt-2 sm:pt-0">
+                  {/* Toggle Lines */}
                   <button
                     onClick={() => setShowTPSL(v => !v)}
-                    title="Toggle TP/SL overlay"
                     className={cn(
-                      "px-2 py-0.5 rounded text-[10px] font-bold transition-all border",
-                      showTPSL
-                        ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/30"
-                        : "text-muted-foreground border-border/50 hover:text-foreground"
+                      "h-7 px-2 flex items-center gap-1.5 rounded-md text-[10px] font-medium transition-colors border",
+                      showTPSL 
+                        ? "bg-primary/20 text-primary border-primary/30" 
+                        : "bg-muted/50 text-muted-foreground border-transparent hover:bg-muted"
                     )}
+                    title="Toggle Price Lines"
                   >
-                    TP/SL
+                    <Target className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Lines</span>
+                  </button>
+
+                  {/* Toggle Fills */}
+                  <button
+                    onClick={() => setShowFills(v => !v)}
+                    className={cn(
+                      "h-7 px-2 flex items-center gap-1.5 rounded-md text-[10px] font-medium transition-colors border",
+                      showFills 
+                        ? "bg-emerald-500/20 text-emerald-500 border-emerald-500/30" 
+                        : "bg-muted/50 text-muted-foreground border-transparent hover:bg-muted"
+                    )}
+                    title="Toggle Area Fills"
+                  >
+                    <Layers className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Fills</span>
                   </button>
                   {/* Crosshair Mode Toggle */}
                   <button
@@ -1255,30 +1276,76 @@ export function DemoTrading() {
                 <div className="absolute inset-0">
                   <div ref={chartContainerRef} className="w-full h-full" />
                 </div>
-                {/* TP/SL Overlay Labels */}
-                {showTPSL && tpslOverlay.length > 0 && candlestickSeries && (
-                  <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                    {tpslOverlay.map((item, i) => {
-                      const yPx = candlestickSeries.priceToCoordinate(item.price);
-                      if (yPx === null || yPx < 0) return null;
-                      const isTP = item.type === 'TP';
-                      const isSL = item.type === 'SL';
-                      const isEntry = item.type === 'ENTRY';
+                {/* TP/SL Overlay Labels & Fill Bands */}
+                {(showTPSL || showFills) && candlestickSeries && chartInstance && (
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
+                    {positions.filter(p => p.symbol === activeSymbol).map((pos, posIdx) => {
+                      const entryY = candlestickSeries.priceToCoordinate(pos.entryPrice);
+                      let entryX = chartInstance.timeScale().timeToCoordinate(pos.openedAt as any);
+                      
+                      // Fallback for entryX: if chart is ready but timeToCoordinate returns null, 
+                      // it's likely an old position off-screen to the left.
+                      if (entryX === null) entryX = 0 as any;
+
+                      // Target levels
+                      const tpY = pos.tpPrice ? candlestickSeries.priceToCoordinate(pos.tpPrice) : null;
+                      const slY = pos.slPrice ? candlestickSeries.priceToCoordinate(pos.slPrice) : null;
+
                       return (
-                        <div
-                          key={`${item.id}-${item.type}-${i}`}
-                          className="absolute left-2 flex items-center gap-1.5 -translate-y-1/2"
-                          style={{ top: yPx }}
-                        >
-                          <div className={cn(
-                            "text-[9px] font-bold px-1.5 py-0.5 rounded-sm border shadow-sm",
-                            isTP && "bg-emerald-500/20 text-emerald-500 border-emerald-500/50",
-                            isSL && "bg-red-500/20 text-red-500 border-red-500/50",
-                            isEntry && "bg-muted/80 text-muted-foreground border-border/50",
-                          )}>
-                            {item.label}
-                          </div>
-                        </div>
+                        <React.Fragment key={pos.id}>
+                          {/* Profit Fill (Greenish) - Optimized for performance */}
+                          {showFills && entryY !== null && entryX !== null && tpY !== null && (
+                            <div 
+                              className="absolute right-0 bg-emerald-500/[0.22] border-l-[4px] border-emerald-500/60 transition-[top,height] duration-75 ease-out"
+                              style={{
+                                left: Math.max(0, entryX),
+                                top: Math.min(entryY, tpY),
+                                height: Math.abs(entryY - tpY),
+                                willChange: 'top, height',
+                              }}
+                            />
+                          )}
+                          {/* Loss Fill (Reddish) - Optimized for performance */}
+                          {showFills && entryY !== null && entryX !== null && slY !== null && (
+                            <div 
+                              className="absolute right-0 bg-red-500/[0.22] border-l-[4px] border-red-500/60 transition-[top,height] duration-75 ease-out"
+                              style={{
+                                left: Math.max(0, entryX),
+                                top: Math.min(entryY, slY),
+                                height: Math.abs(entryY - slY),
+                                willChange: 'top, height',
+                              }}
+                            />
+                          )}
+                          
+                          {/* Labels with overlap protection & performance optimization */}
+                          {showTPSL && [
+                            { type: 'ENTRY', price: pos.entryPrice, label: `ENTRY ${pos.side}`, color: pos.side === 'LONG' ? 'bg-[#2ebd85] text-white' : 'bg-[#e0294a] text-white' },
+                            ...(pos.tpPrice ? [{ type: 'TP', price: pos.tpPrice, label: `TP $${pos.tpPrice.toFixed(2)}`, color: 'bg-emerald-500 text-white shadow-xl' }] : []),
+                            ...(pos.slPrice ? [{ type: 'SL', price: pos.slPrice, label: `SL $${pos.slPrice.toFixed(2)}`, color: 'bg-red-500 text-white shadow-xl' }] : []),
+                          ].map((item, idx) => {
+                            const y = candlestickSeries.priceToCoordinate(item.price);
+                            if (y === null || y < 0) return null;
+                            const xOffset = 8 + (posIdx * 65); 
+                            return (
+                              <div
+                                key={`${pos.id}-${item.type}-${idx}`}
+                                className="absolute flex items-center gap-1.5 z-30"
+                                style={{ 
+                                  transform: `translate(${xOffset}px, ${y}px) translateY(-50%)`,
+                                  willChange: 'transform',
+                                }}
+                              >
+                                <div className={cn(
+                                  "text-[10px] font-black px-2 py-0.5 rounded shadow-2xl border border-white/10 backdrop-blur-md",
+                                  item.color
+                                )}>
+                                  {item.label}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </React.Fragment>
                       );
                     })}
                   </div>
