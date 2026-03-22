@@ -367,29 +367,29 @@ export function DemoTrading() {
       setMarkPrices(newMarkPrices);
 
       // Check Open Orders to execute Limit Orders
-      setOpenOrders(prev => {
-         const remaining = [...prev];
-         const toExecute: Position[] = [];
-         for (let i = remaining.length - 1; i >= 0; i--) {
-            const order = remaining[i];
-            const livePx = newMarkPrices[order.symbol];
-            if (!livePx) continue;
-            
-            let executed = false;
-            // A basic check: if longing, price drops at/below limit. If shorting, price rises at/above limit.
-            if (order.side === 'LONG' && livePx <= order.entryPrice) executed = true;
-            if (order.side === 'SHORT' && livePx >= order.entryPrice) executed = true;
-            
-            if (executed) {
-               toExecute.push(order);
-               remaining.splice(i, 1);
-            }
+      const remainingOpenOrders = [...openOrders];
+      const toExecute: Position[] = [];
+      for (let i = remainingOpenOrders.length - 1; i >= 0; i--) {
+         const order = remainingOpenOrders[i];
+         const livePx = newMarkPrices[order.symbol];
+         if (!livePx) continue;
+         
+         let executed = false;
+         // A basic check: if longing, price drops at/below limit. If shorting, price rises at/above limit.
+         if (order.side === 'LONG' && livePx <= order.entryPrice) executed = true;
+         if (order.side === 'SHORT' && livePx >= order.entryPrice) executed = true;
+         
+         if (executed) {
+            toExecute.push(order);
+            remainingOpenOrders.splice(i, 1);
          }
-         if (toExecute.length > 0) {
-            setPositions(p => [...toExecute, ...p]);
-         }
-         return remaining;
-      });
+      }
+      
+      if (toExecute.length > 0) {
+         setOpenOrders(remainingOpenOrders);
+         setPositions(p => [...toExecute, ...p]);
+         toExecute.forEach(o => toast.success(`${o.side} Limit order filled at $${o.entryPrice.toFixed(2)}`));
+      }
 
       // Check TP / SL or Liquidations
       positions.forEach(pos => {
@@ -423,7 +423,7 @@ export function DemoTrading() {
     }
 
     return () => clearInterval(intervalId);
-  }, [activeSymbol, activeInterval, positions, markPrices, fetchKlines, candlestickSeries, getLiquidationPrice]); // Added getLiquidationPrice to deps
+  }, [activeSymbol, activeInterval, positions, openOrders, markPrices, fetchKlines, candlestickSeries, getLiquidationPrice]); // Added openOrders to deps
 
   // -- Trading Logic --
   const handleOpenPosition = () => {
@@ -471,14 +471,12 @@ export function DemoTrading() {
   };
   
   const handleCancelOrder = (id: string) => {
-    setOpenOrders(prev => {
-      const order = prev.find(o => o.id === id);
-      if (order) {
-        setBalance(b => b + order.margin);
-        toast.info("Order cancelled");
-      }
-      return prev.filter(o => o.id !== id);
-    });
+    const order = openOrders.find(o => o.id === id);
+    if (!order) return;
+    
+    setBalance(b => b + order.margin);
+    toast.info("Order cancelled");
+    setOpenOrders(prev => prev.filter(o => o.id !== id));
   };
 
   const handleSliderChange = (val: number) => {
@@ -501,36 +499,34 @@ export function DemoTrading() {
   }, []);
 
   const handleClosePosition = (id: string, isMarket: boolean, priceOverride?: number) => {
-    setPositions(prev => {
-      const pos = prev.find(p => p.id === id);
-      if (!pos) return prev;
-      
-      if (!isMarket && priceOverride) {
-         // Create a Limit order to close it natively
-         const closeOrder: Position = {
-           ...pos,
-           id: Math.random().toString(36).substr(2, 9),
-           side: pos.side === 'LONG' ? 'SHORT' : 'LONG', // Opposite side to close
-           entryPrice: priceOverride, // The limit price
-           openedAt: Date.now()
-         };
-         setOpenOrders(o => [closeOrder, ...o]);
-         return prev.filter(p => p.id !== id); // Remove from active positions, wait, normally limit close doesn't remove the position until filled. 
-         // For a basic demo simulator, we can just treat the limit close as "it will close when price hits".
-      }
-      
-      // Market Close
-      const px = priceOverride || markPrices[pos.symbol];
-      const pnl = px ? calculatePnL(pos, px) : 0;
-      
-      // Update balance
-      setBalance(b => b + pos.margin + pnl);
-      setClosedPositions(c => [{ ...pos, closePrice: px, realizedPnl: pnl, closedAt: Date.now() }, ...c]);
-      
-      toast.info(`Position closed: ${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)} USDC`);
-      
-      return prev.filter(p => p.id !== id);
-    });
+    const pos = positions.find(p => p.id === id);
+    if (!pos) return;
+
+    if (!isMarket && priceOverride) {
+       // Create a Limit order to close it natively
+       const closeOrder: Position = {
+         ...pos,
+         id: Math.random().toString(36).substr(2, 9),
+         side: pos.side === 'LONG' ? 'SHORT' : 'LONG', // Opposite side to close
+         entryPrice: priceOverride, // The limit price
+         openedAt: Date.now()
+       };
+       setOpenOrders(o => [closeOrder, ...o]);
+       setPositions(prev => prev.filter(p => p.id !== id)); 
+       return;
+    }
+
+    // Market Close
+    const px = priceOverride || markPrices[pos.symbol];
+    const pnl = px ? calculatePnL(pos, px) : 0;
+    
+    // Update balance
+    setBalance(b => b + pos.margin + pnl);
+    setClosedPositions(c => [{ ...pos, closePrice: px, realizedPnl: pnl, closedAt: Date.now() }, ...c]);
+    
+    toast.info(`Position closed: ${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)} USDC`);
+    
+    setPositions(prev => prev.filter(p => p.id !== id));
   };
 
   // Define UI chunks for responsive layout splitting without duplicating logic
