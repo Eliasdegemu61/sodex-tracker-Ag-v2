@@ -394,6 +394,15 @@ export function TradeAnalytics() {
 
   const positions = futuresPositions;
 
+  useEffect(() => {
+    const storedAddress = localStorage.getItem('trade_analytics_address');
+    if (storedAddress) {
+      setSearchInput(storedAddress);
+      handleSearch(storedAddress);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const analytics = useMemo(() => {
     if (positions.length === 0) return null;
     
@@ -434,6 +443,7 @@ export function TradeAnalytics() {
       const foundUserId = await getUserIdByAddress(address);
       setWalletAddress(address);
       setUserId(foundUserId);
+      localStorage.setItem('trade_analytics_address', address);
 
       const rawFutures = await fetchAllPositions(foundUserId).catch(err => {
         console.warn('Failed to fetch futures:', err);
@@ -454,6 +464,7 @@ export function TradeAnalytics() {
     setUserId(null);
     setFuturesPositions([]);
     setSearchInput('');
+    localStorage.removeItem('trade_analytics_address');
   };
 
   if (!walletAddress) {
