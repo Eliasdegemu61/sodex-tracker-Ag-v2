@@ -112,6 +112,14 @@ export function DemoTrading() {
   // -- View State --
   const [bottomTab, setBottomTab] = useState<'Positions' | 'OpenOrders' | 'History'>('Positions');
   const [isMobileOrderFormOpen, setIsMobileOrderFormOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 1024);
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // -- Chart State --
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -458,6 +466,8 @@ export function DemoTrading() {
       setPositions(prev => [newPosition, ...prev]);
       toast.success(`${orderSide} Position opened at $${entryPx.toFixed(2)}`);
     }
+    
+    setIsMobileOrderFormOpen(false);
   };
   
   const handleCancelOrder = (id: string) => {
@@ -641,9 +651,15 @@ export function DemoTrading() {
               type="number" 
               value={limitPrice}
               onChange={(e) => setLimitPrice(e.target.value)}
-              className="w-full h-9 bg-muted/50 border border-transparent rounded-lg text-right px-3 pl-20 text-xs font-mono text-foreground focus:outline-none focus:border-border focus:ring-1 focus:ring-border transition-all placeholder:text-muted-foreground/30 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              className="w-full h-9 bg-muted/50 border border-transparent rounded-lg text-right px-[72px] pl-20 text-xs font-mono text-foreground focus:outline-none focus:border-border focus:ring-1 focus:ring-border transition-all placeholder:text-muted-foreground/30 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               placeholder={activePrice.toFixed(2)}
             />
+            <button 
+              onClick={() => setLimitPrice(activePrice.toFixed(2))}
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-primary/10 hover:bg-primary/20 text-primary text-[10px] font-black rounded transition-colors uppercase"
+            >
+              Mid
+            </button>
           </div>
         </div>
       )}
@@ -820,7 +836,7 @@ export function DemoTrading() {
                    className="w-full bg-background/50 border border-border/50 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
                  />
                </div>
-               <div className="flex flex-col py-2 max-h-[350px] overflow-y-auto custom-scrollbar">
+               <div className="flex flex-col py-2 max-h-[350px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                  {symbols.filter(sym => sym.toLowerCase().includes(searchQuery.toLowerCase())).map(sym => (
                    <button
                      key={sym}
@@ -849,7 +865,12 @@ export function DemoTrading() {
         )}
       </div>
 
-      <Toaster position="top-right" richColors theme={theme === 'dark' ? 'dark' : 'light'} />
+      <Toaster 
+        position="top-center" 
+        richColors 
+        theme={theme === 'dark' ? 'dark' : 'light'} 
+        style={{ zIndex: 100000 }}
+      />
 
       {/* --- Main Content Area --- */}
       <div className="flex-1 flex flex-col lg:flex-row min-h-0 lg:h-[calc(100vh-140px)] lg:overflow-hidden overflow-visible">
@@ -884,7 +905,7 @@ export function DemoTrading() {
                          onChange={(e) => setSearchQuery(e.target.value)}
                          className="w-full bg-muted border border-border/50 rounded-xl py-3 px-4 text-sm mb-4 focus:outline-none focus:ring-1 focus:ring-primary/50"
                        />
-                       <div className="flex flex-col gap-1 max-h-[50vh] overflow-y-auto">
+                       <div className="flex flex-col gap-1 max-h-[50vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                          {symbols.filter(sym => sym.toLowerCase().includes(searchQuery.toLowerCase())).map(sym => (
                            <button
                              key={sym}
