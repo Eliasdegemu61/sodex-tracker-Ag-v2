@@ -2,6 +2,7 @@ import React from "react"
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Providers } from '@/app/providers'
 import { AnnouncementProvider } from '@/context/announcement-context'
 import { FAVICON_DATA_URI } from '@/lib/image-constants'
@@ -52,6 +53,7 @@ export default function RootLayout({
           </Providers>
         </AnnouncementProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
