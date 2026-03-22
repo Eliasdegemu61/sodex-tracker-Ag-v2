@@ -209,7 +209,7 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
               Tracking: <span className="text-foreground/80">{walletAddress}</span>
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <ShareStatsModal 
               walletAddress={walletAddress} 
               userId={userId || ''} 
