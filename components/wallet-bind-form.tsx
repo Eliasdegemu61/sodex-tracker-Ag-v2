@@ -17,8 +17,9 @@ export function WalletBindForm() {
   const [status, setStatus] = useState<string | null>(null);
   const { setWalletAddress } = usePortfolio();
 
-  const handleBind = async () => {
-    if (!address.trim()) {
+  const handleBind = async (addr?: string) => {
+    const targetAddress = (addr || address).trim();
+    if (!targetAddress) {
       setError('Please enter a wallet address');
       return;
     }
@@ -34,7 +35,7 @@ export function WalletBindForm() {
 
       // Step 1: Get userId from address
       setStatus('Looking up your account...');
-      const userId = await getUserIdByAddress(address.trim());
+      const userId = await getUserIdByAddress(targetAddress);
       console.log('[v0] Found userId:', userId);
 
       // Step 2: Fetch positions
@@ -49,7 +50,7 @@ export function WalletBindForm() {
 
       // Step 4: Save to portfolio context
       setStatus('Saving your account...');
-      await setWalletAddress(address.trim(), userId, enrichedPositions);
+      await setWalletAddress(targetAddress, userId, enrichedPositions);
 
       console.log('[v0] Successfully bound account');
       setStatus('Account bound successfully!');
@@ -99,11 +100,23 @@ export function WalletBindForm() {
           )}
           <div className="pt-2">
             <button
-              onClick={handleBind}
+              onClick={() => handleBind()}
               disabled={isLoading || !address.trim()}
               className="w-full flex items-center justify-center gap-2 py-4 bg-zinc-400 hover:bg-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed text-zinc-900 rounded-2xl font-semibold transition-all duration-300 active:scale-[0.98]"
             >
               {isLoading ? 'Loading...' : 'Bind Account'}
+            </button>
+
+            <button
+              onClick={() => {
+                const demoAddr = '0x0879A87D6D1Ea21C902946F2dAf80a7FAD77BC84';
+                setAddress(demoAddr);
+                handleBind(demoAddr);
+              }}
+              disabled={isLoading}
+              className="mt-4 w-full flex items-center justify-center gap-2 py-4 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 border border-orange-500/20 rounded-2xl font-semibold transition-all duration-300 active:scale-[0.98]"
+            >
+              Try Demo Portfolio
             </button>
           </div>
         </div>

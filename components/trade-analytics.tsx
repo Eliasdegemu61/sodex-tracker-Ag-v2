@@ -506,6 +506,19 @@ export function TradeAnalytics() {
                 ) : "Analyze Performance"}
               </Button>
 
+              <Button 
+                onClick={() => {
+                  const demoAddr = '0x0879A87D6D1Ea21C902946F2dAf80a7FAD77BC84';
+                  setSearchInput(demoAddr);
+                  handleSearch(demoAddr);
+                }}
+                disabled={isLoading}
+                variant="outline"
+                className="w-full h-14 rounded-2xl border-orange-500/20 bg-orange-500/5 text-orange-500 hover:bg-orange-500/10 font-bold text-[11px] uppercase tracking-[0.2em] transition-all duration-300"
+              >
+                Try Demo Account
+              </Button>
+
               {error && <p className="text-xs font-bold text-orange-500 text-center">{error}</p>}
             </div>
           </Card>

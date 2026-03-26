@@ -31,7 +31,20 @@ import { Loader2 } from 'lucide-react'
 
 const OverallDepositsCard = dynamic(
   () => import('@/components/overall-token-flow').then((mod) => mod.OverallDepositsCard),
-  { ssr: false, loading: () => <div className="h-[400px] flex flex-col items-center justify-center gap-4"><Loader2 className="w-8 h-8 text-primary animate-spin" /><span className="text-sm font-medium text-muted-foreground animate-pulse">Loading Assets...</span></div> }
+  { ssr: false, loading: () => {
+    // Attempting to import the skeleton too, or just duplicating the structure for the immediate dynamic loader
+    return <div className="space-y-6 w-full max-w-7xl mx-auto pb-12 animate-in fade-in duration-500">
+        <div className="grid grid-cols-3 gap-4 mb-8">
+            {[1, 2, 3].map(i => <div key={i} className="h-32 bg-card/20 border border-border/5 rounded-[2rem] animate-pulse" />)}
+        </div>
+        <div className="h-[550px] bg-card/20 border border-border/10 rounded-[2.5rem] animate-pulse" />
+    </div>
+  } }
+)
+
+const AssetsSkeleton = dynamic(
+  () => import('@/components/overall-token-flow').then((mod) => mod.AssetsSkeleton),
+  { ssr: false }
 )
 
 import { TrackerSection } from '@/components/tracker-section'
@@ -420,7 +433,7 @@ export default function Dashboard() {
               )}
 
               {currentPage === 'assets' && (
-                <Suspense fallback={<div className="h-[400px] flex flex-col items-center justify-center gap-4"><Loader2 className="w-8 h-8 text-primary animate-spin" /><span className="text-sm font-medium text-muted-foreground animate-pulse">Loading Assets...</span></div>}>
+                <Suspense fallback={<AssetsSkeleton />}>
                   <div className="space-y-6">
                     <div className="flex flex-col gap-0.5">
                       <h1 className="text-2xl font-black text-foreground tracking-tight">SoDex Token Retention</h1>

@@ -61,6 +61,41 @@ const WITHDRAWAL_COLORS = [
     '#fca5a5', '#fecaca', '#f43f5e', '#e11d48', '#be123c'
 ]
 
+export function AssetsSkeleton() {
+    return (
+        <div className="space-y-6 w-full max-w-7xl mx-auto pb-12 animate-in fade-in duration-500">
+            {/* Header skeletons */}
+            <div className="grid grid-cols-3 gap-2 md:gap-4 mb-8">
+                {[1, 2, 3].map(i => (
+                    <Card key={i} className="p-3 md:p-6 bg-card/20 backdrop-blur-xl border-border/5 rounded-2xl md:rounded-[2rem] h-24 md:h-32 animate-pulse" />
+                ))}
+            </div>
+
+            {/* Chart Card skeleton */}
+            <Card className="p-6 md:p-8 bg-card/20 backdrop-blur-3xl border-border/10 rounded-[2.5rem] h-[550px] animate-pulse relative overflow-hidden">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+                    <div className="h-6 w-48 bg-secondary/10 rounded-lg" />
+                    <div className="flex gap-2">
+                        <div className="h-8 w-24 bg-secondary/10 rounded-xl" />
+                        <div className="h-8 w-32 bg-secondary/10 rounded-xl" />
+                    </div>
+                </div>
+                <div className="w-full h-[400px] bg-secondary/5 rounded-3xl" />
+            </Card>
+
+            {/* Table skeleton */}
+            <Card className="p-6 bg-card/20 backdrop-blur-xl border-border/10 rounded-[2.5rem] h-96 animate-pulse">
+                <div className="h-6 w-48 bg-secondary/10 rounded-lg mb-8" />
+                <div className="space-y-4">
+                    {[1, 2, 3, 4, 5].map(i => (
+                        <div key={i} className="h-12 bg-secondary/5 rounded-xl" />
+                    ))}
+                </div>
+            </Card>
+        </div>
+    )
+}
+
 export function OverallDepositsCard() {
     return <AssetIntelligenceDashboard />
 }
@@ -302,20 +337,7 @@ export function AssetIntelligenceDashboard() {
 
 
     if (isLoading || !mounted) {
-        return (
-            <Card className="col-span-full p-8 bg-card/40 backdrop-blur-xl border-border/20 rounded-[2.5rem] animate-pulse">
-                <div className="flex items-center gap-3 mb-8">
-                    <div className="w-10 h-10 rounded-2xl bg-secondary/20" />
-                    <div className="h-4 w-48 bg-secondary/20 rounded-lg" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                    {[1, 2, 3].map(i => (
-                        <div key={i} className="h-32 bg-secondary/10 rounded-3xl" />
-                    ))}
-                </div>
-                <div className="h-96 bg-secondary/5 rounded-3xl" />
-            </Card>
-        )
+        return <AssetsSkeleton />
     }
 
     const toggleToken = (token: string) => {
@@ -330,7 +352,7 @@ export function AssetIntelligenceDashboard() {
     }
 
     return (
-        <div className="space-y-6 w-full max-w-7xl mx-auto pb-12">
+        <div className="space-y-6 w-full max-w-7xl mx-auto pb-12 animate-in fade-in duration-1000 slide-in-from-bottom-2">
             {/* Aggregate Intelligence Header - 3 Column Stats on Mobile */}
             <div className="grid grid-cols-3 gap-2 md:gap-4 mb-8">
                 <SummaryCard
