@@ -472,7 +472,7 @@ export function TradeAnalytics() {
       <div className="min-h-[60vh] flex items-center justify-center p-6 font-sans">
         <div className="w-full max-w-xl space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-500">
           <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold text-foreground tracking-tight">Trade Analytics</h1>
+            <h1 className="text-4xl font-bold text-foreground tracking-tight">Trade Analytics (TEST_ANALYTICS)</h1>
             <p className="text-muted-foreground text-sm max-w-md mx-auto font-medium leading-relaxed">
               Enter your wallet to generate a professional futures performance report
             </p>
@@ -506,18 +506,6 @@ export function TradeAnalytics() {
                 ) : "Analyze Performance"}
               </Button>
 
-              <Button 
-                onClick={() => {
-                  const demoAddr = '0x0879A87D6D1Ea21C902946F2dAf80a7FAD77BC84';
-                  setSearchInput(demoAddr);
-                  handleSearch(demoAddr);
-                }}
-                disabled={isLoading}
-                variant="outline"
-                className="w-full h-14 rounded-2xl border-orange-500/20 bg-orange-500/5 text-orange-500 hover:bg-orange-500/10 font-bold text-[11px] uppercase tracking-[0.2em] transition-all duration-300"
-              >
-                Try Demo Account
-              </Button>
 
               {error && <p className="text-xs font-bold text-orange-500 text-center">{error}</p>}
             </div>

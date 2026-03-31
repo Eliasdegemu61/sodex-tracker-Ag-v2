@@ -106,18 +106,6 @@ export function WalletBindForm() {
             >
               {isLoading ? 'Loading...' : 'Bind Account'}
             </button>
-
-            <button
-              onClick={() => {
-                const demoAddr = '0x0879A87D6D1Ea21C902946F2dAf80a7FAD77BC84';
-                setAddress(demoAddr);
-                handleBind(demoAddr);
-              }}
-              disabled={isLoading}
-              className="mt-4 w-full flex items-center justify-center gap-2 py-4 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 border border-orange-500/20 rounded-2xl font-semibold transition-all duration-300 active:scale-[0.98]"
-            >
-              Try Demo Portfolio
-            </button>
           </div>
         </div>
       </div>

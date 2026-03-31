@@ -187,18 +187,6 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
               <Search className="w-4 h-4" />
               {isLoading ? 'Searching...' : 'Search Wallet'}
             </button>
-
-            <button
-              onClick={() => {
-                const demoAddr = '0x0879A87D6D1Ea21C902946F2dAf80a7FAD77BC84';
-                setSearchInput(demoAddr);
-                handleSearch(demoAddr);
-              }}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 py-4 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 border border-orange-500/20 rounded-2xl font-semibold transition-all duration-300 active:scale-[0.98]"
-            >
-              Try Demo Account
-            </button>
           </div>
         </div>
       </div>
