@@ -52,54 +52,49 @@ export function PerformanceStreak({ days }: PerformanceStreakProps) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
             {/* Current Streak */}
-            <div className="p-4 md:p-6 rounded-2xl bg-secondary/10 border border-border/10 flex items-center justify-between group overflow-hidden relative backdrop-blur-md">
-                <div className="space-y-0.5 md:space-y-1 relative z-10">
-                    <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">Active Streak</p>
+            <div className="p-4 rounded-xl bg-secondary/5 border border-border/10 flex items-center justify-between">
+                <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest">Active Streak</p>
                     <p className={cn(
-                        "text-xl md:text-2xl font-bold tracking-tight",
-                        isWinning ? "text-emerald-500/80" : isLosing ? "text-red-500/80" : "text-muted-foreground/40"
+                        "text-xl font-bold tracking-tight",
+                        isWinning ? "text-emerald-500" : isLosing ? "text-red-500" : "text-muted-foreground/20"
                     )}>
                         {currentStreak} Days
                     </p>
                 </div>
                 <div className={cn(
-                    "p-2.5 rounded-xl relative z-10",
-                    isWinning ? "bg-emerald-500/10 text-emerald-500" : 
-                    isLosing ? "bg-red-500/10 text-red-500" : 
-                    "bg-secondary/20 text-muted-foreground/40"
+                    "p-2 rounded-lg",
+                    isWinning ? "bg-emerald-500/5 text-emerald-500" : 
+                    isLosing ? "bg-red-500/5 text-red-500" : 
+                    "bg-secondary/10 text-muted-foreground/10"
                 )}>
-                    <Flame className={cn("w-4 h-4 md:w-5 md:h-5", currentStreak > 3 && "animate-pulse")} />
+                    <Flame className={cn("w-4 h-4", currentStreak > 3 && "animate-pulse")} />
                 </div>
-                {/* Background flourish */}
-                <div className={cn(
-                    "absolute -right-4 -bottom-4 w-24 h-24 blur-3xl opacity-10 rounded-full",
-                    isWinning ? "bg-emerald-500" : isLosing ? "bg-red-500" : "bg-primary"
-                )} />
             </div>
 
             {/* Best Win Streak */}
-            <div className="p-4 md:p-6 rounded-2xl bg-secondary/10 border border-border/10 flex items-center justify-between backdrop-blur-md">
-                <div className="space-y-0.5 md:space-y-1">
-                    <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">Best Win Streak</p>
-                    <p className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
+            <div className="p-4 rounded-xl bg-secondary/5 border border-border/10 flex items-center justify-between">
+                <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest">Best Win Streak</p>
+                    <p className="text-xl font-bold tracking-tight text-foreground">
                         {bestWinStreak} Days
                     </p>
                 </div>
-                <div className="p-2.5 rounded-xl bg-secondary/20 text-emerald-500/60">
-                    <Trophy className="w-4 h-4 md:w-5 md:h-5" />
+                <div className="p-2 rounded-lg bg-secondary/10 text-emerald-500/40">
+                    <Trophy className="w-4 h-4" />
                 </div>
             </div>
 
             {/* Worst Loss Streak */}
-            <div className="p-4 md:p-6 rounded-2xl bg-secondary/10 border border-border/10 flex items-center justify-between backdrop-blur-md">
-                <div className="space-y-0.5 md:space-y-1">
-                    <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">Max Drawdown Run</p>
-                    <p className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
+            <div className="p-4 rounded-xl bg-secondary/5 border border-border/10 flex items-center justify-between">
+                <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest">Max DD Streak</p>
+                    <p className="text-xl font-bold tracking-tight text-foreground">
                         {worstLossStreak} Days
                     </p>
                 </div>
-                <div className="p-2.5 rounded-xl bg-secondary/20 text-red-500/60">
-                    <TrendingDown className="w-4 h-4 md:w-5 md:h-5" />
+                <div className="p-2 rounded-lg bg-secondary/10 text-red-500/40">
+                    <TrendingDown className="w-4 h-4" />
                 </div>
             </div>
         </div>

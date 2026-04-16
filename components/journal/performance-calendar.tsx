@@ -69,10 +69,10 @@ export function PerformanceCalendar({ days }: PerformanceCalendarProps) {
                 </div>
             </div>
 
-            <div className="grid grid-cols-7 gap-2">
+            <div className="grid grid-cols-7 gap-1 md:gap-2">
                 {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
                     <div key={i} className="text-center py-1">
-                        <span className="text-[9px] font-bold text-muted-foreground/10 uppercase">{day}</span>
+                        <span className="text-[8px] font-bold text-muted-foreground/30 uppercase">{day}</span>
                     </div>
                 ))}
                 
@@ -89,57 +89,39 @@ export function PerformanceCalendar({ days }: PerformanceCalendarProps) {
                         <div 
                             key={i} 
                             className={cn(
-                                "aspect-square rounded-2xl flex flex-col items-center justify-center relative transition-all duration-300",
-                                isToday ? "bg-secondary/20 border border-primary/20" : "bg-secondary/5 border border-border/5",
-                                day.data && day.data.trades > 0 ? "hover:scale-105 hover:bg-secondary/10 cursor-pointer" : ""
+                                "aspect-square rounded-xl flex flex-col items-center justify-center relative transition-all duration-300",
+                                isToday ? "bg-white/10 border border-white/20" : "bg-black border border-white/5",
+                                day.data && day.data.trades > 0 ? "hover:bg-white/5 cursor-pointer" : ""
                             )}
                         >
                             <span className={cn(
                                 "text-[10px] font-bold tabular-nums",
-                                isToday ? "text-foreground" : "text-muted-foreground/20"
+                                isToday ? "text-white" : day.data && day.data.trades > 0 ? "text-white/60" : "text-white/10"
                             )}>
                                 {day.dayNumber}
                             </span>
                             
                             {day.data && day.data.trades > 0 && (
                                 <div className={cn(
-                                    "absolute top-2 right-2 w-1.5 h-1.5 rounded-full shadow-[0_0_8px]",
-                                    isProfit ? "bg-emerald-500 shadow-emerald-500/40" : 
-                                    isLoss ? "bg-red-500 shadow-red-500/40" : 
-                                    "bg-muted-foreground/20 shadow-muted-foreground/10"
+                                    "absolute bottom-1.5 w-1 h-1 rounded-full",
+                                    isProfit ? "bg-emerald-500" : 
+                                    isLoss ? "bg-red-500" : 
+                                    "bg-white/20"
                                 )} />
-                            )}
-
-                            {day.data && day.data.targetReached && (
-                                <div className="absolute top-1 left-1.5">
-                                    <CheckCheck className="w-2.5 h-2.5 text-emerald-500" />
-                                </div>
-                            )}
-
-                            {day.data && day.data.trades > 5 && (
-                              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-0.5">
-                                <div className="w-1 h-1 rounded-full bg-muted-foreground/10" />
-                                <div className="w-1 h-1 rounded-full bg-muted-foreground/10" />
-                              </div>
                             )}
                         </div>
                     );
                 })}
             </div>
 
-            {/* Legend / Tip */}
-            <div className="flex items-center gap-4 md:gap-6 px-2 justify-center">
+            <div className="flex items-center gap-4 px-2 justify-center">
                 <div className="flex items-center gap-1.5">
-                    <div className="w-1 h-1 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.4)]" />
-                    <span className="text-[8px] font-bold text-muted-foreground/20 uppercase tracking-widest">Growth</span>
+                    <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                    <span className="text-[8px] font-bold text-muted-foreground/30 uppercase tracking-widest">Profit</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <div className="w-1 h-1 rounded-full bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.4)]" />
-                    <span className="text-[8px] font-bold text-muted-foreground/20 uppercase tracking-widest">Drawdown</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                    <div className="w-1 h-1 rounded-full bg-muted-foreground/10" />
-                    <span className="text-[8px] font-bold text-muted-foreground/20 uppercase tracking-widest">Neutral</span>
+                    <div className="w-1 h-1 rounded-full bg-red-500" />
+                    <span className="text-[8px] font-bold text-muted-foreground/30 uppercase tracking-widest">Loss</span>
                 </div>
             </div>
         </div>

@@ -22,58 +22,45 @@ interface PlanDashboardProps {
     accountId?: string | null;
 }
 
+type DashboardTab = 'overview' | 'analytics' | 'history';
+
 function StatCard({ label, value, sub, accent }: { label: string; value: string; sub?: string; accent?: 'green' | 'red' | 'orange' }) {
     return (
-        <div className="flex flex-col gap-0.5 p-3 md:p-4 rounded-2xl bg-card/40 backdrop-blur-xl border border-border/10">
-            <span className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">{label}</span>
-            <div className="flex items-baseline gap-1.5">
+        <div className="flex flex-col p-3 rounded-xl bg-secondary/5 border border-border/10">
+            <span className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest mb-1">{label}</span>
+            <div className="flex items-baseline justify-between">
                 <span className={cn(
                     "text-xl font-bold tracking-tight",
-                    accent === 'green' ? 'text-emerald-500/80' :
-                    accent === 'red' ? 'text-red-500/80' :
-                    'text-foreground/90'
+                    accent === 'green' ? 'text-emerald-500' :
+                    accent === 'red' ? 'text-red-500' :
+                    'text-foreground'
                 )}>
                     {value}
                 </span>
-                {sub && <span className="text-[9px] text-muted-foreground/30 font-medium">{sub}</span>}
+                {sub && <span className="text-[10px] text-muted-foreground/30 font-bold tabular-nums">{sub}</span>}
             </div>
         </div>
     );
 }
 
-function MiniProgressBar({ percent, label, value, subValue, color = "white" }: { 
-    percent: number, 
-    label: string, 
-    value: string, 
-    subValue?: string,
-    color?: "white" | "green" | "blue"
-}) {
-    const barColor = color === 'green' ? 'bg-emerald-500/80' : color === 'blue' ? 'bg-primary' : 'bg-foreground/20';
-    const glowColor = color === 'green' ? 'shadow-[0_0_12px_rgba(16,185,129,0.3)]' : color === 'blue' ? 'shadow-[0_0_12px_rgba(59,130,246,0.3)]' : '';
+function GoalStat({ label, value, percent, color = "green" }: { percent: number, label: string, value: string, color?: "green" | "blue" }) {
+    const barColor = color === 'green' ? 'bg-emerald-500' : 'bg-primary';
 
     return (
-        <div className="space-y-3">
-            <div className="flex justify-between items-baseline">
-                <div className="flex flex-col gap-0.5">
-                    <span className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-[0.15em]">{label}</span>
-                    <span className="text-sm font-bold text-foreground/90 tracking-tight">{value}</span>
-                </div>
-                <div className="text-right flex flex-col items-end gap-0.5">
-                    <span className="text-lg font-mono font-bold text-foreground/70 leading-none">{Math.round(percent)}%</span>
-                    {subValue && <span className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">{subValue}</span>}
-                </div>
+        <div className="flex flex-col gap-3">
+             <div className="flex justify-between items-baseline">
+                <span className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest">{label}</span>
+                <span className="text-[11px] font-bold text-foreground tabular-nums">{value}</span>
             </div>
-            <div className="h-2 w-full bg-secondary/10 rounded-full overflow-hidden p-[1px] border border-border/5">
+            <div className="h-1.5 w-full bg-secondary/10 rounded-full overflow-hidden">
                 <div 
-                    className={cn(
-                        "h-full rounded-full transition-all duration-1000 ease-out relative",
-                        barColor,
-                        glowColor
-                    )} 
+                    className={cn("h-full rounded-full transition-all duration-1000", barColor)} 
                     style={{ width: `${Math.min(100, percent)}%` }} 
-                >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
-                </div>
+                />
+            </div>
+            <div className="flex justify-between items-center text-[10px] font-bold">
+                <span className="text-muted-foreground/30 uppercase">Progress</span>
+                <span className={cn(color === 'green' ? 'text-emerald-500' : 'text-primary')}>{Math.round(percent)}%</span>
             </div>
         </div>
     );
@@ -83,6 +70,7 @@ export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps
     const { plan, totalPnl, pnlPercent, winRate, totalTrades, currentBalance, profitFactor, maxDrawdown, allPositions } = metrics;
     const isProfit = totalPnl >= 0;
 
+    const [activeTab, setActiveTab] = React.useState<DashboardTab>('overview');
     const [historyPage, setHistoryPage] = React.useState(0);
 
     const goalTarget = plan.overallProfitTarget > 0 
@@ -96,173 +84,150 @@ export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps
     const timeProgressPercent = Math.min(100, (metrics.daysCompleted / metrics.totalDays) * 100);
 
     return (
-        <div className="space-y-8 md:space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {/* Header section */}
-            <div className="pb-4 md:pb-8 border-b border-border/10 space-y-3 md:space-y-6">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 md:gap-4">
-                        <h2 className="text-2xl md:text-4xl font-bold tracking-tight text-foreground">{plan.name}</h2>
-                        <div className="px-2 py-0.5 rounded-full bg-secondary/10 border border-border/10 text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40">
-                            Live
-                        </div>
+        <div className="space-y-6 md:space-y-10 animate-in fade-in duration-700">
+            {/* Header section - Extremely Compact */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-border/10">
+                <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-2xl font-bold tracking-tight text-foreground">{plan.name}</h2>
+                        {onEdit && (
+                            <button onClick={onEdit} className="p-1 rounded-lg text-muted-foreground/20 hover:text-foreground hover:bg-secondary/10 transition-all">
+                                <Settings2 className="w-3.5 h-3.5" />
+                            </button>
+                        )}
                     </div>
-                    {onEdit && (
-                        <button
-                            onClick={onEdit}
-                            className="p-1.5 rounded-xl text-muted-foreground/30 hover:text-foreground hover:bg-secondary/10 transition-all"
-                        >
-                            <Settings2 className="w-3.5 h-3.5" />
-                        </button>
-                    )}
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground/30 uppercase tracking-[0.15em]">
+                        <span>{new Date(plan.startDate).toLocaleDateString()}</span>
+                        <ChevronRight className="w-2.5 h-2.5" />
+                        <span>{metrics.totalDays} Day Plan</span>
+                    </div>
                 </div>
                 
-                <div className="flex items-center gap-3 text-[9px] font-bold text-muted-foreground/20 uppercase tracking-widest">
-                    <span>{new Date(plan.startDate).toLocaleDateString()}</span>
-                    <ChevronRight className="w-2.5 h-2.5" />
-                    <span>{new Date(plan.endDate).toLocaleDateString()}</span>
+                <div className="flex items-center gap-6">
+                    <div className="text-right">
+                        <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest mb-0.5">Balance</p>
+                        <p className="text-xl font-bold tracking-tight text-foreground">${currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                    </div>
                 </div>
             </div>
 
-            {/* Performance Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            {/* Performance Grid - Compact 2x2 or 4x1 */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <StatCard 
                     label="Current Balance" 
-                    value={`$${currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} 
+                    value={`$${currentBalance.toLocaleString(undefined, { minimumFractionDigits: 0 })}`} 
                     accent={currentBalance >= plan.startingBalance ? 'green' : 'red'}
                 />
                 <StatCard 
                     label="Total PnL" 
-                    value={`${isProfit ? '+' : ''}$${Math.abs(totalPnl).toLocaleString(undefined, { minimumFractionDigits: 2 })}`} 
-                    sub={`${isProfit ? '+' : ''}${pnlPercent.toFixed(2)}%`}
+                    value={`${isProfit ? '+' : ''}$${Math.abs(totalPnl).toLocaleString(undefined, { minimumFractionDigits: 0 })}`} 
+                    sub={`${isProfit ? '+' : ''}${pnlPercent.toFixed(1)}%`}
                     accent={isProfit ? 'green' : 'red'}
                 />
-                <StatCard 
-                    label="Profit Factor" 
-                    value={profitFactor.toFixed(2)} 
-                />
-                <StatCard 
-                    label="Drawdown" 
-                    value={`${maxDrawdown.toFixed(1)}%`} 
-                    accent={maxDrawdown > 5 ? 'red' : undefined}
-                />
+                <StatCard label="Win Rate" value={`${winRate.toFixed(1)}%`} sub={`${totalTrades} trades`} />
+                <StatCard label="Profit Factor" value={profitFactor.toFixed(2)} sub={`DD: ${maxDrawdown.toFixed(1)}%`} />
             </div>
 
-            {/* Progress Bars */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 bg-secondary/5 border border-border/10 rounded-3xl p-8 md:p-10">
-                <MiniProgressBar
+            {/* Goal Row - Very Compact */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-secondary/5 border border-border/10 rounded-2xl p-6">
+                <GoalStat
                     percent={timeProgressPercent}
-                    label="Current Cycle"
+                    label="Cycle Progress"
                     value={`${metrics.daysCompleted} / ${metrics.totalDays} Days`}
-                    subValue="Time Elapsed"
                     color="blue"
                 />
-                <MiniProgressBar
+                <GoalStat
                     percent={profitProgressPercent}
                     label="Goal Progress"
                     value={`$${totalPnl.toFixed(0)} / $${goalTarget.toFixed(0)}`}
-                    subValue={plan.overallProfitTarget > 0 ? "Fixed Target" : "Aggregated Target"}
-                    color={totalPnl > 0 ? "green" : "white"}
+                    color={totalPnl > 0 ? "green" : "blue"}
                 />
             </div>
 
-            {/* Balance Chart */}
-            <div className="bg-secondary/5 border border-border/10 rounded-3xl p-6 md:p-8">
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-1">Account Balance</h3>
-                        <p className="text-xl font-bold text-foreground tracking-tight">${currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            {/* View Tabs */}
+            <div className="flex border-b border-border/10">
+                {(['overview', 'analytics', 'history'] as DashboardTab[]).map((tab) => (
+                    <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={cn(
+                            "px-4 py-2 text-[10px] font-bold uppercase tracking-widest border-b-2 transition-all",
+                            activeTab === tab 
+                                ? "border-primary text-foreground" 
+                                : "border-transparent text-muted-foreground/40 hover:text-foreground"
+                        )}
+                    >
+                        {tab}
+                    </button>
+                ))}
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === 'overview' && (
+                <div className="space-y-8 animate-in fade-in duration-500">
+                    <div className="bg-secondary/5 border border-border/10 rounded-2xl p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">Equity Curve</h3>
+                            <div className="text-[10px] font-bold text-muted-foreground/20 uppercase tracking-widest">Growth over time</div>
+                        </div>
+                        <EquityChart data={metrics.equityCurve} />
                     </div>
-                    <div className="px-3 py-1 rounded-full bg-secondary/10 border border-border/10 text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40">
-                        Equity Curve
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <PerformanceCalendar days={metrics.dailyPerformance} />
+                        <PerformanceStreak days={metrics.dailyPerformance} />
                     </div>
                 </div>
-                <EquityChart data={metrics.equityCurve} />
-            </div>
+            )}
 
-            {/* Active Positions Section */}
-            <div className="space-y-6">
-                <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">Active Positions</h3>
-                <OpenPositions accountId={accountId} />
-            </div>
+            {activeTab === 'analytics' && (
+                <div className="space-y-10 animate-in fade-in duration-500">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <DisciplineScore score={metrics.disciplineScore} />
+                        <RuleViolations violations={metrics.violations} />
+                    </div>
 
-            {/* Streak & Calendar Section */}
-            <div className="space-y-12">
-                <PerformanceStreak days={metrics.dailyPerformance} />
-                
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    <PerformanceCalendar days={metrics.dailyPerformance} />
+                    <div className="space-y-6">
+                        <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">Asset Analytics</h3>
+                        <TradeAnalytics analytics={metrics.symbolAnalytics} />
+                    </div>
+
+                    <DailyAnalysis 
+                        allPositions={allPositions} 
+                        dailyPerformance={metrics.dailyPerformance} 
+                    />
+                </div>
+            )}
+
+            {activeTab === 'history' && (
+                <div className="space-y-6 animate-in fade-in duration-500">
+                    <div className="space-y-6">
+                        <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">Active Positions</h3>
+                        <OpenPositions accountId={accountId} />
+                    </div>
+                    
                     <DailyPerformanceHistory days={metrics.dailyPerformance} />
-                </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
-                    <DisciplineScore score={metrics.disciplineScore} />
-                    <RuleViolations violations={metrics.violations} />
-                </div>
-            </div>
 
-            {/* Trade Analytics Section */}
-            <div className="space-y-6">
-                <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">Asset Analytics</h3>
-                <TradeAnalytics analytics={metrics.symbolAnalytics} />
-            </div>
-
-            {/* Detailed States */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
-                <div className="p-3 md:p-4 rounded-xl border border-border/10 space-y-0.5 md:space-y-1 bg-card/20">
-                    <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">Win Rate</p>
-                    <p className="text-[13px] font-bold text-foreground tracking-tight tabular-nums">{winRate.toFixed(1)}%</p>
-                </div>
-                <div className="p-3 md:p-4 rounded-xl border border-border/10 space-y-0.5 md:space-y-1 bg-card/20">
-                    <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">Avg Win</p>
-                    <p className="text-[13px] font-bold text-emerald-500/80">+${metrics.avgWin.toFixed(0)}</p>
-                </div>
-                <div className="p-3 md:p-4 rounded-xl border border-border/10 space-y-0.5 md:space-y-1 bg-card/20">
-                    <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">Avg Loss</p>
-                    <p className="text-[13px] font-bold text-red-500/80">-${Math.abs(metrics.avgLoss).toFixed(0)}</p>
-                </div>
-                <div className="p-3 md:p-4 rounded-xl border border-border/10 space-y-0.5 md:space-y-1 bg-card/20">
-                    <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">Total Trades</p>
-                    <p className="text-[13px] font-bold text-foreground/60">{totalTrades}</p>
-                </div>
-                <div className="p-3 md:p-4 rounded-xl border border-border/10 space-y-0.5 md:space-y-1 bg-card/20">
-                    <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">Avg Time</p>
-                    <p className="text-[13px] font-bold text-foreground/60">{formatHoldingTime(metrics.avgHoldingTimeMs)}</p>
-                </div>
-                <div className="p-3 md:p-4 rounded-xl border border-border/10 space-y-0.5 md:space-y-1 bg-card/20">
-                    <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">Violations</p>
-                    <p className={cn("text-[13px] font-bold", metrics.violations.length > 0 ? "text-red-500/80" : "text-muted-foreground/20")}>
-                        {metrics.violations.length}
-                    </p>
-                </div>
-            </div>
-
-            {/* Daily Analysis */}
-            <DailyAnalysis 
-                allPositions={allPositions} 
-                dailyPerformance={metrics.dailyPerformance} 
-            />
-
-            {/* Position History */}
-            <div className="space-y-4 md:space-y-6">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">Position History</h3>
-                    <div className="flex gap-2">
-                        <button 
-                            disabled={historyPage === 0}
-                            onClick={() => setHistoryPage(p => Math.max(0, p - 1))}
-                            className="p-1 px-2 rounded-lg border border-border/10 bg-secondary/10 hover:bg-secondary/20 disabled:opacity-20 transition-all"
-                        >
-                            <ChevronLeft className="w-3.5 h-3.5 text-foreground/60" />
-                        </button>
-                        <button 
-                            disabled={(historyPage + 1) * 5 >= allPositions.length}
-                            onClick={() => setHistoryPage(p => p + 1)}
-                            className="p-1 px-2 rounded-lg border border-border/10 bg-secondary/10 hover:bg-secondary/20 disabled:opacity-20 transition-all"
-                        >
-                            <ChevronRight className="w-3.5 h-3.5 text-foreground/60" />
-                        </button>
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">Execution Logs</h3>
+                        <div className="flex gap-2">
+                            <button 
+                                disabled={historyPage === 0}
+                                onClick={() => setHistoryPage(p => Math.max(0, p - 1))}
+                                className="p-1 px-2 rounded-lg border border-border/10 bg-secondary/10 hover:bg-secondary/20 disabled:opacity-20 transition-all"
+                            >
+                                <ChevronLeft className="w-3.5 h-3.5 text-foreground/60" />
+                            </button>
+                            <button 
+                                disabled={(historyPage + 1) * 10 >= allPositions.length}
+                                onClick={() => setHistoryPage(p => p + 1)}
+                                className="p-1 px-2 rounded-lg border border-border/10 bg-secondary/10 hover:bg-secondary/20 disabled:opacity-20 transition-all"
+                            >
+                                <ChevronRight className="w-3.5 h-3.5 text-foreground/60" />
+                            </button>
+                        </div>
                     </div>
-                </div>
                 <div className="overflow-x-auto rounded-2xl border border-border/10 bg-secondary/5 backdrop-blur-md">
                     <table className="w-full text-left text-[11px]">
                         <thead>
@@ -274,30 +239,25 @@ export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/10">
-                            {allPositions.slice(historyPage * 5, (historyPage + 1) * 5).map((pos, i) => (
+                            {allPositions.slice(historyPage * 10, (historyPage + 1) * 10).map((pos, i) => (
                                 <tr key={i} className="group hover:bg-primary/5 transition-colors">
-                                    <td className="px-4 md:px-6 py-3 md:py-4">
-                                        <div className="font-black text-foreground/90 text-[11px] md:text-xs">{pos.pairName}</div>
-                                        <div className="text-[9px] text-muted-foreground/30 font-bold">{new Date(pos.created_at).toLocaleDateString()}</div>
+                                    <td className="px-4 md:px-6 py-2.5 md:py-3">
+                                        <div className="font-black text-foreground/90 text-[10px] md:text-xs tracking-tight">{pos.pairName}</div>
+                                        <div className="text-[8px] text-muted-foreground/30 font-bold uppercase">{new Date(pos.created_at).toLocaleDateString()}</div>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        {pos.is_spot ? (
-                                            <span className="px-2 py-0.5 rounded-lg bg-orange-500/10 text-orange-500 text-[10px] font-black tracking-widest border border-orange-500/20">
-                                                SPOT
-                                            </span>
-                                        ) : (
-                                            <span className={cn(
-                                                "font-bold",
-                                                pos.positionSideLabel === 'LONG' ? "text-green-500/60" : "text-red-500/60"
-                                            )}>
-                                                {pos.positionSideLabel}
-                                            </span>
-                                        )}
+                                    <td className="px-6 py-3">
+                                        <span className={cn(
+                                            "text-[9px] font-bold tracking-widest",
+                                            pos.is_spot ? "text-orange-500/60" :
+                                            pos.positionSideLabel === 'LONG' ? "text-emerald-500/60" : "text-red-500/60"
+                                        )}>
+                                            {pos.is_spot ? "SPOT" : pos.positionSideLabel}
+                                        </span>
                                     </td>
-                                    <td className="px-6 py-4 text-muted-foreground/40 tabular-nums">{pos.closedSize}</td>
+                                    <td className="px-6 py-3 text-muted-foreground/40 tabular-nums text-[10px]">{pos.closedSize}</td>
                                     <td className={cn(
-                                        "px-6 py-4 text-right font-black tabular-nums",
-                                        pos.realizedPnlValue > 0 ? "text-emerald-500/80" : "text-red-500/80"
+                                        "px-6 py-3 text-right font-bold tabular-nums text-[11px]",
+                                        pos.realizedPnlValue > 0 ? "text-emerald-500" : "text-red-500"
                                     )}>
                                         {pos.realizedPnlValue > 0 ? '+' : ''}{pos.realizedPnlValue.toFixed(2)}
                                     </td>
@@ -313,12 +273,13 @@ export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps
                         </tbody>
                     </table>
                 </div>
-                <div className="flex justify-center mt-4">
-                    <p className="text-[10px] font-black text-muted-foreground/20 uppercase tracking-[0.2em]">
-                        Page {historyPage + 1} of {Math.ceil(allPositions.length / 5) || 1}
+                <div className="flex justify-center mt-3">
+                    <p className="text-[10px] font-bold text-muted-foreground/20 uppercase tracking-[0.2em]">
+                        Page {historyPage + 1} of {Math.ceil(allPositions.length / 10) || 1}
                     </p>
                 </div>
             </div>
+            )}
         </div>
     );
 }

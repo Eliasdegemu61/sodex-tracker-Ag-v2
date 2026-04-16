@@ -46,8 +46,8 @@ export function EquityChart({ data }: EquityChartProps) {
                 >
                     <defs>
                         <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2}/>
-                            <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
+                            <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                         </linearGradient>
                     </defs>
                     <CartesianGrid 
@@ -88,7 +88,7 @@ export function EquityChart({ data }: EquityChartProps) {
                     <Area
                         type="monotone"
                         dataKey="balance"
-                        stroke="var(--primary)"
+                        stroke="#10b981"
                         strokeWidth={2}
                         fillOpacity={1}
                         fill="url(#colorBalance)"
