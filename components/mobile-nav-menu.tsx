@@ -38,11 +38,11 @@ export function MobileNavMenu({ currentPage, onNavigate }: MobileNavMenuProps) {
       { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
       { id: 'assets', label: 'Assets', icon: Compass },
       { id: 'analyzer', label: 'Reverse Search', icon: Zap },
-      { id: 'analytics', label: 'Trade analytics', icon: LineChart },
     ]},
     { section: 'Beta', items: [
       { id: 'journal', label: 'Journal', icon: BookOpen },
       { id: 'demo-trading', label: 'Demo Trading', icon: CandlestickChart },
+      { id: 'analytics', label: 'Trade analytics', icon: LineChart },
     ]}
   ];
 
@@ -71,7 +71,7 @@ export function MobileNavMenu({ currentPage, onNavigate }: MobileNavMenuProps) {
   }, [isOpen]);
 
   return (
-    <div className="md:hidden" ref={menuRef}>
+    <div className="lg:hidden" ref={menuRef}>
       {/* Menu Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}

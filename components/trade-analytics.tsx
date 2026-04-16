@@ -472,9 +472,9 @@ export function TradeAnalytics() {
       <div className="min-h-[60vh] flex items-center justify-center p-6 font-sans">
         <div className="w-full max-w-xl space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-500">
           <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold text-foreground tracking-tight">Trade Analytics (TEST_ANALYTICS)</h1>
+            <h1 className="text-4xl font-bold text-foreground tracking-tight">Trade Analytics</h1>
             <p className="text-muted-foreground text-sm max-w-md mx-auto font-medium leading-relaxed">
-              Enter your wallet to generate a professional futures performance report
+              enter your wallet to generate perps performance report.
             </p>
           </div>
 
@@ -864,33 +864,32 @@ export function TradeAnalytics() {
               </div>
             </div>
             
-            <div className="h-[320px] w-full relative">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={holdAnalysis}>
-                  <defs>
-                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#FB923C" stopOpacity={0.8}/>
-                      <stop offset="100%" stopColor="#D97706" stopOpacity={0.2}/>
-                    </linearGradient>
-                  </defs>
-                  <XAxis 
-                    dataKey="bucket" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: 'hsl(var(--muted-foreground))', opacity: 0.5, fontSize: 9, fontWeight: 900 }} 
-                  />
-                  <YAxis hide />
-                  <Tooltip 
-                    cursor={{ fill: 'rgba(255,255,255,0.02)' }} 
-                    content={<CustomTooltip />} 
-                  />
-                  <Bar dataKey="net_pnl" radius={[16, 16, 0, 0]} barSize={50}>
-                    {holdAnalysis.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.net_pnl >= 0 ? '#10b981' : '#f59e0b'} fillOpacity={0.6} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="overflow-x-auto relative z-10 mt-2">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-border/10">
+                    <th className="pb-4 text-[10px] uppercase tracking-widest text-muted-foreground/30 font-bold">Duration</th>
+                    <th className="pb-4 text-[10px] uppercase tracking-widest text-muted-foreground/30 font-bold text-right">Trades</th>
+                    <th className="pb-4 text-[10px] uppercase tracking-widest text-muted-foreground/30 font-bold text-right">Net PnL</th>
+                    <th className="pb-4 text-[10px] uppercase tracking-widest text-muted-foreground/30 font-bold text-right">Win Rate</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/5">
+                  {holdAnalysis.map((b, i) => (
+                    <tr key={i} className="group/row hover:bg-muted/5 transition-colors duration-500">
+                      <td className="py-3 text-xs font-bold text-foreground/80">{b.bucket}</td>
+                      <td className="py-3 text-xs font-bold text-foreground/30 text-right tabular-nums">{b.trade_count}</td>
+                      <td className={cn(
+                        "py-3 text-xs font-bold text-right tabular-nums",
+                        b.net_pnl >= 0 ? "text-emerald-500" : "text-orange-500"
+                      )}>
+                        {b.net_pnl >= 0 ? '+' : ''}${Math.abs(b.net_pnl).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="py-3 text-xs font-bold text-foreground/40 text-right tabular-nums">{b.win_rate.toFixed(0)}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </Card>
 
@@ -903,36 +902,37 @@ export function TradeAnalytics() {
                 </div>
               </div>
 
-              <div className="h-[320px] w-full">
-                 <ResponsiveContainer width="100%" height="100%">
-                   <AreaChart data={levAnalysis}>
-                     <defs>
-                       <linearGradient id="colorPnL" x1="0" y1="0" x2="0" y2="1">
-                         <stop offset="5%" stopColor="#FF4D00" stopOpacity={0.2}/>
-                         <stop offset="95%" stopColor="#FF4D00" stopOpacity={0}/>
-                       </linearGradient>
-                     </defs>
-                     <XAxis 
-                       dataKey="bucket" 
-                       axisLine={false} 
-                       tickLine={false} 
-                       tick={{ fill: 'hsl(var(--muted-foreground))', opacity: 0.5, fontSize: 9, fontWeight: 900 }} 
-                     />
-                     <YAxis hide />
-                     <Tooltip 
-                       content={<CustomTooltip />} 
-                     />
-                     <Area 
-                      type="monotone" 
-                      dataKey="net_pnl" 
-                      stroke="#FF4D00" 
-                      strokeWidth={4} 
-                      fillOpacity={1} 
-                      fill="url(#colorPnL)" 
-                      animationDuration={2000}
-                     />
-                   </AreaChart>
-                 </ResponsiveContainer>
+              <div className="overflow-x-auto relative z-10 mt-2">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-border/10">
+                      <th className="pb-4 text-[10px] uppercase tracking-widest text-muted-foreground/30 font-bold">Leverage</th>
+                      <th className="pb-4 text-[10px] uppercase tracking-widest text-muted-foreground/40 font-bold text-right">Trades</th>
+                      <th className="pb-4 text-[10px] uppercase tracking-widest text-muted-foreground/30 font-bold text-right">Net PnL</th>
+                      <th className="pb-4 text-[10px] uppercase tracking-widest text-muted-foreground/30 font-bold text-right">Avg PnL</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/5">
+                    {levAnalysis.slice(0, 10).map((b, i) => (
+                      <tr key={i} className="group/row hover:bg-muted/5 transition-colors duration-500">
+                        <td className="py-3 text-xs font-bold text-foreground/80 uppercase">{b.bucket}</td>
+                        <td className="py-3 text-xs font-bold text-foreground/30 text-right tabular-nums">{b.trade_count}</td>
+                        <td className={cn(
+                          "py-3 text-xs font-bold text-right tabular-nums",
+                          b.net_pnl >= 0 ? "text-emerald-500" : "text-orange-500"
+                        )}>
+                          {b.net_pnl >= 0 ? '+' : ''}${Math.abs(b.net_pnl).toLocaleString(undefined, { minimumFractionDigits: 0 })}
+                        </td>
+                        <td className={cn(
+                          "py-3 text-xs font-bold text-right tabular-nums opacity-60",
+                          b.avg_pnl_per_trade >= 0 ? "text-emerald-500" : "text-orange-500"
+                        )}>
+                          ${Math.abs(b.avg_pnl_per_trade).toFixed(0)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </Card>
           )}

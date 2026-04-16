@@ -147,21 +147,21 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
             <div className="space-y-2">
               <label className="text-xs font-semibold text-foreground/80 dark:text-white/80 block mb-2">first characters</label>
               <input
-                placeholder=""
+                placeholder="e.g. 0x12"
                 maxLength={4}
                 value={reversePrefix}
                 onChange={(e) => setReversePrefix(e.target.value.toUpperCase())}
-                className="w-full bg-secondary/20 border border-border/50 rounded-xl text-sm font-mono text-foreground dark:text-white placeholder:text-muted-foreground/30 focus:outline-none focus:ring-1 focus:ring-accent/30 p-3 transition-all"
+                className="w-full bg-secondary/10 dark:bg-black/40 border border-border/50 dark:border-white/10 rounded-xl text-sm font-mono text-foreground dark:text-white placeholder:text-muted-foreground/30 focus:outline-none focus:ring-1 focus:ring-orange-500/30 p-3 transition-all"
               />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-foreground/80 dark:text-white/80 block mb-2">last characters</label>
               <input
-                placeholder=""
+                placeholder="e.g. a2f4"
                 maxLength={4}
                 value={reverseSuffix}
                 onChange={(e) => setReverseSuffix(e.target.value.toUpperCase())}
-                className="w-full bg-secondary/20 border border-border/50 rounded-xl text-sm font-mono text-foreground dark:text-white placeholder:text-muted-foreground/30 focus:outline-none focus:ring-1 focus:ring-accent/30 p-3 transition-all"
+                className="w-full bg-secondary/10 dark:bg-black/40 border border-border/50 dark:border-white/10 rounded-xl text-sm font-mono text-foreground dark:text-white placeholder:text-muted-foreground/30 focus:outline-none focus:ring-1 focus:ring-orange-500/30 p-3 transition-all"
               />
             </div>
           </div>

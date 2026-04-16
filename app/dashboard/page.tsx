@@ -81,7 +81,7 @@ function ReverseSearchPage({ onBack }: { onBack: () => void }) {
                 maxLength={4}
                 value={reversePrefix}
                 onChange={(e) => setReversePrefix(e.target.value.toUpperCase())}
-                className="w-full bg-transparent border-none text-sm font-mono text-muted-foreground dark:text-white/60 placeholder:text-muted-foreground/30 focus:outline-none focus:ring-0 p-0"
+                className="w-full bg-white/[0.03] border border-white/5 rounded-xl text-sm font-mono text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-orange-500/30 p-3 transition-all"
               />
             </div>
             <div className="space-y-2">
@@ -91,7 +91,7 @@ function ReverseSearchPage({ onBack }: { onBack: () => void }) {
                 maxLength={4}
                 value={reverseSuffix}
                 onChange={(e) => setReverseSuffix(e.target.value.toUpperCase())}
-                className="w-full bg-transparent border-none text-sm font-mono text-muted-foreground dark:text-white/60 placeholder:text-muted-foreground/30 focus:outline-none focus:ring-0 p-0"
+                className="w-full bg-white/[0.03] border border-white/5 rounded-xl text-sm font-mono text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-orange-500/30 p-3 transition-all"
               />
             </div>
           </div>

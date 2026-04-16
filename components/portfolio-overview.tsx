@@ -232,47 +232,47 @@ export function PortfolioOverview() {
   };
 
   return (
-    <Card className="group relative overflow-hidden bg-card/40 border border-border/40 rounded-[2.5rem] shadow-2xl transition-all duration-500 hover:border-accent/20">
+    <Card className="group relative overflow-hidden bg-card/40 border border-border/40 rounded-2xl md:rounded-[2.5rem] shadow-2xl transition-all duration-500 hover:border-accent/20">
       {/* Dynamic Background Glows */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/[0.03] dark:bg-accent/[0.01] blur-[120px] -mr-64 -mt-64 rounded-full animate-pulse" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/[0.03] dark:bg-accent/[0.01] blur-[120px] -mr-64 -mt-64 rounded-full animate-pulse opacity-20 md:opacity-100" />
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-500/[0.02] dark:bg-purple-500/[0.01] blur-[100px] -ml-40 -mb-40 rounded-full" />
 
-      <div className="p-8 md:p-10 relative z-10">
+      <div className="p-4 md:p-10 relative z-10">
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-10">
 
           {/* 1. Primary Balance Section (Condensed) */}
           <div className="md:col-span-3 space-y-6">
             <div className="space-y-1">
-              <p className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.3em] flex items-center gap-2">
-                <DollarSign className="w-3 h-3 text-orange-500" /> Total Balance
+              <p className="text-[9px] md:text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.3em] flex items-center gap-2">
+                <DollarSign className="w-2.5 h-2.5 text-orange-500" /> Total Balance
               </p>
               <div className="flex items-baseline gap-2">
                 {loading.balances && totalNetWorth === 0 ? (
-                  <LoadingShimmer className="h-10 w-32 md:h-12 md:w-40" />
+                  <LoadingShimmer className="h-8 w-24 md:h-12 md:w-40" />
                 ) : (
-                  <h2 className="text-3xl md:text-4xl font-black italic tracking-tighter text-foreground drop-shadow-sm">
+                  <h2 className="text-2xl md:text-4xl font-black italic tracking-tighter text-foreground drop-shadow-sm">
                     ${totalNetWorth.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                   </h2>
                 )}
                 {balances.hasUnpricedAssets && (
-                  <span className="text-[10px] font-bold text-accent/40">+ assets</span>
+                  <span className="text-[8px] md:text-[10px] font-bold text-accent/40">+ assets</span>
                 )}
               </div>
             </div>
 
-            <div className="flex flex-col gap-2.5 pt-6 border-t border-border/10 max-w-[180px]">
+            <div className="grid grid-cols-3 md:flex md:flex-col gap-2.5 pt-4 md:pt-6 border-t border-border/10">
               {[
                 { label: 'Futures', value: balances.futures, color: 'text-foreground/60', isLoading: loading.balances },
                 { label: 'Spot', value: balances.spot, color: 'text-foreground/60', isLoading: loading.balances },
                 { label: 'Vault', value: balances.vault, color: 'text-orange-500 font-black', isLoading: loading.vault }
               ].map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between group/item">
-                  <span className="text-[9px] text-muted-foreground/60 font-bold uppercase tracking-widest group-hover/item:text-muted-foreground/80 transition-colors">{item.label}</span>
+                <div key={idx} className="flex flex-col md:flex-row md:items-center md:justify-between group/item gap-0.5">
+                  <span className="text-[8px] md:text-[9px] text-muted-foreground/40 font-bold uppercase tracking-widest leading-none">{item.label}</span>
                   {item.isLoading && item.value === 0 ? (
-                    <LoadingShimmer className="h-4 w-16" />
+                    <LoadingShimmer className="h-3 w-12 md:h-4 md:w-16" />
                   ) : (
-                    <span className={cn("text-[11px] font-bold transition-all group-hover/item:scale-105", item.color)}>
+                    <span className={cn("text-[10px] md:text-[11px] font-bold tabular-nums", item.color)}>
                       ${item.value.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                     </span>
                   )}
@@ -282,14 +282,14 @@ export function PortfolioOverview() {
           </div>
 
           {/* 2. Performance & Rankings Section */}
-          <div className="md:col-span-5 space-y-10 md:border-x md:border-border/10 md:px-10">
+          <div className="md:col-span-5 space-y-6 md:space-y-10 md:border-x md:border-border/10 md:px-10">
             {/* PnL Section */}
-            <div className="space-y-3">
-              <p className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.3em] flex items-center gap-2">
-                <TrendingUp className="w-3 h-3 text-orange-500" /> 30D Performance
+            <div className="space-y-2 md:space-y-3">
+              <p className="text-[9px] md:text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.3em] flex items-center gap-2">
+                <TrendingUp className="w-2.5 h-2.5 text-orange-500" /> 30D Performance
               </p>
               <div className="flex flex-col gap-1">
-                <p className={cn("text-3xl font-black italic tracking-tighter", metrics.pnl30d >= 0 ? "text-green-500" : "text-red-500")}>
+                <p className={cn("text-xl md:text-3xl font-black italic tracking-tighter", metrics.pnl30d >= 0 ? "text-green-500" : "text-red-500")}>
                   {metrics.pnl30d >= 0 ? '+' : ''}${Math.abs(metrics.pnl30d).toLocaleString('en-US', { maximumFractionDigits: 2 })}
                 </p>
                 <div className="h-1 w-full bg-muted/20 rounded-full overflow-hidden">
@@ -356,21 +356,21 @@ export function PortfolioOverview() {
                 </Popover>
               </div>
 
-              <div className="p-6 rounded-3xl bg-orange-500/[0.03] border border-orange-500/10 flex items-center justify-between group/rank transition-all hover:bg-orange-500/[0.05]">
-                <div className="space-y-1">
-                  <span className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em] block">
-                    {rankOptions.windowType} {rankOptions.sortBy} Rank
+              <div className="p-4 md:p-6 rounded-2xl md:rounded-3xl bg-orange-500/[0.03] border border-orange-500/10 flex items-center justify-between group/rank transition-all hover:bg-orange-500/[0.05]">
+                <div className="space-y-0.5 md:space-y-1">
+                  <span className="text-[8px] md:text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em] block">
+                    {rankOptions.windowType} Rank
                   </span>
                   {isRankLoading ? (
-                    <LoadingShimmer className="h-8 w-20" />
+                    <LoadingShimmer className="h-6 w-16 md:h-8 md:w-20" />
                   ) : (
-                    <span className="text-3xl font-black text-orange-500 italic drop-shadow-sm">
+                    <span className="text-xl md:text-3xl font-black text-orange-500 italic drop-shadow-sm">
                       #{userRankData?.rank || '---'}
                     </span>
                   )}
                 </div>
-                <div className="h-10 w-10 rounded-2xl bg-orange-500/10 flex items-center justify-center">
-                  <Trophy className="w-5 h-5 text-orange-500" />
+                <div className="h-8 w-8 md:h-10 md:w-10 rounded-xl md:rounded-2xl bg-orange-500/10 flex items-center justify-center">
+                  <Trophy className="w-4 h-4 md:w-5 md:h-5 text-orange-500" />
                 </div>
               </div>
             </div>
@@ -379,20 +379,20 @@ export function PortfolioOverview() {
           {/* 3. Operational Metrics Section */}
           <div className="md:col-span-4 space-y-8 flex flex-col justify-center">
             {/* Vault Shares */}
-            <div className="space-y-1.5 p-5 rounded-3xl bg-orange-500/[0.04] border border-orange-500/10">
-              <p className="text-[9px] font-black text-orange-500/60 uppercase tracking-[0.2em] flex items-center gap-2">
-                <Target className="w-2.5 h-2.5" /> Vault
+            <div className="space-y-1 md:space-y-1.5 p-4 md:p-5 rounded-2xl md:rounded-3xl bg-orange-500/[0.04] border border-orange-500/10">
+              <p className="text-[8px] md:text-[9px] font-black text-orange-500/60 uppercase tracking-[0.2em] flex items-center gap-2">
+                <Target className="w-2 md:w-2.5 h-2 md:h-2.5" /> Vault
               </p>
               <div className="flex items-baseline justify-between">
                 {loading.futuresMetrics && metrics.vaultShares === 0 ? (
-                  <LoadingShimmer className="h-8 w-24" />
+                  <LoadingShimmer className="h-6 w-20 md:h-8 md:w-24" />
                 ) : (
-                  <p className="text-2xl font-black tracking-tighter text-orange-400">
-                    {metrics.vaultShares.toFixed(2)} <span className="text-[8px] opacity-30">MAG7</span>
+                  <p className="text-lg md:text-2xl font-black tracking-tighter text-orange-400">
+                    {metrics.vaultShares.toFixed(2)} <span className="text-[7px] md:text-[8px] opacity-30">MAG7</span>
                   </p>
                 )}
-                <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-lg bg-background/95 border border-border/10", metrics.vaultPnl >= 0 ? "text-green-500/80" : "text-red-500/80")}>
-                  {metrics.vaultPnl >= 0 ? '↑' : '↓'} {Math.abs(metrics.vaultPnl).toFixed(4)}
+                <span className={cn("text-[9px] md:text-[10px] font-bold px-1.5 md:py-0.5 rounded-lg bg-background/95 border border-border/10", metrics.vaultPnl >= 0 ? "text-green-500/80" : "text-red-500/80")}>
+                  {metrics.vaultPnl >= 0 ? '↑' : '↓'} {Math.abs(metrics.vaultPnl).toFixed(2)}
                 </span>
               </div>
             </div>

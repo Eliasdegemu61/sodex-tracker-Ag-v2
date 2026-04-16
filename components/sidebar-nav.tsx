@@ -74,7 +74,7 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
 
   return (
     <Sidebar collapsible="none" className="hidden lg:flex sticky top-0 h-screen border-r border-border bg-card text-foreground transition-colors duration-500">
-      <SidebarHeader className="p-6">
+      <SidebarHeader className="p-5">
         <div className="flex items-center gap-3">
           <img 
             src={logoUrl} 

@@ -56,6 +56,13 @@ export function PerpsLeaderboard() {
     fetchLeaderboard()
   }, [sortType, windowType, page])
 
+  // Instant filtering for search results
+  useEffect(() => {
+    if (searchAddress.trim() && searchResult) {
+      handleSearch()
+    }
+  }, [sortType, windowType])
+
   const copyToClipboard = (address: string) => {
     navigator.clipboard.writeText(address)
     setCopiedAddress(address)
@@ -163,7 +170,7 @@ export function PerpsLeaderboard() {
 
       {/* Podium Section */}
       {!searchResult && page === 1 && podiumItems.length === 3 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 items-end justify-items-center py-6 md:py-10 px-4 relative max-w-4xl mx-auto mb-4 md:mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-8 items-end justify-items-center py-4 md:py-10 px-2 md:px-4 relative max-w-4xl mx-auto mb-4 md:mb-8">
           {/* Rank 2 */}
           <div className="order-2 md:order-1 flex flex-col items-center scale-90 md:scale-100">
             <div className="relative mb-2 group rotate-[-2deg]">
@@ -171,10 +178,10 @@ export function PerpsLeaderboard() {
               <img
                 src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${podiumItems[1].wallet_address}`}
                 alt="Avatar"
-                className="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-orange-500/10 border-2 border-orange-500/20 relative z-10"
+                className="w-10 h-10 md:w-16 md:h-16 rounded-xl bg-orange-500/10 border border-orange-500/20 relative z-10"
               />
             </div>
-            <div className="w-40 md:w-48 h-20 md:h-28 bg-gradient-to-t from-card/80 to-card/40 border-x border-t border-border/20 rounded-t-[1.5rem] md:rounded-t-[2.5rem] relative flex flex-col items-center justify-center p-4 shadow-2xl">
+            <div className="w-full min-w-[140px] md:w-48 h-12 md:h-28 bg-gradient-to-t from-card/80 to-card/40 border-x border-t border-border/20 rounded-t-xl md:rounded-t-[2.5rem] relative flex flex-col items-center justify-center p-2 md:p-4 shadow-2xl">
               <p className="text-[8px] md:text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-1">[2] rank</p>
               <p className="text-[10px] font-mono text-foreground/80 mb-1 truncate max-w-full px-2 text-center">
                 {podiumItems[1].wallet_address.slice(0, 4)}...{podiumItems[1].wallet_address.slice(-4)}
@@ -187,17 +194,17 @@ export function PerpsLeaderboard() {
           </div>
 
           {/* Rank 1 */}
-          <div className="order-1 md:order-2 flex flex-col items-center -translate-y-2 md:-translate-y-6 z-10 scale-100 md:scale-110">
+          <div className="order-1 md:order-2 flex flex-col items-center -translate-y-2 md:-translate-y-6 z-10 scale-105 md:scale-110">
             <div className="relative mb-3 group">
               <div className="absolute -inset-2 bg-gradient-to-b from-orange-500/40 to-transparent blur-xl opacity-30 transition-opacity group-hover:opacity-100" />
               <img
                 src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${podiumItems[0].wallet_address}`}
                 alt="Avatar"
-                className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-orange-500/20 border-2 border-orange-500/40 relative z-10 shadow-[0_0_20px_rgba(249,115,22,0.1)]"
+                className="w-12 h-12 md:w-20 md:h-20 rounded-2xl bg-orange-500/20 border-2 border-orange-500/40 relative z-10 shadow-[0_0_20px_rgba(249,115,22,0.1)]"
               />
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-black font-black text-[10px] border-2 border-background z-20">1</div>
+              <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center text-black font-black text-[8px] md:text-[10px] border-2 border-background z-20">1</div>
             </div>
-            <div className="w-52 md:w-64 h-28 md:h-40 bg-gradient-to-t from-card to-card/60 border-x border-t border-orange-500/20 rounded-t-[2rem] md:rounded-t-[3rem] relative flex flex-col items-center justify-center p-6 shadow-[0_-10px_30px_rgba(0,0,0,0.2)]">
+            <div className="w-full min-w-[160px] md:w-64 h-20 md:h-40 bg-gradient-to-t from-card to-card/60 border-x border-t border-orange-500/20 rounded-t-2xl md:rounded-t-[3rem] relative flex flex-col items-center justify-center p-3 md:p-6 shadow-[0_-10px_30px_rgba(0,0,0,0.2)]">
               <p className="text-[9px] md:text-[11px] font-bold text-orange-500 uppercase tracking-[0.2em] mb-1">[1] RANK</p>
               <p className="text-xs font-mono text-foreground mb-2 truncate max-w-full px-2 text-center">
                 {podiumItems[0].wallet_address.slice(0, 6)}...{podiumItems[0].wallet_address.slice(-4)}
@@ -210,16 +217,16 @@ export function PerpsLeaderboard() {
           </div>
 
           {/* Rank 3 */}
-          <div className="order-3 md:order-3 flex flex-col items-center scale-75 md:scale-95 origin-bottom">
+          <div className="order-3 md:order-3 flex flex-col items-center scale-85 md:scale-95 origin-bottom">
             <div className="relative mb-2 group rotate-[2deg]">
               <div className="absolute -inset-1 bg-gradient-to-b from-orange-500/10 to-transparent blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
               <img
                 src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${podiumItems[2].wallet_address}`}
                 alt="Avatar"
-                className="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-orange-500/10 border-2 border-orange-500/20 relative z-10"
+                className="w-10 h-10 md:w-16 md:h-16 rounded-xl bg-orange-500/10 border border-orange-500/20 relative z-10"
               />
             </div>
-            <div className="w-36 md:w-48 h-16 md:h-24 bg-gradient-to-t from-card/60 to-card/30 border-x border-t border-border/20 rounded-t-[1.5rem] md:rounded-t-[2.5rem] relative flex flex-col items-center justify-center p-4 shadow-xl">
+            <div className="w-full min-w-[120px] md:w-48 h-10 md:h-24 bg-gradient-to-t from-card/60 to-card/30 border-x border-t border-border/20 rounded-t-lg md:rounded-t-[2.5rem] relative flex flex-col items-center justify-center p-2 md:p-4 shadow-xl">
               <p className="text-[8px] md:text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-1">[3] rank</p>
               <p className="text-[9px] md:text-[10px] font-mono text-foreground/80 mb-1 truncate max-w-full px-2 text-center">
                 {podiumItems[2].wallet_address.slice(0, 4)}...{podiumItems[2].wallet_address.slice(-4)}
@@ -239,13 +246,13 @@ export function PerpsLeaderboard() {
 
       {/* Search Result Card */}
       {searchResult && (
-        <Card className="bg-orange-500/[0.03] border-orange-500/20 rounded-[2.5rem] p-8 mb-6 relative overflow-hidden group animate-in slide-in-from-top duration-500">
+        <Card className="bg-orange-500/[0.03] border-orange-500/20 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 mb-6 relative overflow-hidden group animate-in slide-in-from-top duration-500">
           <div className="absolute top-4 right-4 z-10">
             <Button variant="ghost" size="icon" onClick={() => setSearchResult(null)} className="rounded-full w-8 h-8 hover:bg-orange-500/10 text-muted-foreground/40 hover:text-orange-500">×</Button>
           </div>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="flex items-center gap-6">
-              <div className="w-16 h-16 rounded-3xl bg-orange-500/10 flex items-center justify-center text-orange-500 font-black text-2xl shadow-inner">
+              <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl md:rounded-3xl bg-orange-500/10 flex items-center justify-center text-orange-500 font-black text-[10px] md:text-sm shadow-inner shrink-0">
                 #{searchResult.rank}
               </div>
               <div>
@@ -270,7 +277,7 @@ export function PerpsLeaderboard() {
       )}
 
       {/* Table Section */}
-      <Card className="flex-1 overflow-hidden bg-card/95 border border-border/20 rounded-[2.5rem] shadow-sm flex flex-col p-6 md:p-10 relative">
+      <Card className="flex-1 overflow-hidden bg-card/95 border border-border/20 rounded-2xl md:rounded-[2.5rem] shadow-sm flex flex-col p-3 md:p-10 relative">
         {loading && (
           <div className="absolute inset-0 bg-background/40 backdrop-blur-[2px] z-20 flex items-center justify-center rounded-[2.5rem]">
             <div className="w-8 h-8 border-2 border-orange-500/20 border-t-orange-500 animate-spin rounded-full" />
@@ -280,20 +287,20 @@ export function PerpsLeaderboard() {
         <div className="overflow-x-auto">
           <table className="w-full border-separate border-spacing-y-2">
             <thead>
-              <tr className="text-[9px] md:text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest">
-                <th className="px-6 py-3 text-left">Rank</th>
-                <th className="px-6 py-3 text-left">Wallet Address</th>
-                <th className="px-6 py-3 text-right">PnL (USD)</th>
-                <th className="px-6 py-3 text-right">Volume (USD)</th>
+              <tr className="text-[8px] md:text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest border-b border-border/5">
+                <th className="px-2 md:px-6 py-3 text-left min-w-[50px] md:min-w-[80px]">Rank</th>
+                <th className="px-2 md:px-6 py-3 text-left">Wallet</th>
+                <th className="px-2 md:px-6 py-3 text-right">PnL</th>
+                <th className="px-2 md:px-6 py-3 text-right">Volume</th>
               </tr>
             </thead>
             <tbody>
               {tableItems.map((entry) => (
-                <tr key={entry.account_id} className="group relative bg-secondary/5 hover:bg-secondary/10 transition-all">
-                  <td className="px-6 py-4 first:rounded-l-2xl last:rounded-r-2xl text-xs md:text-sm font-bold text-orange-500/80">
+                <tr key={entry.account_id} className="group relative border-b border-border/5 last:border-0 hover:bg-secondary/5 transition-all">
+                  <td className="px-2 md:px-6 py-3 md:py-4 text-[10px] md:text-sm font-bold text-orange-500/80 tabular-nums">
                     #{entry.rank}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-2 md:px-6 py-3 md:py-4">
                     <div className="flex items-center gap-2 group/addr">
                       <span className="text-[10px] md:text-xs text-foreground/80 font-mono">
                         {entry.wallet_address.slice(0, 6)}...{entry.wallet_address.slice(-4)}
@@ -310,10 +317,10 @@ export function PerpsLeaderboard() {
                       </button>
                     </div>
                   </td>
-                  <td className={`px-6 py-4 text-right text-xs md:text-sm font-bold ${parseFloat(entry.pnl_usd) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  <td className={`px-2 md:px-6 py-3 md:py-4 text-right text-[10px] md:text-sm font-bold tabular-nums ${parseFloat(entry.pnl_usd) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                     {parseFloat(entry.pnl_usd) >= 0 ? '+' : '-'}${formatNumber(Math.abs(parseFloat(entry.pnl_usd)))}
                   </td>
-                  <td className="px-6 py-4 text-right text-xs md:text-sm font-bold text-foreground/70 tracking-tight last:rounded-r-2xl">
+                  <td className="px-2 md:px-6 py-3 md:py-4 text-right text-[10px] md:text-sm font-bold text-foreground/70 tracking-tight tabular-nums">
                     ${formatNumber(parseFloat(entry.volume_usd))}
                   </td>
                 </tr>

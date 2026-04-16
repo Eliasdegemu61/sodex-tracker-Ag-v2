@@ -118,12 +118,22 @@ export function AssetIntelligenceDashboard() {
     const [selectedTokens, setSelectedTokens] = useState<string[]>([])
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
     const dropdownRef = useRef<HTMLDivElement>(null)
+    const [isMetricOpen, setIsMetricOpen] = useState(false)
+    const [isTimeRangeOpen, setIsTimeRangeOpen] = useState(false)
+    const metricRef = useRef<HTMLDivElement>(null)
+    const timeRef = useRef<HTMLDivElement>(null)
 
     // Close dropdown on outside click
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsDropdownOpen(false)
+            }
+            if (metricRef.current && !metricRef.current.contains(event.target as Node)) {
+                setIsMetricOpen(false)
+            }
+            if (timeRef.current && !timeRef.current.contains(event.target as Node)) {
+                setIsTimeRangeOpen(false)
             }
         }
         document.addEventListener("mousedown", handleClickOutside)
@@ -150,7 +160,7 @@ export function AssetIntelligenceDashboard() {
 
                 // Process daily flows
                 const dailyFlowsByToken: Record<string, { date: string, net: number, depo: number, wth: number }[]> = {}
-                
+
                 // Assuming first row is header, skip it
                 for (let i = 1; i < dailyData.length; i++) {
                     const values = dailyData[i]
@@ -353,6 +363,13 @@ export function AssetIntelligenceDashboard() {
 
     return (
         <div className="space-y-6 w-full max-w-7xl mx-auto pb-12 animate-in fade-in duration-1000 slide-in-from-bottom-2">
+            {/* Prone to error notice */}
+            <div className="flex items-center justify-center px-4 py-2 bg-orange-500/5 border border-orange-500/10 rounded-xl">
+                <span className="text-[10px] md:text-xs font-medium text-orange-500/70 tracking-tight">
+                    Notice: This section is prone to data inaccuracies or reporting delays.
+                </span>
+            </div>
+
             {/* Aggregate Intelligence Header - 3 Column Stats on Mobile */}
             <div className="grid grid-cols-3 gap-2 md:gap-4 mb-8">
                 <SummaryCard
@@ -378,97 +395,129 @@ export function AssetIntelligenceDashboard() {
 
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 relative z-50">
                     <div className="flex items-center gap-4 flex-wrap">
-                        <h2 className="text-xl font-bold text-foreground tracking-tight">Asset Overview</h2>
+                        <h2 className="text-lg md:text-xl font-bold text-foreground tracking-tight">Asset Overview</h2>
 
-                        {/* Custom Dropdown for Token Selection */}
-                        <div className="relative" ref={dropdownRef}>
-                            <button
-                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                className={`flex items-center gap-3 px-5 py-2.5 transition-all duration-300 rounded-2xl border text-sm font-bold shadow-lg ${isDropdownOpen
-                                    ? 'bg-card/90 border-primary/50 text-primary shadow-primary/20'
-                                    : 'bg-card/40 border-border/10 text-foreground/80 hover:bg-card/60 hover:border-border/20'
-                                    } backdrop-blur-xl`}
-                            >
-                                <div className="flex -space-x-2 mr-1">
-                                    {selectedTokens.slice(0, 3).map((token) => {
-                                        const index = allTokens.findIndex(t => t.token === token)
-                                        const color = index !== -1 ? activeColors[index % activeColors.length] : '#888'
-                                        return (
-                                            <div key={token} className="w-4 h-4 rounded-full border border-background z-10" style={{ backgroundColor: color }} />
-                                        )
-                                    })}
-                                </div>
-                                Compare Assets
-                                <div className="bg-secondary/30 px-2 py-0.5 rounded-md text-[10px]">
-                                    {selectedTokens.length}/10
-                                </div>
-                                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 text-primary' : 'text-muted-foreground/60'}`} />
-                            </button>
-
-                            {isDropdownOpen && (
-                                <div className="absolute top-full left-0 mt-3 w-72 bg-card/95 backdrop-blur-2xl border border-border/10 rounded-2xl shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
-                                    <div className="p-4 bg-secondary/20 border-b border-border/5 flex items-center justify-between">
-                                        <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground/60">Available Ecosystem Assets</span>
-                                    </div>
-                                    <div className="max-h-72 overflow-y-auto p-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                                        {allTokens.map((t, index) => {
-                                            const isSelected = selectedTokens.includes(t.token)
-                                            const color = activeColors[index % activeColors.length]
+                        <div className="flex items-center gap-2 flex-wrap">
+                            {/* Custom Dropdown for Token Selection */}
+                            <div className="relative" ref={dropdownRef}>
+                                <button
+                                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                    className={`flex items-center gap-3 px-4 py-2 transition-all duration-300 rounded-xl border text-[11px] md:text-sm font-bold ${isDropdownOpen
+                                        ? 'bg-card/90 border-primary/50 text-primary'
+                                        : 'bg-card/40 border-border/10 text-foreground/80 hover:bg-card/60 hover:border-border/20'
+                                        } backdrop-blur-xl`}
+                                >
+                                    <div className="flex -space-x-1.5 mr-0.5">
+                                        {selectedTokens.slice(0, 3).map((token) => {
+                                            const index = allTokens.findIndex(t => t.token === token)
+                                            const color = index !== -1 ? activeColors[index % activeColors.length] : '#888'
                                             return (
-                                                <button
-                                                    key={t.token}
-                                                    onClick={() => toggleToken(t.token)}
-                                                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 text-left mb-1 last:mb-0 ${isSelected ? 'bg-primary/10' : 'hover:bg-secondary/20'
-                                                        }`}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`w-3 h-3 rounded-full shadow-sm ${isSelected ? 'shadow-current' : ''}`} style={{ backgroundColor: color, color: color }} />
-                                                        <span className={`text-sm font-bold ${isSelected ? 'text-foreground' : 'text-foreground/70'}`}>{t.token}</span>
-                                                    </div>
-                                                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${isSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-border/20 text-transparent'
-                                                        }`}>
-                                                        <Check className="w-3 h-3" strokeWidth={3} />
-                                                    </div>
-                                                </button>
+                                                <div key={token} className="w-3.5 h-3.5 rounded-full border border-background z-10" style={{ backgroundColor: color }} />
                                             )
                                         })}
                                     </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Timeframe & Metric Selectors */}
-                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
-                        {/* Unified Selectors Layout */}
-                        <div className="flex flex-wrap gap-1 bg-secondary/5 p-1 rounded-2xl border border-border/5 backdrop-blur-md">
-                            {(['Retention', 'Deposits', 'Withdrawals'] as const).map((m) => (
-                                <button
-                                    key={m}
-                                    onClick={() => setMetricType(m)}
-                                    className={`text-[9px] font-bold px-4 py-2 rounded-xl transition-all ${metricType === m
-                                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                                        : 'text-muted-foreground/40 hover:text-foreground hover:bg-secondary/20'
-                                        }`}
-                                >
-                                    {m}
+                                    Compare Assets
+                                    <div className="bg-secondary/30 px-1.5 py-0.5 rounded-md text-[9px]">
+                                        {selectedTokens.length}/10
+                                    </div>
+                                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 text-primary' : 'text-muted-foreground/60'}`} />
                                 </button>
-                            ))}
-                        </div>
 
-                        <div className="flex flex-wrap gap-1 bg-secondary/5 p-1 rounded-2xl border border-border/5 backdrop-blur-md">
-                            {(['24hr', '7day', '30day', '3month', '6month', '1year', 'All Time'] as const).map((range) => (
+                                {isDropdownOpen && (
+                                    <div className="absolute top-full left-0 mt-3 w-64 md:w-72 bg-card/95 backdrop-blur-2xl border border-border/10 rounded-2xl shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)] overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-200">
+                                        <div className="p-3 bg-secondary/10 border-b border-border/5 flex items-center justify-between">
+                                            <span className="text-[9px] md:text-[10px] uppercase font-bold tracking-widest text-muted-foreground/60">Available Ecosystem Assets</span>
+                                        </div>
+                                        <div className="max-h-60 overflow-y-auto p-1.5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                                            {allTokens.map((t, index) => {
+                                                const isSelected = selectedTokens.includes(t.token)
+                                                const color = activeColors[index % activeColors.length]
+                                                return (
+                                                    <button
+                                                        key={t.token}
+                                                        onClick={() => toggleToken(t.token)}
+                                                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 text-left mb-1 last:mb-0 ${isSelected ? 'bg-primary/10' : 'hover:bg-secondary/20'
+                                                            }`}
+                                                    >
+                                                        <div className="flex items-center gap-2.5">
+                                                            <div className={`w-2.5 h-2.5 rounded-full shadow-sm ${isSelected ? 'shadow-current' : ''}`} style={{ backgroundColor: color, color: color }} />
+                                                            <span className={`text-xs md:text-sm font-bold ${isSelected ? 'text-foreground' : 'text-foreground/70'}`}>{t.token}</span>
+                                                        </div>
+                                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${isSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-border/20 text-transparent'
+                                                            }`}>
+                                                            <Check className="w-2.5 h-2.5" strokeWidth={3} />
+                                                        </div>
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Metric Selection Dropdown */}
+                            <div className="relative" ref={metricRef}>
                                 <button
-                                    key={range}
-                                    onClick={() => setTimeRange(range)}
-                                    className={`text-[9px] font-bold px-3 py-2 rounded-xl transition-all ${timeRange === range
-                                        ? 'bg-secondary/30 text-foreground shadow-sm'
-                                        : 'text-muted-foreground/40 hover:text-foreground hover:bg-secondary/10'
-                                        }`}
+                                    onClick={() => setIsMetricOpen(!isMetricOpen)}
+                                    className={`flex items-center gap-2 px-4 py-2 transition-all duration-300 rounded-xl border text-[11px] md:text-sm font-bold ${isMetricOpen
+                                        ? 'bg-card/90 border-primary/50 text-primary'
+                                        : 'bg-card/40 border-border/10 text-foreground/80 hover:bg-card/60 hover:border-border/20'
+                                        } backdrop-blur-xl`}
                                 >
-                                    {range}
+                                    <Activity className="w-3.5 h-3.5 text-primary/60" />
+                                    {metricType}
+                                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isMetricOpen ? 'rotate-180 text-primary' : 'text-muted-foreground/60'}`} />
                                 </button>
-                            ))}
+
+                                {isMetricOpen && (
+                                    <div className="absolute top-full left-0 mt-3 w-40 bg-card/95 backdrop-blur-2xl border border-border/10 rounded-2xl shadow-2xl overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-200">
+                                        <div className="p-1.5">
+                                            {(['Retention', 'Deposits', 'Withdrawals'] as const).map((m) => (
+                                                <button
+                                                    key={m}
+                                                    onClick={() => { setMetricType(m); setIsMetricOpen(false); }}
+                                                    className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all duration-200 text-left mb-0.5 last:mb-0 ${metricType === m ? 'bg-primary/10 text-primary font-bold' : 'hover:bg-secondary/20 text-foreground/70'}`}
+                                                >
+                                                    <span className="text-xs">{m}</span>
+                                                    {metricType === m && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Timeframe Selection Dropdown */}
+                            <div className="relative" ref={timeRef}>
+                                <button
+                                    onClick={() => setIsTimeRangeOpen(!isTimeRangeOpen)}
+                                    className={`flex items-center gap-2 px-4 py-2 transition-all duration-300 rounded-xl border text-[11px] md:text-sm font-bold ${isTimeRangeOpen
+                                        ? 'bg-card/90 border-primary/50 text-primary'
+                                        : 'bg-card/40 border-border/10 text-foreground/80 hover:bg-card/60 hover:border-border/20'
+                                        } backdrop-blur-xl`}
+                                >
+                                    <span className="text-muted-foreground/40 font-mono text-[9px] mr-1">T:</span>
+                                    {timeRange}
+                                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isTimeRangeOpen ? 'rotate-180 text-primary' : 'text-muted-foreground/60'}`} />
+                                </button>
+
+                                {isTimeRangeOpen && (
+                                    <div className="absolute top-full right-0 lg:left-0 mt-3 w-36 bg-card/95 backdrop-blur-2xl border border-border/10 rounded-2xl shadow-2xl overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-200">
+                                        <div className="p-1.5">
+                                            {(['24hr', '7day', '30day', '3month', '6month', '1year', 'All Time'] as const).map((range) => (
+                                                <button
+                                                    key={range}
+                                                    onClick={() => { setTimeRange(range); setIsTimeRangeOpen(false); }}
+                                                    className={`w-full flex items-center justify-between px-4 py-2 rounded-xl transition-all duration-200 text-left mb-0.5 last:mb-0 ${timeRange === range ? 'bg-primary/10 text-primary font-bold' : 'hover:bg-secondary/20 text-foreground/70'}`}
+                                                >
+                                                    <span className="text-xs">{range}</span>
+                                                    {timeRange === range && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -490,10 +539,10 @@ export function AssetIntelligenceDashboard() {
                 )}
 
                 {/* The Chart */}
-                <div className="h-[400px] w-full mt-4 -mx-4 lg:mx-0">
+                <div className="h-[400px] w-full mt-4 -mx-4 md:mx-0">
                     {chartData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                            <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
                                 <defs>
                                     {selectedTokens.map((token) => {
                                         const index = allTokens.findIndex(t => t.token === token)
@@ -518,6 +567,7 @@ export function AssetIntelligenceDashboard() {
                                     axisLine={false}
                                     tick={{ fill: 'currentColor', opacity: 0.3, fontWeight: 'medium' }}
                                     dy={10}
+                                    padding={{ left: 0, right: 0 }}
                                 />
                                 <YAxis
                                     tickFormatter={(val) => val === 0 ? '0' : `$${formatNumber(val)}`}
@@ -526,8 +576,8 @@ export function AssetIntelligenceDashboard() {
                                     tickLine={false}
                                     axisLine={false}
                                     tick={{ fill: 'currentColor', opacity: 0.3, fontWeight: 'medium' }}
-                                    width={50}
-                                    dx={-5}
+                                    width={42}
+                                    dx={0}
                                 />
                                 <RechartsTooltip
                                     content={({ active, payload, label }) => {
@@ -687,7 +737,7 @@ export function AssetIntelligenceDashboard() {
                                         <div className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Net Remaining</div>
                                     </div>
                                 </div>
-                                
+
                                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/5">
                                     <div className="space-y-3">
                                         <div>
@@ -703,7 +753,7 @@ export function AssetIntelligenceDashboard() {
                                         <div>
                                             <div className="text-[8px] font-bold text-muted-foreground/30 uppercase tracking-widest mb-0.5">Retention Rate</div>
                                             <div className="flex items-center justify-end gap-2">
-                                                <span className="text-[10px] font-black text-foreground/90">{item.retention_rate.toFixed(1)}%</span>
+                                                <span className="text-[10px] font-bold text-foreground/90">{item.retention_rate.toFixed(1)}%</span>
                                                 <div className="w-12 h-1 bg-secondary/20 rounded-full overflow-hidden">
                                                     <div className="h-full bg-emerald-500/60" style={{ width: `${Math.min(item.retention_rate, 100)}%` }} />
                                                 </div>
@@ -711,7 +761,7 @@ export function AssetIntelligenceDashboard() {
                                         </div>
                                         <div>
                                             <div className="text-[8px] font-bold text-muted-foreground/30 uppercase tracking-widest mb-0.5">Balance</div>
-                                            <div className="text-[10px] font-black text-foreground">{formatNumber(item.net_remaining)} {item.token}</div>
+                                            <div className="text-[10px] font-bold text-foreground">{formatNumber(item.net_remaining)} {item.token}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -726,16 +776,10 @@ export function AssetIntelligenceDashboard() {
 
 function SummaryCard({ title, value, color }: { title: string, value: string, color: string }) {
     return (
-        <Card className="p-3 md:p-6 bg-card/30 backdrop-blur-xl border-border/5 rounded-2xl md:rounded-[2rem] relative overflow-hidden group hover:scale-[1.02] transition-all duration-500">
-            {/* Minimal Subtle Glow */}
-            <div className={cn(
-                "absolute -top-10 -right-10 w-32 h-32 blur-[50px] opacity-5 transition-opacity group-hover:opacity-10 pointer-events-none", 
-                color === 'blue' ? 'bg-blue-500' : color === 'emerald' ? 'bg-emerald-500' : 'bg-primary'
-            )} />
-
-            <div className="space-y-0.5 md:space-y-1 relative z-10 mt-0.5 md:mt-1">
-                <h4 className="text-[7px] md:text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest truncate">{title}</h4>
-                <div className="text-xs md:text-2xl font-black tracking-tight text-foreground/90">{value}</div>
+        <Card className="p-3 md:p-5 bg-secondary/10 border-border/5 rounded-xl md:rounded-2xl relative overflow-hidden group transition-all duration-500">
+            <div className="space-y-0.5 md:space-y-1 relative z-10">
+                <h4 className="text-[8px] md:text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest truncate">{title}</h4>
+                <div className="text-sm md:text-xl font-bold tracking-tight text-foreground/90">{value}</div>
             </div>
         </Card>
     )

@@ -15,6 +15,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetClose,
 } from "@/components/ui/sheet";
 import { toast, Toaster } from 'sonner';
 
@@ -1118,24 +1119,25 @@ export function DemoTrading() {
                        />
                        <div className="flex flex-col gap-1 max-h-[50vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                          {symbols.filter(sym => sym.toLowerCase().includes(searchQuery.toLowerCase())).map(sym => (
-                           <button
-                             key={sym}
-                             onClick={() => {
-                               setActiveSymbol(sym);
-                               setSearchQuery('');
-                             }}
-                             className={cn("flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-all", activeSymbol === sym && "bg-primary/5")}
-                           >
-                             <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center border border-border/30 overflow-hidden">
-                                  {getTokenLogo(sym) ? <img src={getTokenLogo(sym)} alt={sym} className="w-full h-full object-cover" /> : <div className="text-xs font-bold">{sym[0]}</div>}
-                                </div>
-                                <span className={cn("font-bold", activeSymbol === sym ? "text-primary" : "text-foreground")}>{sym}</span>
-                             </div>
-                             <div className="text-right">
-                               <div className="text-sm font-mono font-bold">{markPrices[sym]?.toLocaleString(undefined, { minimumFractionDigits: 2 }) || '--'}</div>
-                             </div>
-                           </button>
+                           <SheetClose asChild key={sym}>
+                             <button
+                               onClick={() => {
+                                 setActiveSymbol(sym);
+                                 setSearchQuery('');
+                               }}
+                               className={cn("flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-all", activeSymbol === sym && "bg-primary/5")}
+                             >
+                               <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center border border-border/30 overflow-hidden">
+                                    {getTokenLogo(sym) ? <img src={getTokenLogo(sym)} alt={sym} className="w-full h-full object-cover" /> : <div className="text-xs font-bold">{sym[0]}</div>}
+                                  </div>
+                                  <span className={cn("font-bold", activeSymbol === sym ? "text-primary" : "text-foreground")}>{sym}</span>
+                               </div>
+                               <div className="text-right">
+                                 <div className="text-sm font-mono font-bold">{markPrices[sym]?.toLocaleString(undefined, { minimumFractionDigits: 2 }) || '--'}</div>
+                               </div>
+                             </button>
+                           </SheetClose>
                          ))}
                        </div>
                      </div>
