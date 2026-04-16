@@ -40,6 +40,7 @@ function ReverseSearchPage({ onBack }: { onBack: () => void }) {
   const [reverseSuffix, setReverseSuffix] = useState('')
   const [reverseResults, setReverseResults] = useState<any[]>([])
   const [isLoadingReverse, setIsLoadingReverse] = useState(false)
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
 
   const handleReverseSearch = async () => {
     if (!reversePrefix || !reverseSuffix) return
@@ -60,6 +61,7 @@ function ReverseSearchPage({ onBack }: { onBack: () => void }) {
       })
 
       setReverseResults(matched)
+      setExpandedIndex(null)
     } catch (error) {
       console.error('[v0] Error searching addresses:', error)
       setReverseResults([])
@@ -104,29 +106,103 @@ function ReverseSearchPage({ onBack }: { onBack: () => void }) {
           </button>
 
           {reverseResults.length > 0 && (
-            <div className="mt-8 space-y-3">
-              <p className="text-sm text-muted-foreground">Found {reverseResults.length} matching addresses</p>
-              <div className="overflow-x-auto">
+            <div className="mt-8 space-y-4">
+              <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-[0.2em]">Found {reverseResults.length} Matching Results</p>
+              
+              {/* Desktop View Table - Hidden on all mobile/tablet sizes */}
+              <div className="hidden lg:block overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border text-left">
-                      <th className="px-3 py-2 font-semibold">Address</th>
-                      <th className="px-3 py-2 font-semibold text-right">Volume</th>
-                      <th className="px-3 py-2 font-semibold text-right">PnL</th>
+                      <th className="px-3 py-4 font-bold text-[10px] uppercase tracking-widest text-muted-foreground/30">Address</th>
+                      <th className="px-3 py-4 font-bold text-[10px] uppercase tracking-widest text-muted-foreground/30 text-right">Volume</th>
+                      <th className="px-3 py-4 font-bold text-[10px] uppercase tracking-widest text-muted-foreground/30 text-right">PnL</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-border/5">
                     {reverseResults.map((trader, i) => (
-                      <tr key={i} className="border-b border-border/50 hover:bg-secondary/20">
-                        <td className="px-3 py-2 text-xs font-mono">{trader.address || 'N/A'}</td>
-                        <td className="px-3 py-2 text-right">${typeof trader.vol === 'string' ? parseFloat(trader.vol).toFixed(0) : (trader.vol || 0).toLocaleString()}</td>
-                        <td className={`px-3 py-2 text-right ${(trader.pnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      <tr key={i} className="group/row hover:bg-secondary/10 transition-colors duration-300">
+                        <td className="px-3 py-3 text-xs font-mono text-foreground/70">{trader.address || 'N/A'}</td>
+                        <td className="px-3 py-3 text-right text-xs font-bold tabular-nums text-foreground/50">${typeof trader.vol === 'string' ? parseFloat(trader.vol).toFixed(0) : (trader.vol || 0).toLocaleString()}</td>
+                        <td className={`px-3 py-3 text-right text-xs font-bold tabular-nums ${(trader.pnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                           ${typeof trader.pnl === 'string' ? parseFloat(trader.pnl).toFixed(0) : (trader.pnl || 0).toLocaleString()}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile/Tablet View Expanding Cards */}
+              <div className="lg:hidden space-y-2">
+                {reverseResults.map((trader, i) => (
+                  <Card 
+                    key={i} 
+                    onClick={() => setExpandedIndex(expandedIndex === i ? null : i)}
+                    className={cn(
+                      "p-3 bg-white/[0.02] border-white/5 rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden",
+                      expandedIndex === i ? "bg-white/[0.04] border-white/10 ring-1 ring-orange-500/10" : "hover:bg-white/[0.03]"
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <p className="text-xs font-mono text-foreground font-bold truncate">
+                            {trader.address.slice(0, 6)}...{trader.address.slice(-6)}
+                          </p>
+                        </div>
+                        <p className={cn(
+                          "text-[10px] font-bold tabular-nums transition-opacity duration-300",
+                          expandedIndex === i ? "opacity-0 h-0" : "opacity-100",
+                          (trader.pnl || 0) >= 0 ? "text-emerald-500/50" : "text-rose-500/50"
+                        )}>
+                          PnL: ${typeof trader.pnl === 'string' ? parseFloat(trader.pnl).toFixed(0) : (trader.pnl || 0).toLocaleString()}
+                        </p>
+                      </div>
+                      <ChevronDown className={cn("w-4 h-4 text-muted-foreground/20 transition-transform duration-500", expandedIndex === i && "rotate-180 text-orange-500")} />
+                    </div>
+
+                    <div className={cn(
+                      "transition-all duration-500 ease-in-out",
+                      expandedIndex === i ? "max-h-[300px] mt-4 pt-4 border-t border-white/5 opacity-100" : "max-h-0 opacity-0"
+                    )}>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">Full Address</span>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(trader.address);
+                                alert('Address copied to clipboard');
+                              }}
+                              className="text-[9px] font-bold text-orange-500 uppercase tracking-widest hover:underline"
+                            >
+                              Copy
+                            </button>
+                          </div>
+                          <p className="text-xs font-mono text-foreground/80 break-all bg-black/20 p-3 rounded-xl border border-white/5 leading-relaxed italic">
+                            {trader.address}
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                            <p className="text-[8px] font-bold text-muted-foreground/30 uppercase tracking-widest mb-1">Volume</p>
+                            <p className="text-xs font-bold text-foreground tabular-nums">${typeof trader.vol === 'string' ? parseFloat(trader.vol).toFixed(0) : (trader.vol || 0).toLocaleString()}</p>
+                          </div>
+                          <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                            <p className="text-[8px] font-bold text-muted-foreground/30 uppercase tracking-widest mb-1">Total PnL</p>
+                            <p className={cn(
+                                "text-xs font-bold tabular-nums",
+                                (trader.pnl || 0) >= 0 ? "text-emerald-500" : "text-rose-500"
+                            )}>${typeof trader.pnl === 'string' ? parseFloat(trader.pnl).toFixed(0) : (trader.pnl || 0).toLocaleString()}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
               </div>
             </div>
           )}

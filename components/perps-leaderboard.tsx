@@ -256,8 +256,16 @@ export function PerpsLeaderboard() {
                 #{searchResult.rank}
               </div>
               <div>
-                <p className="text-[10px] font-bold text-orange-500 uppercase tracking-[0.3em] mb-1.5">Personal Performance</p>
-                <p className="text-sm font-mono text-foreground/80 tracking-tight">{searchResult.wallet_address}</p>
+                <p className="text-[10px] font-bold text-orange-500 uppercase tracking-[0.3em] mb-1.5">
+                  <span className="md:hidden">Rank</span>
+                  <span className="hidden md:inline">Personal Performance</span>
+                </p>
+                <p className="text-sm font-mono text-foreground/80 tracking-tight">
+                  <span className="md:hidden">
+                    {searchResult.wallet_address.slice(0, 4)}...{searchResult.wallet_address.slice(-4)}
+                  </span>
+                  <span className="hidden md:inline">{searchResult.wallet_address}</span>
+                </p>
               </div>
             </div>
             <div className="grid grid-cols-2 md:flex md:gap-16 gap-x-12 gap-y-6">
