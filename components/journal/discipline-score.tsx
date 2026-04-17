@@ -50,41 +50,41 @@ export function DisciplineScore({ score }: DisciplineScoreProps) {
                 score.overall >= 50 ? 'text-orange-500' : 'text-red-500';
 
     return (
-        <Card className="p-5 bg-card/40 backdrop-blur-3xl border border-border/10 rounded-3xl">
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">
-                    Discipline Score
+        <Card className="p-6 bg-card/30 backdrop-blur-md border border-border/10 rounded-2xl shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+                <h3 className="text-[10px] font-semibold text-muted-foreground/30 uppercase tracking-[0.2em]">
+                    Discipline
                 </h3>
-                <Trophy className="w-4 h-4 text-orange-500" />
+                <Trophy className="w-4 h-4 text-orange-500/50" />
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-6 mb-8">
                 <ScoreRing value={score.overall} />
-                <div className="flex flex-col gap-1">
-                    <span className={`text-lg font-black ${labelColor}`}>{label}</span>
-                    <span className="text-[11px] text-muted-foreground/40">Based on {score.breakdown.length} rules</span>
+                <div className="flex flex-col gap-0.5">
+                    <span className={`text-2xl font-bold tracking-tight ${labelColor}`}>{label}</span>
+                    <span className="text-[10px] text-muted-foreground/40 font-medium">Rule Compliance Score</span>
                 </div>
             </div>
 
             {/* Breakdown */}
-            <div className="mt-4 space-y-3">
+            <div className="space-y-4">
                 {score.breakdown.map((rule) => (
-                    <div key={rule.rule}>
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-[10px] font-medium text-muted-foreground/60">{rule.rule}</span>
+                    <div key={rule.rule} className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-medium text-muted-foreground/60">{rule.rule}</span>
                             <span className={`text-[10px] font-bold ${rule.passRate >= 80 ? 'text-emerald-500' : rule.passRate >= 50 ? 'text-orange-500' : 'text-red-500'}`}>
                                 {rule.passRate.toFixed(0)}%
                             </span>
                         </div>
-                        <div className="h-1 w-full bg-secondary/20 rounded-full overflow-hidden">
+                        <div className="h-1 w-full bg-secondary/10 rounded-full overflow-hidden">
                             <div
-                                className={`h-full rounded-full transition-all ${rule.passRate >= 80 ? 'bg-green-500' : rule.passRate >= 50 ? 'bg-orange-500' : 'bg-red-500'}`}
+                                className={`h-full rounded-full transition-all duration-1000 ${rule.passRate >= 80 ? 'bg-emerald-500' : rule.passRate >= 50 ? 'bg-orange-500' : 'bg-red-500'}`}
                                 style={{ width: `${rule.passRate}%` }}
                             />
                         </div>
-                        <div className="flex justify-between text-[9px] text-muted-foreground/25 mt-0.5">
-                            <span>{rule.passDays} pass</span>
-                            <span>{rule.failDays} fail</span>
+                        <div className="flex justify-between text-[9px] text-muted-foreground/20 font-medium">
+                            <span>{rule.passDays > 0 ? `${rule.passDays}d pass` : ''}</span>
+                            <span className="text-red-500/40">{rule.failDays > 0 ? `${rule.failDays}d fail` : ''}</span>
                         </div>
                     </div>
                 ))}

@@ -2,7 +2,7 @@
 
 import { AlertTriangle, XOctagon, AlertCircle, ShieldCheck } from 'lucide-react';
 import type { RuleViolation } from '@/lib/journal-types';
-import { CyberCard } from './cyber-elements';
+import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 interface RuleViolationsProps {
@@ -11,54 +11,57 @@ interface RuleViolationsProps {
 
 const typeConfig: Record<string, any> = {
     DAILY_LOSS_LIMIT: {
-        label: 'Loss_Limit_Incursion',
+        label: 'Daily Loss Limit',
         icon: XOctagon,
         color: 'text-red-500',
-        bg: 'bg-red-500/10',
-        border: 'border-red-500/20',
+        bg: 'bg-red-500/5',
+        border: 'border-red-500/10',
     },
     MAX_TRADES: {
-        label: 'Signal_Abundance_Detected',
+        label: 'Excessive Trading',
         icon: AlertTriangle,
         color: 'text-orange-500',
-        bg: 'bg-orange-500/10',
-        border: 'border-orange-500/20',
+        bg: 'bg-orange-500/5',
+        border: 'border-orange-500/10',
     },
     MAX_LOSS_PER_TRADE: {
-        label: 'Single_Vector_Leakage',
+        label: 'Stop Loss Limit',
         icon: AlertCircle,
         color: 'text-red-500',
-        bg: 'bg-red-500/10',
-        border: 'border-red-500/20',
+        bg: 'bg-red-500/5',
+        border: 'border-red-500/10',
     },
 };
 
 export function RuleViolations({ violations }: RuleViolationsProps) {
     return (
-        <CyberCard className="p-6">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/10">
-                <h3 className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.3em]">
+        <Card className="p-6 bg-card/30 backdrop-blur-md border border-border/10 rounded-2xl shadow-sm">
+            <div className="flex items-center justify-between mb-8 pb-4 border-b border-border/5">
+                <h3 className="text-[10px] font-semibold text-muted-foreground/30 uppercase tracking-[0.2em]">
                     Compliance
                 </h3>
                 {violations.length > 0 && (
-                    <span className="px-2 py-0.5 rounded-md bg-red-500/10 border border-red-500/30 text-red-500 text-[10px] font-black uppercase tracking-widest animate-[pulse_2s_infinite]">
-                        Taking Risks
-                    </span>
+                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-red-500/10 border border-red-500/5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                        <span className="text-red-500 text-[9px] font-bold uppercase tracking-wider">
+                            Needs Attention
+                        </span>
+                    </div>
                 )}
             </div>
 
             {violations.length === 0 ? (
-                <div className="flex items-center gap-4 p-4 rounded-2xl bg-secondary/5 border border-border/10">
-                    <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20 shadow-lg shadow-orange-500/5">
-                        <ShieldCheck className="text-orange-500 w-5 h-5" />
+                <div className="flex items-center gap-4 p-5 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                        <ShieldCheck className="text-emerald-500 w-5 h-5" />
                     </div>
                     <div>
-                        <p className="text-[11px] font-black text-orange-500 uppercase tracking-widest">All Good</p>
-                        <p className="text-[10px] text-muted-foreground/20 uppercase font-bold tracking-tight">No violations found</p>
+                        <p className="text-[11px] font-bold text-emerald-500 uppercase tracking-widest">Compliant</p>
+                        <p className="text-[10px] text-muted-foreground/40 font-medium tracking-tight">All discipline rules followed</p>
                     </div>
                 </div>
             ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                     {violations.map((v, i) => {
                         const cfg = typeConfig[v.type] || typeConfig.DAILY_LOSS_LIMIT;
                         const Icon = cfg.icon;
@@ -66,27 +69,23 @@ export function RuleViolations({ violations }: RuleViolationsProps) {
                             <div
                                 key={i}
                                 className={cn(
-                                    "flex items-start gap-4 p-4 rounded-2xl bg-secondary/5 border border-border/10 group transition-all",
+                                    "flex items-start gap-4 p-4 rounded-xl transition-all border",
+                                    cfg.bg,
                                     cfg.border
                                 )}
                             >
-                                <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-secondary/10", cfg.color)}>
+                                <div className={cn("w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-background/50", cfg.color)}>
                                    <Icon className="w-4 h-4" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className={cn("text-[11px] font-black uppercase tracking-widest", cfg.color)}>{cfg.label}</p>
-                                    <p className="text-[10px] text-muted-foreground/40 mt-1 italic font-medium leading-tight">{v.description}</p>
+                                    <p className={cn("text-[11px] font-medium uppercase tracking-wider", cfg.color)}>{cfg.label}</p>
+                                    <p className="text-[10px] text-muted-foreground/60 mt-0.5 font-medium leading-relaxed">{v.description}</p>
                                 </div>
-                                {v.severity === 'critical' && (
-                                    <span className="text-[8px] font-black px-2 py-0.5 rounded bg-red-500 text-primary-foreground uppercase tracking-widest shrink-0">
-                                        CRITICAL
-                                    </span>
-                                )}
                             </div>
                         );
                     })}
                 </div>
             )}
-        </CyberCard>
+        </Card>
     );
 }

@@ -72,6 +72,20 @@ export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps
 
     const [activeTab, setActiveTab] = React.useState<DashboardTab>('overview');
     const [historyPage, setHistoryPage] = React.useState(0);
+    
+    const availableDates = React.useMemo(() => {
+        const dates = new Set<string>();
+        metrics.dailyPerformance.forEach(d => dates.add(d.date));
+        allPositions.forEach(p => {
+            const date = new Date(p.created_at).toISOString().split('T')[0];
+            dates.add(date);
+        });
+        return Array.from(dates).sort((a, b) => b.localeCompare(a));
+    }, [metrics.dailyPerformance, allPositions]);
+
+    const [selectedDate, setSelectedDate] = React.useState<string>(
+        availableDates[0] || new Date().toISOString().split('T')[0]
+    );
 
     const goalTarget = plan.overallProfitTarget > 0 
         ? plan.overallProfitTarget 
@@ -174,7 +188,14 @@ export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps
                     </div>
                     
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <PerformanceCalendar days={metrics.dailyPerformance} />
+                        <PerformanceCalendar 
+                            days={metrics.dailyPerformance} 
+                            selectedDate={selectedDate}
+                            onDateSelect={(date) => {
+                                setSelectedDate(date);
+                                setActiveTab('analytics');
+                            }}
+                        />
                         <PerformanceStreak days={metrics.dailyPerformance} />
                     </div>
                 </div>
@@ -195,6 +216,8 @@ export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps
                     <DailyAnalysis 
                         allPositions={allPositions} 
                         dailyPerformance={metrics.dailyPerformance} 
+                        selectedDate={selectedDate}
+                        onDateSelect={setSelectedDate}
                     />
                 </div>
             )}
