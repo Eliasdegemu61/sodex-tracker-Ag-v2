@@ -20,7 +20,8 @@ function formatAddress(address: string) {
 }
 
 export function TopTradersCard() {
-      const [activeTab, setActiveTab] = useState<'all' | 'spot' | 'futures'>('futures')
+  const { overallStats, isLoading } = useDexData()
+  const [activeTab, setActiveTab] = useState<'all' | 'spot' | 'futures'>('futures')
   
   const traders = useMemo(() => {
     if (!overallStats) return []

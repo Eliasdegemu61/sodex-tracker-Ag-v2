@@ -77,13 +77,13 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
   return (
     <Sidebar collapsible="none" className="hidden lg:flex sticky top-0 h-screen border-r border-border bg-background text-foreground">
       <SidebarHeader className="p-5">
-        <div className="flex flex-col items-start gap-1">
+        <div className="flex flex-col items-end w-fit gap-1">
           <img 
             src={logoUrl} 
             alt="SoDEX Logo" 
             className="h-9 w-auto object-contain" 
           />
-          <h1 className="text-[10px] font-black tracking-[0.2em] text-foreground uppercase pt-1 px-1 opacity-80">Tracker</h1>
+          <h1 className="text-[10px] font-black tracking-[0.25em] text-foreground uppercase px-1 opacity-80">Tracker</h1>
         </div>
       </SidebarHeader>
       
