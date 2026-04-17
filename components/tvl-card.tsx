@@ -42,8 +42,8 @@ export function TVLCard() {
 
   if (isLoading) {
     return (
-      <Card className="p-5 bg-card border border-border/50 rounded-2xl animate-pulse">
-        <div className="h-[40px] bg-white/5 rounded-xl" />
+      <Card className="p-5 bg-background border border-border rounded-lg animate-pulse">
+        <div className="h-[40px] bg-secondary/10 rounded-xl" />
       </Card>
     )
   }
@@ -58,11 +58,11 @@ export function TVLCard() {
   }
 
   return (
-    <Card className="p-4 lg:p-5 bg-card border border-border/50 rounded-2xl transition-all duration-300 group h-full flex flex-col justify-between min-h-[104px]">
+    <Card className="p-4 lg:p-5 bg-background border border-border rounded-lg transition-all duration-300 group h-full flex flex-col justify-between min-h-[104px]">
       <div className="flex flex-col h-full justify-between min-w-0">
         <div className="flex items-center justify-between h-4">
           <h3 className="text-[10px] lg:text-xs font-semibold text-muted-foreground/60 whitespace-nowrap text-zinc-500 leading-none">Value Locked</h3>
-          <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(255,77,0,0.5)]" />
+          <div className="w-1.5 h-1.5 rounded-full bg-foreground animate-pulse" />
         </div>
         <div className="flex items-center h-6">
           <div className="text-lg lg:text-xl font-bold tracking-tight text-foreground leading-none truncate">

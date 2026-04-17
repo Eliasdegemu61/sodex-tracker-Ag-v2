@@ -1,7 +1,7 @@
 'use client'
 
 import { Card } from '@/components/ui/card'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts'
 import { formatNumber } from '@/lib/format-number'
 import { cn } from '@/lib/utils'
@@ -105,7 +105,7 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
   // Revised User and Volume Cards for Mobile Merger
   const StatsHeader = () => {
     const SharedCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-      <Card className={cn("p-4 lg:p-5 bg-card border border-border/50 rounded-2xl group transition-all duration-300 h-full flex flex-col min-h-[104px]", className)}>
+      <Card className={cn("p-4 lg:p-5 bg-background border border-border rounded-lg group transition-all duration-300 h-full flex flex-col min-h-[104px]", className)}>
         {children}
       </Card>
     );
@@ -129,8 +129,26 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
       <div className="flex-1 flex flex-col h-full min-w-0">
         <h3 className="text-[10px] lg:text-xs font-semibold text-muted-foreground/60 mb-2 whitespace-nowrap text-zinc-500">Total Volume</h3>
         <div className="text-lg lg:text-xl font-bold tracking-tight text-foreground leading-none">${formatNumber(totalVolume)}</div>
+        <div className="hidden lg:flex items-center gap-3 mt-auto pt-2">
+          <div className="flex items-center gap-1.5">
+            <div className="w-1 h-1 rounded-full bg-foreground" />
+            <span className="text-[9px] text-muted-foreground font-bold">Spot <span className="text-foreground">${formatNumber(spotVolume)}</span></span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-1 h-1 rounded-full bg-muted-foreground" />
+            <span className="text-[9px] text-muted-foreground font-bold">Fut <span className="text-foreground">${formatNumber(futuresVolume)}</span></span>
+          </div>
+        </div>
       </div>
     );
+
+    const [activeVolumeTab, setActiveVolumeTab] = useState<'all' | 'spot' | 'futures'>('all')
+
+    const filteredPieData = useMemo(() => {
+      if (activeVolumeTab === 'spot') return [{ name: 'Spot', value: spotVolume || 1 }]
+      if (activeVolumeTab === 'futures') return [{ name: 'Futures', value: futuresVolume || 1 }]
+      return pieData
+    }, [activeVolumeTab, pieData, spotVolume, futuresVolume])
 
     if (variant === 'compact') {
       return (
@@ -182,60 +200,70 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
       <StatsHeader />
 
       {/* Spot vs Futures Volume */}
-      <Card className="hidden lg:block p-5 bg-card border border-border/50 rounded-2xl overflow-hidden group transition-all duration-300">
+      <Card className="hidden lg:block p-5 bg-background border border-border rounded-lg overflow-hidden transition-all duration-300">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60 text-zinc-500 uppercase tracking-wider">Volume Split</h3>
+          <div className="flex items-center gap-4">
+            {(['all', 'spot', 'futures'] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setActiveVolumeTab(t)}
+                className={`text-[10px] font-black transition-all uppercase tracking-wider pb-1 ${
+                  activeVolumeTab === t
+                    ? 'text-foreground border-b-2 border-foreground'
+                    : 'text-muted-foreground/30 hover:text-muted-foreground border-b-2 border-transparent'
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="relative w-full h-40 flex items-center justify-center">
-          <div className="absolute inset-0 bg-orange-500/5 blur-3xl rounded-full scale-50 opacity-50" />
           <ResponsiveContainer width="100%" height="100%">
-            <PieChart className="animate-spin hover:scale-105 transition-transform duration-700" style={{ animationDuration: '20s' }}>
-              <defs>
-                <filter id="pieGlow">
-                  <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-                  <feMerge>
-                    <feMergeNode in="coloredBlur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
+            <PieChart className="animate-spin" style={{ animationDuration: '40s' }}>
               <Pie
-                data={pieData}
+                data={filteredPieData}
                 cx="50%"
                 cy="50%"
                 innerRadius={50}
                 outerRadius={65}
-                paddingAngle={4}
+                paddingAngle={2}
                 dataKey="value"
                 isAnimationActive={!isMobile}
                 stroke="none"
               >
-                <Cell fill="var(--primary)" className="drop-shadow-[0_0_8px_rgba(255,77,0,0.4)]" />
-                <Cell fill="#EA580C" className="drop-shadow-[0_0_8px_rgba(234,88,12,0.4)]" />
+                <Cell fill="var(--foreground)" />
+                <Cell fill="hsl(var(--muted-foreground))" />
               </Pie>
             </PieChart>
           </ResponsiveContainer>
           <div className="absolute flex flex-col items-center justify-center text-center">
-            <span className="text-[8px] text-muted-foreground/30 font-bold  uppercase">Futures</span>
+            <span className="text-[8px] text-muted-foreground/30 font-bold uppercase">
+              {activeVolumeTab === 'all' ? 'Futures' : activeVolumeTab}
+            </span>
             <span className="text-xs font-bold text-foreground/80">
-              {((futuresVolume / totalVolume) * 100).toFixed(1)}%
+              {activeVolumeTab === 'all' 
+                ? `${((futuresVolume / (totalVolume || 1)) * 100).toFixed(1)}%`
+                : '100%'
+              }
             </span>
           </div>
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-2">
-          <div className="p-3 bg-secondary/10 rounded-2xl border border-border/5 space-y-1">
+          <div className="p-3 bg-secondary/5 rounded-lg border border-border/50 space-y-1">
             <div className="flex items-center gap-2 mb-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-              <span className="text-[8px] text-muted-foreground/70 dark:text-muted-foreground/40 font-bold  uppercase">Spot</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-foreground" />
+              <span className="text-[8px] text-muted-foreground font-bold uppercase">Spot</span>
             </div>
             <p className="text-xs font-bold text-foreground/80">${formatNumber(spotVolume)}</p>
           </div>
-          <div className="p-3 bg-secondary/10 rounded-2xl border border-border/5 space-y-1">
+          <div className="p-3 bg-secondary/5 rounded-lg border border-border/50 space-y-1">
             <div className="flex items-center gap-2 mb-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-orange-600" />
-              <span className="text-[8px] text-muted-foreground/70 dark:text-muted-foreground/40 font-bold  uppercase">Futures</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
+              <span className="text-[8px] text-muted-foreground font-bold uppercase">Futures</span>
             </div>
             <p className="text-xs font-bold text-foreground/80">${formatNumber(futuresVolume)}</p>
           </div>

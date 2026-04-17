@@ -2,7 +2,7 @@
 
 import { Card } from '@/components/ui/card'
 import { formatNumber } from '@/lib/format-number'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useDexData } from '@/context/dex-data-context'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { HelpCircle } from 'lucide-react'
@@ -20,12 +20,20 @@ function formatAddress(address: string) {
 }
 
 export function TopTradersCard() {
-  const { overallStats, isLoading } = useDexData()
-  const traders = overallStats?.top_5_futures_vol || []
+      const [activeTab, setActiveTab] = useState<'all' | 'spot' | 'futures'>('futures')
+  
+  const traders = useMemo(() => {
+    if (!overallStats) return []
+    if (activeTab === 'all') {
+      const all = [...(overallStats.top_5_futures_vol || []), ...(overallStats.top_5_spot_vol || [])]
+      return all.sort((a, b) => b.vol - a.vol).slice(0, 5)
+    }
+    return activeTab === 'spot' ? overallStats.top_5_spot_vol || [] : overallStats.top_5_futures_vol || []
+  }, [overallStats, activeTab])
 
   if (isLoading) {
     return (
-      <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl animate-pulse">
+      <Card className="p-5 bg-background border border-border rounded-lg animate-pulse">
         <h3 className="text-xs font-semibold text-muted-foreground/60 mb-4">Indexing Whales</h3>
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map(i => (
@@ -37,7 +45,7 @@ export function TopTradersCard() {
   }
 
   return (
-    <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm group">
+    <Card className="p-5 bg-background border border-border rounded-lg group">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60">Top Performers</h3>
@@ -47,12 +55,27 @@ export function TopTradersCard() {
                 <HelpCircle className="w-3.5 h-3.5 text-muted-foreground/40 hover:text-muted-foreground/80 transition-colors cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="bg-popover text-popover-foreground border-border text-xs max-w-[220px]">
-                <p>top5 traders with the biggest volume on futures trading</p>
+                <p>top traders with the biggest volume split by category</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
-        <div className="px-2 py-0.5 rounded-lg bg-orange-500/10 text-orange-400 text-[8px] font-bold ">Perps</div>
+        
+        <div className="flex items-center gap-4">
+          {(['all', 'spot', 'futures'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setActiveTab(t)}
+              className={`text-[10px] font-black transition-all uppercase tracking-wider pb-1 ${
+                activeTab === t
+                  ? 'text-foreground border-b-2 border-foreground'
+                  : 'text-muted-foreground/30 hover:text-muted-foreground border-b-2 border-transparent'
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="space-y-2">

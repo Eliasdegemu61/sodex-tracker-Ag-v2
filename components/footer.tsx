@@ -13,7 +13,7 @@ export function Footer() {
         <div className="flex items-center justify-center gap-2 sm:gap-3 text-xs text-muted-foreground flex-wrap">
           {/* X (Twitter) Link */}
           <a
-            href="https://x.com/eliasing__"
+            href="https://x.com/eliasing00"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-orange-500 transition-colors flex items-center justify-center p-1.5 sm:p-2 rounded-lg hover:bg-orange-500/10"

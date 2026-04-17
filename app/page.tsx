@@ -58,6 +58,7 @@ import { PortfolioProvider } from '@/context/portfolio-context';
 import { JournalPageClient } from '@/components/journal/journal-page-client';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { Search, Settings as SettingsIcon } from 'lucide-react'
+import { PulseDashboard } from '@/components/pulse-dashboard'
 
 function LoadingCard() {
   return <Card className="p-4 md:p-6 bg-card border border-border h-64 animate-pulse" />
@@ -138,97 +139,131 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      <Card className="p-8 md:p-10 bg-card/20 dark:bg-[#141414]/90 border border-border/20 dark:border-white/5 rounded-[2rem] shadow-2xl">
-        <h2 className="text-xl md:text-2xl font-bold text-foreground dark:text-white mb-2 tracking-tight">Reverse Search</h2>
-        <p className="text-sm text-muted-foreground mb-8">Add either the last or first or both characters to find matching addresses on SoDex database</p>
-        <div className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-foreground/80 dark:text-white/80 block mb-2">first characters</label>
-              <input
-                placeholder="e.g. 0x12"
-                maxLength={4}
-                value={reversePrefix}
-                onChange={(e) => setReversePrefix(e.target.value.toUpperCase())}
-                className="w-full bg-secondary/10 dark:bg-black/40 border border-border/50 dark:border-white/10 rounded-xl text-sm font-mono text-foreground dark:text-white placeholder:text-muted-foreground/30 focus:outline-none focus:ring-1 focus:ring-orange-500/30 p-3 transition-all"
-              />
+    <div className="space-y-6 pb-16 animate-in fade-in duration-500">
+
+      {/* Page Header */}
+      <div className="pb-6 border-b border-border">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1">Reverse Search</h1>
+        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">Find wallet addresses by first or last characters</p>
+      </div>
+
+      {/* Search Controls */}
+      <div className="bg-background border border-border rounded-xl p-6 sm:p-8 shadow-none space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">First Characters</label>
+            <input
+              placeholder="e.g. 0x12"
+              maxLength={4}
+              value={reversePrefix}
+              onChange={(e) => setReversePrefix(e.target.value.toUpperCase())}
+              onKeyDown={(e) => e.key === 'Enter' && handleReverseSearch()}
+              className="w-full h-10 bg-secondary/5 border border-border rounded-lg px-3 font-mono text-sm text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-border/80 transition-all"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Last Characters</label>
+            <input
+              placeholder="e.g. a2f4"
+              maxLength={4}
+              value={reverseSuffix}
+              onChange={(e) => setReverseSuffix(e.target.value.toUpperCase())}
+              onKeyDown={(e) => e.key === 'Enter' && handleReverseSearch()}
+              className="w-full h-10 bg-secondary/5 border border-border rounded-lg px-3 font-mono text-sm text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-border/80 transition-all"
+            />
+          </div>
+        </div>
+
+        <button
+          onClick={handleReverseSearch}
+          disabled={isLoadingReverse || (!reversePrefix && !reverseSuffix)}
+          className="w-full h-11 bg-foreground text-background rounded-lg font-bold text-[11px] uppercase tracking-[0.2em] hover:bg-foreground/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+        >
+          {isLoadingReverse ? (
+            <><Loader2 className="w-4 h-4 animate-spin" /><span>Searching...</span></>
+          ) : 'Search'}
+        </button>
+      </div>
+
+      {/* Results */}
+      {fullResults.length > 0 && (
+        <div className="bg-background border border-border rounded-xl shadow-none overflow-hidden">
+
+          {/* Header */}
+          <div className="px-6 py-5 border-b border-border flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-bold text-foreground tracking-tight">Results</h2>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-0.5">{fullResults.length.toLocaleString()} matching addresses</p>
             </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-foreground/80 dark:text-white/80 block mb-2">last characters</label>
-              <input
-                placeholder="e.g. a2f4"
-                maxLength={4}
-                value={reverseSuffix}
-                onChange={(e) => setReverseSuffix(e.target.value.toUpperCase())}
-                className="w-full bg-secondary/10 dark:bg-black/40 border border-border/50 dark:border-white/10 rounded-xl text-sm font-mono text-foreground dark:text-white placeholder:text-muted-foreground/30 focus:outline-none focus:ring-1 focus:ring-orange-500/30 p-3 transition-all"
-              />
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => loadPageData(fullResults, currentPage - 1)}
+                disabled={currentPage === 1 || isLoadingPage}
+                className="h-7 w-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-secondary/10 disabled:opacity-30 transition-all"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <span className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                {currentPage} / {totalPages || 1}
+              </span>
+              <button
+                onClick={() => loadPageData(fullResults, Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage >= totalPages || isLoadingPage}
+                className="h-7 w-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-secondary/10 disabled:opacity-30 transition-all"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </button>
             </div>
           </div>
-          <button onClick={handleReverseSearch} disabled={isLoadingReverse} className="w-full md:w-auto px-8 py-2.5 bg-foreground text-background dark:bg-white dark:text-black rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-50 transition-opacity">
-            {isLoadingReverse ? 'Searching...' : 'Search'}
-          </button>
 
-          {fullResults.length > 0 && (
-            <div className="mt-8 space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">Found {fullResults.length} matching addresses</p>
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={() => loadPageData(fullResults, currentPage - 1)} 
-                    disabled={currentPage === 1 || isLoadingPage}
-                    className="px-3 py-1 bg-secondary text-foreground text-xs font-bold rounded hover:opacity-80 disabled:opacity-30 transition-opacity"
-                  >
-                    Prev
-                  </button>
-                  <span className="text-xs text-muted-foreground font-mono">Page {currentPage} / {totalPages || 1}</span>
-                  <button 
-                    onClick={() => loadPageData(fullResults, Math.min(totalPages, currentPage + 1))} 
-                    disabled={currentPage >= totalPages || isLoadingPage}
-                    className="px-3 py-1 bg-secondary text-foreground text-xs font-bold rounded hover:opacity-80 disabled:opacity-30 transition-opacity"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-
-              {isLoadingPage ? (
-                <div className="py-8 text-center text-sm text-muted-foreground animate-pulse">Loading volume data for page...</div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-border text-left">
-                        <th className="px-3 py-2 font-semibold">Address</th>
-                        <th className="px-3 py-2 font-semibold text-right">Volume (All-Time)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginatedResults.map((trader, i) => (
-                        <tr key={i} className="border-b border-border/50 hover:bg-secondary/20">
-                          <td className="px-3 py-2 font-mono text-xs">{trader.address || 'N/A'}</td>
-                          <td className="px-3 py-2 text-right font-mono text-xs text-black dark:text-white">
-                            {trader.volume !== undefined
-                              ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(trader.volume))
-                              : 'Loading...'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+          {/* Table or Loading */}
+          {isLoadingPage ? (
+            <div className="py-12 text-center">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest animate-pulse">Loading volume data...</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-border/50">
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">#</th>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Address</th>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 text-right">All-Time Volume</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/30">
+                  {paginatedResults.map((trader, i) => (
+                    <tr key={i} className="group hover:bg-secondary/5 transition-colors">
+                      <td className="px-6 py-4">
+                        <span className="text-xs font-bold text-muted-foreground/30 tabular-nums">{(currentPage - 1) * ITEMS_PER_PAGE + i + 1}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-xs font-mono text-muted-foreground/70 group-hover:text-foreground transition-colors">
+                          {trader.address || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <span className="text-xs font-bold text-foreground tabular-nums">
+                          {trader.volume !== undefined
+                            ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Number(trader.volume))
+                            : <span className="text-muted-foreground/30">—</span>}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
-      </Card>
+      )}
     </div>
   )
 }
 
 export default function Dashboard() {
   const { theme, toggleTheme, mounted } = useTheme()
-  const [currentPage, setCurrentPage] = useState<'dex-status' | 'tracker' | 'portfolio' | 'leaderboard' | 'analyzer' | 'about' | 'whale-tracker' | 'assets' | 'journal' | 'analytics' | 'demo-trading'>('dex-status')
+  const [currentPage, setCurrentPage] = useState<'dex-status' | 'tracker' | 'portfolio' | 'leaderboard' | 'analyzer' | 'about' | 'whale-tracker' | 'assets' | 'journal' | 'analytics' | 'demo-trading' | 'pulse'>('dex-status')
   const [searchAddressInput, setSearchAddressInput] = useState('')
   const [trackerSearchAddress, setTrackerSearchAddress] = useState('')
   const [showMoreMenu, setShowMoreMenu] = useState(false)
@@ -276,7 +311,7 @@ export default function Dashboard() {
       setTrackerSearchAddress(decodeURIComponent(addressParam));
     }
 
-    if (tabParam && ['dex-status', 'tracker', 'portfolio', 'leaderboard', 'analyzer', 'about', 'whale-tracker', 'assets', 'analytics', 'demo-trading'].includes(tabParam)) {
+    if (tabParam && ['dex-status', 'tracker', 'portfolio', 'leaderboard', 'analyzer', 'about', 'whale-tracker', 'assets', 'analytics', 'demo-trading', 'pulse'].includes(tabParam)) {
       setCurrentPage(tabParam);
     } else {
       // Default to dex-status on first load
@@ -323,15 +358,15 @@ export default function Dashboard() {
             <div className="container px-6 flex items-center justify-between gap-4 max-w-full">
               {/* Left Side: Search Bar */}
               <div className="flex items-center gap-4 flex-1">
-                <div className="relative max-w-md w-full group">
+                <div className="relative w-full max-w-[140px] sm:max-w-md group">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
                   <input
                     type="text"
-                    placeholder="Search address..."
+                    placeholder="Search..."
                     value={searchAddressInput}
                     onChange={(e) => setSearchAddressInput(e.target.value)}
                     onKeyDown={handleSearchBarSubmit}
-                    className="w-full bg-secondary/30 border border-border/50 rounded-xl pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                    className="w-full bg-secondary/30 border border-border/50 rounded-xl pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-border/50 transition-all"
                   />
                 </div>
               </div>
@@ -350,10 +385,11 @@ export default function Dashboard() {
                   </Button>
                 )}
 
-                <a href="https://sodex.com/join/TRADING" target="_blank" rel="noopener noreferrer" className="hidden md:block ml-2">
-                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-5 py-2 rounded-xl text-sm transition-all duration-300 shadow-[0_0_20px_rgba(255,77,0,0.15)]">
-                    + Trade
-                  </Button>
+                <a href="https://sodex.com/join/TRADING" target="_blank" rel="noopener noreferrer" className="ml-1 sm:ml-2">
+                  <button className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-lg border border-border text-foreground text-[10px] sm:text-xs font-bold uppercase tracking-widest hover:bg-secondary/10 transition-all">
+                    <span className="hidden sm:inline">Trade</span>
+                    <svg className="w-3.5 h-3.5 sm:w-3 sm:h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                  </button>
                 </a>
 
                 {/* Mobile Navigation Toggle (Top Right) */}
@@ -384,7 +420,7 @@ export default function Dashboard() {
                           alt="SoDEX Logo" 
                           className="h-8 w-auto object-contain" 
                         />
-                        <span className="text-sm font-bold tracking-tight text-white mb-0.5 translate-y-[1px]">Tracker</span>
+                        <span className="text-sm font-bold tracking-tight text-foreground mb-0.5 translate-y-[1px]">Tracker</span>
                       </div>
                     </div>
 
@@ -435,10 +471,6 @@ export default function Dashboard() {
               {currentPage === 'assets' && (
                 <Suspense fallback={<AssetsSkeleton />}>
                   <div className="space-y-6">
-                    <div className="flex flex-col gap-0.5">
-                      <h1 className="text-2xl font-black text-foreground tracking-tight">SoDex Token Retention</h1>
-                      <p className="text-[10px] text-muted-foreground/50 font-bold uppercase tracking-[0.2em]">analyze deposits and withdrawals of all availalbe tokens on SoDex</p>
-                    </div>
                     <OverallDepositsCard />
                   </div>
                 </Suspense>
@@ -469,19 +501,25 @@ export default function Dashboard() {
                   <DemoTrading />
                 </Suspense>
               )}
+
+              {currentPage === 'pulse' && (
+                <Suspense fallback={<LoadingCard />}>
+                  <PulseDashboard />
+                </Suspense>
+              )}
             </div>
 
             {/* Mobile Footer (Contact Links) */}
             <div className="md:hidden mt-12 pb-12 pt-8 border-t border-border/10 flex flex-col items-center gap-6">
-              <div className="flex items-center gap-8">
-                <a href="https://x.com/Sodex" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-all hover:scale-110 active:scale-90">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              <div className="flex items-center gap-6">
+                <a href="https://x.com/eliasing00" target="_blank" rel="noopener noreferrer" className="text-muted-foreground/40 hover:text-foreground transition-all hover:scale-110 active:scale-90">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                 </a>
-                <a href="https://t.me/Sodex" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-all hover:scale-110 active:scale-90">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                <a href="https://t.me/fallphile" target="_blank" rel="noopener noreferrer" className="text-muted-foreground/40 hover:text-foreground transition-all hover:scale-110 active:scale-90">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
                 </a>
               </div>
-              <p className="text-[10px] text-muted-foreground/30 text-center max-w-[280px] font-bold uppercase tracking-widest leading-relaxed">
+              <p className="text-[8px] text-muted-foreground/20 text-center max-w-[280px] font-bold uppercase tracking-[0.2em] leading-relaxed">
                 Trading involves significant risk. SoDex tracker is for informational purposes only.
               </p>
             </div>

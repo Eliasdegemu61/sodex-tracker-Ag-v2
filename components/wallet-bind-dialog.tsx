@@ -1,12 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { usePortfolio } from '@/context/portfolio-context';
 import { getUserIdByAddress, fetchAllPositions, enrichPositions } from '@/lib/sodex-api';
 import { cacheManager } from '@/lib/cache';
+import { Loader2, X } from 'lucide-react';
 
 interface WalletBindDialogProps {
   open: boolean;
@@ -25,47 +24,23 @@ export function WalletBindDialog({ open, onOpenChange }: WalletBindDialogProps) 
       setError('Please enter a wallet address');
       return;
     }
-
     setIsLoading(true);
     setError(null);
     setStatus(null);
-
     try {
-      // Step 0: Clear any cached data for this user to ensure fresh data
       cacheManager.clear();
-      console.log('[v0] Cleared cache before binding new address');
-      
-      // Step 1: Get userId from address
       setStatus('Looking up your account...');
       const userId = await getUserIdByAddress(address.trim());
-      console.log('[v0] Found userId:', userId);
-
-      // Step 2: Fetch positions
       setStatus('Fetching your positions...');
       const positions = await fetchAllPositions(userId);
-      console.log('[v0] Fetched positions:', positions.length);
-
-      // Step 3: Enrich positions with symbol data
       setStatus('Processing your data...');
       const enrichedPositions = await enrichPositions(positions);
-      console.log('[v0] Enriched positions:', enrichedPositions.length);
-
-      // Step 4: Save to portfolio context
       setStatus('Saving your account...');
       await setWalletAddress(address.trim(), userId, enrichedPositions);
-      
-      console.log('[v0] Successfully bound account');
       setStatus('Account bound successfully!');
-      
-      setTimeout(() => {
-        onOpenChange(false);
-        setAddress('');
-        setStatus(null);
-      }, 1000);
+      setTimeout(() => { onOpenChange(false); setAddress(''); setStatus(null); }, 1000);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to bind address';
-      console.error('[v0] Bind error:', errorMessage);
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : 'Failed to bind address');
     } finally {
       setIsLoading(false);
     }
@@ -76,54 +51,86 @@ export function WalletBindDialog({ open, onOpenChange }: WalletBindDialogProps) 
       const text = await navigator.clipboard.readText();
       setAddress(text);
       setError(null);
-    } catch (err) {
+    } catch {
       setError('Failed to read clipboard');
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Bind Your Trading Account</DialogTitle>
-          <DialogDescription>Enter your wallet address to load your position history</DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-sm p-0 bg-background border border-border rounded-xl shadow-2xl overflow-hidden gap-0">
 
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            <Input
-              placeholder="Enter wallet address (0x...)"
-              value={address}
-              onChange={(e) => {
-                setAddress(e.target.value);
-                setError(null);
-              }}
-              disabled={isLoading}
-              className="bg-input border-border"
-            />
-            <Button variant="outline" onClick={handlePaste} disabled={isLoading} size="sm">
-              Paste
-            </Button>
-          </div>
-
-          {status && <p className="text-sm text-blue-400 font-medium">{status}</p>}
-          {error && <p className="text-sm text-red-500 font-medium">{error}</p>}
-
-          <div className="flex gap-2 pt-2">
-            <Button
-              onClick={handleBind}
-              disabled={isLoading || !address.trim()}
-              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+        {/* Header */}
+        <div className="px-6 pt-6 pb-5 border-b border-border">
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-sm font-bold text-foreground tracking-tight">Connect Wallet</h2>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1 font-medium">
+                Enter your address to load position history
+              </p>
+            </div>
+            <button
+              onClick={() => onOpenChange(false)}
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/10 transition-all -mt-0.5"
             >
-              {isLoading ? 'Loading...' : 'Bind Account'}
-            </Button>
-            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-              Cancel
-            </Button>
+              <X className="w-4 h-4" />
+            </button>
           </div>
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-5 space-y-4">
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Wallet Address</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="0x..."
+                value={address}
+                onChange={(e) => { setAddress(e.target.value); setError(null); }}
+                disabled={isLoading}
+                className="flex-1 h-10 bg-secondary/5 border border-border rounded-lg px-3 font-mono text-xs text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-border/80 transition-all disabled:opacity-50"
+              />
+              <button
+                onClick={handlePaste}
+                disabled={isLoading}
+                className="h-10 px-3 text-[10px] font-bold uppercase tracking-widest border border-border rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/10 transition-all disabled:opacity-40"
+              >
+                Paste
+              </button>
+            </div>
+          </div>
+
+          {status && (
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+              <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+              {status}
+            </p>
+          )}
+          {error && (
+            <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest">{error}</p>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 pb-6 flex gap-2">
+          <button
+            onClick={handleBind}
+            disabled={isLoading || !address.trim()}
+            className="flex-1 h-10 bg-foreground text-background rounded-lg font-bold text-[11px] uppercase tracking-[0.2em] hover:bg-foreground/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+          >
+            {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+            {isLoading ? 'Loading...' : 'Bind Account'}
+          </button>
+          <button
+            onClick={() => onOpenChange(false)}
+            disabled={isLoading}
+            className="h-10 px-4 border border-border rounded-lg text-[11px] font-bold text-muted-foreground uppercase tracking-widest hover:text-foreground hover:bg-secondary/10 transition-all disabled:opacity-40"
+          >
+            Cancel
+          </button>
         </div>
       </DialogContent>
     </Dialog>
   );
 }
-

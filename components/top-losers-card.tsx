@@ -23,7 +23,7 @@ export function TopLosersCard() {
 
   if (isLoading) {
     return (
-      <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl animate-pulse">
+      <Card className="p-5 bg-background border border-border rounded-lg animate-pulse">
         <h3 className="text-xs font-semibold text-muted-foreground/60 mb-4">Scanning Drawdowns</h3>
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map(idx => (
@@ -39,7 +39,7 @@ export function TopLosersCard() {
   }
 
   return (
-    <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm group">
+    <Card className="p-5 bg-background border border-border rounded-lg group">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60">Top 5 Losers</h3>
@@ -60,7 +60,7 @@ export function TopLosersCard() {
       <div className="space-y-2">
         {losers.length > 0 ? (
           losers.map((item, idx) => (
-            <div key={item.address} className="group flex items-center justify-between p-3 bg-secondary/5 rounded-2xl border border-border/5 hover:bg-red-500/5 transition-all duration-300">
+            <div key={item.address} className="group flex items-center justify-between p-3 bg-secondary/5 rounded-xl border border-border/5 hover:bg-red-500/5 transition-all duration-300">
               <div className="flex items-center gap-3 min-w-0">
                 <span className="text-[10px] font-bold text-red-500/60 w-4">#{idx + 1}</span>
                 <span className="text-[11px] text-foreground/60 dark:text-foreground/60 text-foreground/80 truncate">{formatAddress(item.address)}</span>

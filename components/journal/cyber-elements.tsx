@@ -20,9 +20,9 @@ export function CyberCard({
             className={cn(
                 "relative transition-all duration-300",
                 onClick && "cursor-pointer",
-                variant === 'default' && "p-6 rounded-2xl bg-card/40 backdrop-blur-xl border border-border/10",
-                variant === 'accent' && "p-6 rounded-2xl bg-card/60 backdrop-blur-2xl border border-border/20",
-                variant === 'slim' && "p-4 rounded-xl bg-card/40 backdrop-blur-xl border border-border/10",
+                variant === 'default' && "p-6 rounded-xl bg-background border border-border",
+                variant === 'accent' && "p-6 rounded-xl bg-background border border-border shadow-sm",
+                variant === 'slim' && "p-4 rounded-xl bg-background border border-border",
                 className
             )}>
             <div className="relative z-10">{children}</div>
@@ -65,8 +65,8 @@ export function CyberButton({
             disabled={disabled}
             className={cn(
                 "relative py-2.5 px-6 rounded-xl font-bold text-xs transition-all duration-200 active:scale-95 disabled:opacity-30 disabled:pointer-events-none",
-                variant === 'primary' && "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
-                variant === 'secondary' && "bg-secondary/10 text-foreground/80 border border-border/10 hover:bg-secondary/20",
+                variant === 'primary' && "bg-foreground text-background hover:bg-foreground/90",
+                variant === 'secondary' && "bg-secondary/5 text-foreground/80 border border-border hover:bg-secondary/10",
                 variant === 'ghost' && "bg-transparent text-muted-foreground/60 hover:text-foreground/80",
                 className
             )}

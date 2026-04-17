@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo, useRef } from 'react'
+import React, { useEffect, useState, useMemo, useRef } from 'react'
 import { Card } from '@/components/ui/card'
 import { formatNumber } from '@/lib/format-number'
 import {
@@ -15,10 +15,12 @@ import {
     ResponsiveContainer,
     AreaChart,
     Area,
+    BarChart,
+    Bar,
     XAxis,
     YAxis,
     CartesianGrid,
-    Tooltip as RechartsTooltip,
+    Tooltip,
 } from 'recharts'
 import { fetchTokenPrices, type TokenPriceMap, normalizeTokenName } from '@/lib/price-service'
 import { TokenFlowChart } from '@/components/token-flow-chart'
@@ -63,32 +65,27 @@ const WITHDRAWAL_COLORS = [
 
 export function AssetsSkeleton() {
     return (
-        <div className="space-y-6 w-full max-w-7xl mx-auto pb-12 animate-in fade-in duration-500">
-            {/* Header skeletons */}
+        <div className="space-y-6 w-full max-w-7xl mx-auto pb-12">
             <div className="grid grid-cols-3 gap-2 md:gap-4 mb-8">
                 {[1, 2, 3].map(i => (
-                    <Card key={i} className="p-3 md:p-6 bg-card/20 backdrop-blur-xl border-border/5 rounded-2xl md:rounded-[2rem] h-24 md:h-32 animate-pulse" />
+                    <Card key={i} className="p-3 md:p-6 bg-background border border-border rounded-lg h-24 md:h-32 animate-pulse" />
                 ))}
             </div>
-
-            {/* Chart Card skeleton */}
-            <Card className="p-6 md:p-8 bg-card/20 backdrop-blur-3xl border-border/10 rounded-[2.5rem] h-[550px] animate-pulse relative overflow-hidden">
+            <Card className="p-6 md:p-8 bg-background border border-border rounded-lg h-[550px] animate-pulse">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
-                    <div className="h-6 w-48 bg-secondary/10 rounded-lg" />
+                    <div className="h-6 w-48 bg-secondary/10 rounded" />
                     <div className="flex gap-2">
-                        <div className="h-8 w-24 bg-secondary/10 rounded-xl" />
-                        <div className="h-8 w-32 bg-secondary/10 rounded-xl" />
+                        <div className="h-8 w-24 bg-secondary/10 rounded" />
+                        <div className="h-8 w-32 bg-secondary/10 rounded" />
                     </div>
                 </div>
-                <div className="w-full h-[400px] bg-secondary/5 rounded-3xl" />
+                <div className="w-full h-[400px] bg-secondary/5 rounded-lg" />
             </Card>
-
-            {/* Table skeleton */}
-            <Card className="p-6 bg-card/20 backdrop-blur-xl border-border/10 rounded-[2.5rem] h-96 animate-pulse">
-                <div className="h-6 w-48 bg-secondary/10 rounded-lg mb-8" />
+            <Card className="p-6 bg-background border border-border rounded-lg h-96 animate-pulse">
+                <div className="h-6 w-48 bg-secondary/10 rounded mb-8" />
                 <div className="space-y-4">
                     {[1, 2, 3, 4, 5].map(i => (
-                        <div key={i} className="h-12 bg-secondary/5 rounded-xl" />
+                        <div key={i} className="h-12 bg-secondary/5 rounded" />
                     ))}
                 </div>
             </Card>
@@ -288,14 +285,36 @@ export function AssetIntelligenceDashboard() {
     const chartData = useMemo(() => {
         if (selectedTokens.length === 0 || data.length === 0) return []
 
-        // 1. Gather all unique dates across selected tokens
         const selectedTokensData = data.filter(t => selectedTokens.includes(t.token))
+        
+        // PERFORMANCE: Create lookup maps with PRE-CALCULATED deltas for O(1) access
+        const tokenFlowMaps = selectedTokensData.map(t => {
+            const map = new Map<string, { depo: number, wth: number, retention: number }>()
+            t.history.forEach((h, i) => {
+                const prev = i > 0 ? t.history[i - 1] : null
+
+                const depo_val = prev 
+                    ? (t.has_price ? (h.cumulative_depo_usd || 0) - (prev.cumulative_depo_usd || 0) : h.cumulative_depo - prev.cumulative_depo)
+                    : (t.has_price ? (h.cumulative_depo_usd || 0) : h.cumulative_depo)
+                
+                const wth_val = prev
+                    ? (t.has_price ? (h.cumulative_wth_usd || 0) - (prev.cumulative_wth_usd || 0) : h.cumulative_wth - prev.cumulative_wth)
+                    : (t.has_price ? (h.cumulative_wth_usd || 0) : h.cumulative_wth)
+
+                map.set(h.date, {
+                    depo: Math.max(0, depo_val),
+                    wth: -Math.max(0, wth_val),
+                    retention: t.has_price ? (h.cumulative_usd || 0) : h.cumulative
+                })
+            })
+            return { token: t.token, map }
+        })
+
         const dateSet = new Set<string>()
         selectedTokensData.forEach(t => {
             t.history.forEach(h => dateSet.add(h.date))
         })
 
-        // 2. Filter dates based on timeRange
         const now = new Date()
         let cutoff = new Date(now)
         switch (timeRange) {
@@ -316,34 +335,29 @@ export function AssetIntelligenceDashboard() {
             sortedDates = sortedDates.filter(d => new Date(d).getTime() >= cutoffTime)
         }
 
-        // 3. Construct unified data points
         const merged: any[] = []
-
-        // Track last known values for forward filling
-        const lastKnownValues: Record<string, number> = {}
-
-        sortedDates.forEach(date => {
+        
+        sortedDates.forEach((date) => {
             const point: any = { date }
-            selectedTokensData.forEach(t => {
-                const historyPoint = t.history.find(h => h.date === date)
-                if (historyPoint) {
-                    let val = 0;
-                    if (metricType === 'Retention') val = t.has_price ? (historyPoint.cumulative_usd || 0) : historyPoint.cumulative
-                    if (metricType === 'Deposits') val = t.has_price ? (historyPoint.cumulative_depo_usd || 0) : historyPoint.cumulative_depo
-                    if (metricType === 'Withdrawals') val = t.has_price ? (historyPoint.cumulative_wth_usd || 0) : historyPoint.cumulative_wth
 
-                    point[t.token] = val
-                    lastKnownValues[t.token] = val
+            tokenFlowMaps.forEach(({ token, map }) => {
+                const flow = map.get(date)
+                
+                if (flow) {
+                    point[`${token}_depo`] = flow.depo
+                    point[`${token}_wth`] = flow.wth
+                    point[`${token}_retention`] = flow.retention
                 } else {
-                    // Forward fill missing dates
-                    point[t.token] = lastKnownValues[t.token] || 0
+                    point[`${token}_depo`] = 0
+                    point[`${token}_wth`] = 0
+                    point[`${token}_retention`] = 0
                 }
             })
             merged.push(point)
         })
 
         return merged
-    }, [data, selectedTokens, timeRange, metricType])
+    }, [data, selectedTokens, timeRange])
 
 
     if (isLoading || !mounted) {
@@ -364,8 +378,8 @@ export function AssetIntelligenceDashboard() {
     return (
         <div className="space-y-6 w-full max-w-7xl mx-auto pb-12 animate-in fade-in duration-1000 slide-in-from-bottom-2">
             {/* Prone to error notice */}
-            <div className="flex items-center justify-center px-4 py-2 bg-orange-500/5 border border-orange-500/10 rounded-xl">
-                <span className="text-[10px] md:text-xs font-medium text-orange-500/70 tracking-tight">
+            <div className="flex items-center justify-center px-4 py-2 bg-secondary/5 border border-border rounded-lg">
+                <span className="text-[10px] md:text-xs font-medium text-muted-foreground tracking-tight">
                     Notice: This section is prone to data inaccuracies or reporting delays.
                 </span>
             </div>
@@ -390,45 +404,33 @@ export function AssetIntelligenceDashboard() {
             </div>
 
             {/* Premium Market Overview Chart */}
-            <Card className="p-6 md:p-8 bg-card/40 backdrop-blur-3xl border-border/10 rounded-[2.5rem] relative overflow-hidden group shadow-2xl">
-                <div className="absolute top-0 right-0 -mr-32 -mt-32 w-64 h-64 bg-primary/10 blur-[120px] rounded-full pointer-events-none opacity-50" />
+            <Card className="p-6 md:p-8 bg-background border border-border rounded-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-0 h-0" />
 
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 relative z-50">
                     <div className="flex items-center gap-4 flex-wrap">
-                        <h2 className="text-lg md:text-xl font-bold text-foreground tracking-tight">Asset Overview</h2>
+                        <h2 className="text-base font-bold text-foreground tracking-tight">Asset Overview</h2>
 
                         <div className="flex items-center gap-2 flex-wrap">
                             {/* Custom Dropdown for Token Selection */}
                             <div className="relative" ref={dropdownRef}>
                                 <button
                                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                    className={`flex items-center gap-3 px-4 py-2 transition-all duration-300 rounded-xl border text-[11px] md:text-sm font-bold ${isDropdownOpen
-                                        ? 'bg-card/90 border-primary/50 text-primary'
-                                        : 'bg-card/40 border-border/10 text-foreground/80 hover:bg-card/60 hover:border-border/20'
-                                        } backdrop-blur-xl`}
+                                    className={`flex items-center gap-2 px-3 py-1.5 transition-all rounded-full border text-[10px] font-black uppercase tracking-widest ${
+                                        isDropdownOpen
+                                            ? 'bg-foreground border-foreground text-background'
+                                            : 'bg-transparent border-border text-muted-foreground hover:text-foreground'
+                                    }`}
                                 >
-                                    <div className="flex -space-x-1.5 mr-0.5">
-                                        {selectedTokens.slice(0, 3).map((token) => {
-                                            const index = allTokens.findIndex(t => t.token === token)
-                                            const color = index !== -1 ? activeColors[index % activeColors.length] : '#888'
-                                            return (
-                                                <div key={token} className="w-3.5 h-3.5 rounded-full border border-background z-10" style={{ backgroundColor: color }} />
-                                            )
-                                        })}
-                                    </div>
                                     Compare Assets
-                                    <div className="bg-secondary/30 px-1.5 py-0.5 rounded-md text-[9px]">
-                                        {selectedTokens.length}/10
-                                    </div>
-                                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 text-primary' : 'text-muted-foreground/60'}`} />
+                                    <span className="opacity-30">/</span>
+                                    <span className={isDropdownOpen ? 'text-background' : 'text-foreground'}>{selectedTokens.length}</span>
+                                    <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                                 </button>
 
                                 {isDropdownOpen && (
-                                    <div className="absolute top-full left-0 mt-3 w-64 md:w-72 bg-card/95 backdrop-blur-2xl border border-border/10 rounded-2xl shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)] overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-200">
-                                        <div className="p-3 bg-secondary/10 border-b border-border/5 flex items-center justify-between">
-                                            <span className="text-[9px] md:text-[10px] uppercase font-bold tracking-widest text-muted-foreground/60">Available Ecosystem Assets</span>
-                                        </div>
-                                        <div className="max-h-60 overflow-y-auto p-1.5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                                    <div className="absolute top-full left-0 mt-2 w-56 bg-background border border-border rounded-xl shadow-2xl overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-200">
+                                        <div className="max-h-64 overflow-y-auto p-1.5 [&::-webkit-scrollbar]:hidden">
                                             {allTokens.map((t, index) => {
                                                 const isSelected = selectedTokens.includes(t.token)
                                                 const color = activeColors[index % activeColors.length]
@@ -436,17 +438,15 @@ export function AssetIntelligenceDashboard() {
                                                     <button
                                                         key={t.token}
                                                         onClick={() => toggleToken(t.token)}
-                                                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 text-left mb-1 last:mb-0 ${isSelected ? 'bg-primary/10' : 'hover:bg-secondary/20'
-                                                            }`}
+                                                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200 text-left mb-1 last:mb-0 ${
+                                                            isSelected ? 'bg-secondary/20' : 'hover:bg-secondary/10'
+                                                        }`}
                                                     >
                                                         <div className="flex items-center gap-2.5">
-                                                            <div className={`w-2.5 h-2.5 rounded-full shadow-sm ${isSelected ? 'shadow-current' : ''}`} style={{ backgroundColor: color, color: color }} />
-                                                            <span className={`text-xs md:text-sm font-bold ${isSelected ? 'text-foreground' : 'text-foreground/70'}`}>{t.token}</span>
+                                                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
+                                                            <span className={`text-[11px] font-bold ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}>{t.token}</span>
                                                         </div>
-                                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${isSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-border/20 text-transparent'
-                                                            }`}>
-                                                            <Check className="w-2.5 h-2.5" strokeWidth={3} />
-                                                        </div>
+                                                        {isSelected && <Check className="w-3 h-3 text-foreground" strokeWidth={3} />}
                                                     </button>
                                                 )
                                             })}
@@ -459,24 +459,27 @@ export function AssetIntelligenceDashboard() {
                             <div className="relative" ref={metricRef}>
                                 <button
                                     onClick={() => setIsMetricOpen(!isMetricOpen)}
-                                    className={`flex items-center gap-2 px-4 py-2 transition-all duration-300 rounded-xl border text-[11px] md:text-sm font-bold ${isMetricOpen
-                                        ? 'bg-card/90 border-primary/50 text-primary'
-                                        : 'bg-card/40 border-border/10 text-foreground/80 hover:bg-card/60 hover:border-border/20'
-                                        } backdrop-blur-xl`}
+                                    className={`flex items-center gap-2 px-3 py-2 transition-all rounded-lg border text-[11px] md:text-sm font-bold ${
+                                        isMetricOpen
+                                            ? 'bg-background border-foreground text-foreground'
+                                            : 'bg-transparent border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'
+                                    }`}
                                 >
-                                    <Activity className="w-3.5 h-3.5 text-primary/60" />
+                                    <Activity className="w-3.5 h-3.5" />
                                     {metricType}
-                                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isMetricOpen ? 'rotate-180 text-primary' : 'text-muted-foreground/60'}`} />
+                                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isMetricOpen ? 'rotate-180' : ''}`} />
                                 </button>
 
                                 {isMetricOpen && (
-                                    <div className="absolute top-full left-0 mt-3 w-40 bg-card/95 backdrop-blur-2xl border border-border/10 rounded-2xl shadow-2xl overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="absolute top-full left-0 mt-2 w-40 bg-background border border-border rounded-xl shadow-xl overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-200">
                                         <div className="p-1.5">
                                             {(['Retention', 'Deposits', 'Withdrawals'] as const).map((m) => (
                                                 <button
                                                     key={m}
                                                     onClick={() => { setMetricType(m); setIsMetricOpen(false); }}
-                                                    className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all duration-200 text-left mb-0.5 last:mb-0 ${metricType === m ? 'bg-primary/10 text-primary font-bold' : 'hover:bg-secondary/20 text-foreground/70'}`}
+                                                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200 text-left mb-0.5 last:mb-0 ${
+                                                        metricType === m ? 'bg-secondary/20 text-foreground font-bold' : 'hover:bg-secondary/10 text-muted-foreground'
+                                                    }`}
                                                 >
                                                     <span className="text-xs">{m}</span>
                                                     {metricType === m && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
@@ -491,24 +494,27 @@ export function AssetIntelligenceDashboard() {
                             <div className="relative" ref={timeRef}>
                                 <button
                                     onClick={() => setIsTimeRangeOpen(!isTimeRangeOpen)}
-                                    className={`flex items-center gap-2 px-4 py-2 transition-all duration-300 rounded-xl border text-[11px] md:text-sm font-bold ${isTimeRangeOpen
-                                        ? 'bg-card/90 border-primary/50 text-primary'
-                                        : 'bg-card/40 border-border/10 text-foreground/80 hover:bg-card/60 hover:border-border/20'
-                                        } backdrop-blur-xl`}
+                                    className={`flex items-center gap-2 px-3 py-2 transition-all rounded-lg border text-[11px] md:text-sm font-bold ${
+                                        isTimeRangeOpen
+                                            ? 'bg-background border-foreground text-foreground'
+                                            : 'bg-transparent border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'
+                                    }`}
                                 >
                                     <span className="text-muted-foreground/40 font-mono text-[9px] mr-1">T:</span>
                                     {timeRange}
-                                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isTimeRangeOpen ? 'rotate-180 text-primary' : 'text-muted-foreground/60'}`} />
+                                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isTimeRangeOpen ? 'rotate-180' : ''}`} />
                                 </button>
 
                                 {isTimeRangeOpen && (
-                                    <div className="absolute top-full right-0 lg:left-0 mt-3 w-36 bg-card/95 backdrop-blur-2xl border border-border/10 rounded-2xl shadow-2xl overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="absolute top-full right-0 lg:left-0 mt-2 w-36 bg-background border border-border rounded-xl shadow-xl overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-200">
                                         <div className="p-1.5">
                                             {(['24hr', '7day', '30day', '3month', '6month', '1year', 'All Time'] as const).map((range) => (
                                                 <button
                                                     key={range}
                                                     onClick={() => { setTimeRange(range); setIsTimeRangeOpen(false); }}
-                                                    className={`w-full flex items-center justify-between px-4 py-2 rounded-xl transition-all duration-200 text-left mb-0.5 last:mb-0 ${timeRange === range ? 'bg-primary/10 text-primary font-bold' : 'hover:bg-secondary/20 text-foreground/70'}`}
+                                                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200 text-left mb-0.5 last:mb-0 ${
+                                                        timeRange === range ? 'bg-secondary/20 text-foreground font-bold' : 'hover:bg-secondary/10 text-muted-foreground'
+                                                    }`}
                                                 >
                                                     <span className="text-xs">{range}</span>
                                                     {timeRange === range && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
@@ -542,19 +548,8 @@ export function AssetIntelligenceDashboard() {
                 <div className="h-[400px] w-full mt-4 -mx-4 md:mx-0">
                     {chartData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
-                                <defs>
-                                    {selectedTokens.map((token) => {
-                                        const index = allTokens.findIndex(t => t.token === token)
-                                        const color = index !== -1 ? activeColors[index % activeColors.length] : '#888'
-                                        return (
-                                            <linearGradient key={`grad-${token}`} id={`color-${token}`} x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor={color} stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor={color} stopOpacity={0} />
-                                            </linearGradient>
-                                        )
-                                    })}
-                                </defs>
+                            <BarChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" opacity={0.05} />
                                 <XAxis
                                     dataKey="date"
                                     tickFormatter={(val) => {
@@ -570,35 +565,80 @@ export function AssetIntelligenceDashboard() {
                                     padding={{ left: 0, right: 0 }}
                                 />
                                 <YAxis
-                                    tickFormatter={(val) => val === 0 ? '0' : `$${formatNumber(val)}`}
+                                    tickFormatter={(val) => val === 0 ? '0' : `$${formatNumber(Math.abs(val))}`}
                                     stroke="currentColor"
                                     fontSize={9}
                                     tickLine={false}
                                     axisLine={false}
                                     tick={{ fill: 'currentColor', opacity: 0.3, fontWeight: 'medium' }}
-                                    width={42}
-                                    dx={0}
+                                    dx={-10}
                                 />
-                                <RechartsTooltip
+                                <Tooltip
+                                    cursor={false}
                                     content={({ active, payload, label }) => {
                                         if (active && payload && payload.length) {
-                                            const d = new Date(label as string | number)
-                                            const dateStr = !isNaN(d.getTime()) ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : label;
+                                            const totalDepo = payload
+                                                .filter(p => p.dataKey?.toString().endsWith('_depo'))
+                                                .reduce((sum, p) => sum + (Number(p.value) || 0), 0)
+                                            const totalWth = payload
+                                                .filter(p => p.dataKey?.toString().endsWith('_wth'))
+                                                .reduce((sum, p) => sum + (Math.abs(Number(p.value)) || 0), 0)
+
+                                            // Determine which parts to show based on metricType
+                                            const showDepo = metricType !== 'Withdrawals'
+                                            const showWth = metricType !== 'Deposits'
+
                                             return (
-                                                <div className="bg-card/90 backdrop-blur-xl border border-white/5 p-3 rounded-2xl shadow-2xl min-w-[170px] animate-in fade-in zoom-in-95 duration-200">
-                                                    <p className="text-[9px] text-muted-foreground/40 font-black mb-2 uppercase tracking-tight">{dateStr}</p>
-                                                    <div className="space-y-2">
-                                                        {payload.map((entry: any, i: number) => (
-                                                            <div key={i} className="flex items-center justify-between gap-4">
-                                                                <div className="flex items-center gap-2">
-                                                                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
-                                                                    <span className="text-[10px] font-bold text-foreground/70">{entry.name}</span>
+                                                <div className="bg-background/95 backdrop-blur-xl border border-border p-3 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] min-w-[180px] animate-in fade-in zoom-in-95 duration-200">
+                                                    <div className="mb-2.5 pb-2 border-b border-border/10">
+                                                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">
+                                                            {new Date(label).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                        </p>
+                                                    </div>
+                                                    <div className="space-y-3">
+                                                        {selectedTokens.map((token, index) => {
+                                                            const color = activeColors[index % activeColors.length]
+                                                            const depo = payload.find(p => p.dataKey === `${token}_depo`)?.value as number || 0
+                                                            const wth = Math.abs(payload.find(p => p.dataKey === `${token}_wth`)?.value as number || 0)
+                                                            if (depo === 0 && wth === 0) return null
+                                                            
+                                                            return (
+                                                                <div key={token} className="space-y-1">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <div className="w-1 h-1 rounded-full" style={{ backgroundColor: color }} />
+                                                                        <span className="text-[10px] font-black text-foreground uppercase tracking-tight">{token}</span>
+                                                                    </div>
+                                                                    <div className="flex flex-col gap-0.5 pl-3">
+                                                                        {showDepo && depo > 0 && (
+                                                                            <div className="flex items-center justify-between gap-4">
+                                                                                <span className="text-[8px] text-muted-foreground uppercase font-bold">Inflow</span>
+                                                                                <span className="text-[10px] font-black text-emerald-500">${formatNumber(depo)}</span>
+                                                                            </div>
+                                                                        )}
+                                                                        {showWth && wth > 0 && (
+                                                                            <div className="flex items-center justify-between gap-4">
+                                                                                <span className="text-[8px] text-muted-foreground uppercase font-bold">Outflow</span>
+                                                                                <span className="text-[10px] font-black text-rose-500">${formatNumber(wth)}</span>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
-                                                                <span className={`text-[10px] font-black ${entry.value < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                                                                    {entry.value > 1000 || entry.value < -1000 ? `$${formatNumber(Math.abs(entry.value))}${entry.value < 0 ? ' ↓' : ''}` : entry.value.toFixed(2)}
-                                                                </span>
-                                                            </div>
-                                                        ))}
+                                                            )
+                                                        })}
+                                                        <div className="pt-2 mt-2 border-t border-border/20 space-y-1">
+                                                            {showDepo && totalDepo > 0 && (
+                                                                <div className="flex items-center justify-between">
+                                                                    <span className="text-[8px] text-muted-foreground/60 uppercase font-bold">Total In</span>
+                                                                    <span className="text-[10px] font-black text-foreground tracking-tighter">${formatNumber(totalDepo)}</span>
+                                                                </div>
+                                                            )}
+                                                            {showWth && totalWth > 0 && (
+                                                                <div className="flex items-center justify-between">
+                                                                    <span className="text-[8px] text-muted-foreground/60 uppercase font-bold">Total Out</span>
+                                                                    <span className="text-[10px] font-black text-foreground tracking-tighter">${formatNumber(totalWth)}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             )
@@ -606,26 +646,33 @@ export function AssetIntelligenceDashboard() {
                                         return null
                                     }}
                                 />
-                                {selectedTokens.map((token) => {
-                                    const index = allTokens.findIndex(t => t.token === token)
-                                    const color = index !== -1 ? activeColors[index % activeColors.length] : '#888'
+                                {selectedTokens.map((token, index) => {
+                                    const color = activeColors[index % activeColors.length]
                                     return (
-                                        <Area
-                                            key={token}
-                                            type="monotone"
-                                            dataKey={token}
-                                            name={token}
-                                            stroke={color}
-                                            fillOpacity={1}
-                                            fill={`url(#color-${token})`}
-                                            strokeWidth={3}
-                                            isAnimationActive={true}
-                                            animationDuration={1500}
-                                            activeDot={{ r: 6, strokeWidth: 0, fill: color }}
-                                        />
+                                        <React.Fragment key={token}>
+                                            {(metricType === 'Retention' || metricType === 'Deposits') && (
+                                                <Bar 
+                                                    dataKey={`${token}_depo`} 
+                                                    stackId="a" 
+                                                    fill={color} 
+                                                    radius={[2, 2, 0, 0]} 
+                                                    animationDuration={1000}
+                                                />
+                                            )}
+                                            {(metricType === 'Retention' || metricType === 'Withdrawals') && (
+                                                <Bar 
+                                                    dataKey={`${token}_wth`} 
+                                                    stackId="a" 
+                                                    fill={color} 
+                                                    opacity={0.5}
+                                                    radius={[0, 0, 2, 2]}
+                                                    animationDuration={1000}
+                                                />
+                                            )}
+                                        </React.Fragment>
                                     )
                                 })}
-                            </AreaChart>
+                            </BarChart>
                         </ResponsiveContainer>
                     ) : (
                         <div className="flex h-full items-center justify-center border-2 border-dashed border-border/10 rounded-3xl">
@@ -639,14 +686,14 @@ export function AssetIntelligenceDashboard() {
             <TokenFlowChart />
 
             {/* Token Table - Detailed View */}
-            <Card className="p-6 bg-card/40 backdrop-blur-xl border-border/10 rounded-[2.5rem] overflow-hidden">
+            <Card className="p-6 bg-background border border-border rounded-xl overflow-hidden">
                 <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-[10px] font-bold text-foreground/40 flex items-center gap-2 uppercase tracking-widest">
-                        <Layers className="w-3.5 h-3.5 opacity-40" />
+                    <h3 className="text-[10px] font-bold text-muted-foreground flex items-center gap-2 uppercase tracking-widest">
+                        <Layers className="w-3.5 h-3.5" />
                         Complete Asset Directory
                     </h3>
-                    <div className="px-3 py-1 bg-secondary/20 rounded-full text-[10px] font-bold text-muted-foreground/60 uppercase">
-                        {data.length} Tracked Assets
+                    <div className="px-3 py-1 bg-secondary/10 border border-border rounded-lg text-[10px] font-bold text-muted-foreground uppercase">
+                        {data.length} Assets
                     </div>
                 </div>
                 {/* Responsive Table/Card View */}
@@ -665,7 +712,7 @@ export function AssetIntelligenceDashboard() {
                             </thead>
                             <tbody className="divide-y divide-border/5">
                                 {data.map((item) => (
-                                    <tr key={item.token} className="group hover:bg-orange-500/5 transition-colors">
+                                    <tr key={item.token} className="group hover:bg-secondary/5 transition-colors">
                                         <td className="py-4 pl-2">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center shrink-0 border border-border/5">
@@ -694,9 +741,9 @@ export function AssetIntelligenceDashboard() {
                                         <td className="py-4">
                                             <div className="flex items-center gap-3">
                                                 <span className="text-xs font-bold text-foreground/80 w-12">{item.retention_rate.toFixed(1)}%</span>
-                                                <div className="flex-1 max-w-[80px] h-1.5 bg-secondary/20 rounded-full overflow-hidden">
+                                                <div className="flex-1 max-w-[80px] h-1 bg-secondary/20 rounded-full overflow-hidden">
                                                     <div
-                                                        className="h-full bg-orange-500/60 rounded-full"
+                                                        className="h-full bg-foreground/60 rounded-full"
                                                         style={{ width: `${Math.min(item.retention_rate, 100)}%` }}
                                                     />
                                                 </div>
@@ -722,7 +769,7 @@ export function AssetIntelligenceDashboard() {
                             <div key={item.token} className="p-4 bg-secondary/5 rounded-2xl border border-border/5 group active:bg-secondary/10 transition-all">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-secondary/20 flex items-center justify-center font-black text-xs text-primary shrink-0">
+                                        <div className="w-10 h-10 rounded-xl bg-secondary/20 flex items-center justify-center font-black text-xs text-foreground/60 shrink-0">
                                             {item.token.substring(0, 2)}
                                         </div>
                                         <div>
@@ -776,10 +823,10 @@ export function AssetIntelligenceDashboard() {
 
 function SummaryCard({ title, value, color }: { title: string, value: string, color: string }) {
     return (
-        <Card className="p-3 md:p-5 bg-secondary/10 border-border/5 rounded-xl md:rounded-2xl relative overflow-hidden group transition-all duration-500">
-            <div className="space-y-0.5 md:space-y-1 relative z-10">
-                <h4 className="text-[8px] md:text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest truncate">{title}</h4>
-                <div className="text-sm md:text-xl font-bold tracking-tight text-foreground/90">{value}</div>
+        <Card className="p-3 md:p-5 bg-background border border-border rounded-lg relative overflow-hidden">
+            <div className="space-y-0.5 md:space-y-1">
+                <h4 className="text-[8px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest truncate">{title}</h4>
+                <div className="text-sm md:text-xl font-bold tracking-tight text-foreground">{value}</div>
             </div>
         </Card>
     )

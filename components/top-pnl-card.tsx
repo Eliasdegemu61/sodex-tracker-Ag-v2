@@ -38,17 +38,17 @@ export function TopPnlCard() {
   }, [window])
 
   return (
-    <Card className="p-5 bg-card/95 border border-border/20 rounded-3xl">
+    <Card className="p-5 bg-background border border-border rounded-lg">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xs font-semibold text-muted-foreground/80">Top Performers PnL</h3>
-        <div className="flex bg-secondary/20 p-0.5 rounded-lg gap-0.5">
+        <div className="flex items-center gap-4">
           {WINDOWS.map((w) => (
             <button
               key={w}
               onClick={() => setWindow(w)}
-              className={`px-2 py-0.5 text-[8px] font-bold rounded-md transition-colors ${window === w
-                  ? 'bg-emerald-500/20 text-emerald-400'
-                  : 'text-muted-foreground/50 hover:text-foreground'
+              className={`text-[10px] font-black transition-all uppercase tracking-wider pb-1 ${window === w
+                  ? 'text-foreground border-b-2 border-foreground'
+                  : 'text-muted-foreground/30 hover:text-muted-foreground border-b-2 border-transparent'
                 }`}
             >
               {w === 'ALL_TIME' ? 'ALL' : w}
@@ -66,7 +66,7 @@ export function TopPnlCard() {
           traders.map((t) => (
             <div
               key={t.wallet_address}
-              className="flex items-center justify-between p-3 bg-secondary/5 rounded-2xl border border-border/5 hover:bg-emerald-500/5 transition-all"
+              className="flex items-center justify-between p-3 bg-secondary/5 rounded-xl border border-border/5 hover:bg-emerald-500/5 transition-all"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <span className="text-[10px] font-bold text-emerald-500/60 w-5">#{t.rank}</span>

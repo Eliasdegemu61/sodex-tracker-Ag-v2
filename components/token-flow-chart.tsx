@@ -137,18 +137,17 @@ export function TokenFlowChart() {
     }, [chartData])
 
     if (isLoading) {
-        return <Card className="w-full h-[500px] bg-card/40 animate-pulse rounded-[2.5rem] border border-border/10 mb-6" />
+        return <div className="w-full h-[500px] bg-secondary/5 border border-border animate-pulse rounded-xl mb-6" />
     }
 
     return (
-        <Card className="p-6 md:p-8 bg-card/60 backdrop-blur-2xl border-border/10 rounded-[2.5rem] relative overflow-hidden group shadow-2xl mb-6">
-            <div className="absolute top-0 right-0 -mr-32 -mt-32 w-64 h-64 bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
+        <Card className="p-6 md:p-8 bg-background border border-border rounded-xl relative overflow-hidden mb-6">
 
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10 relative z-20">
                 <div className="flex items-center gap-4 flex-wrap">
                     <div>
-                        <h2 className="text-xl font-bold text-foreground tracking-tight">Token Flow Analysis</h2>
-                        <p className="text-xs text-muted-foreground font-medium">Daily deposit vs withdrawal volume</p>
+                        <h2 className="text-base font-bold text-foreground tracking-tight">Token Flow Analysis</h2>
+                        <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Daily deposit vs withdrawal volume</p>
                     </div>
 
                     {/* Token Selector Dropdown */}
@@ -156,10 +155,10 @@ export function TokenFlowChart() {
                         <button
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                             className={cn(
-                                "flex items-center gap-3 px-5 py-2.5 transition-all duration-300 rounded-2xl border text-sm font-bold shadow-lg backdrop-blur-xl",
+                                "flex items-center gap-2 px-3 py-2 transition-all rounded-lg border text-sm font-bold",
                                 isDropdownOpen
-                                    ? "bg-card/90 border-foreground/20 text-foreground shadow-foreground/5"
-                                    : "bg-card/40 border-border/10 text-foreground/80 hover:bg-card/60 hover:border-border/20"
+                                    ? "bg-background border-foreground text-foreground"
+                                    : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:border-foreground/30"
                             )}
                         >
                             <span className="text-foreground/90 font-black">{selectedToken}</span>
@@ -167,8 +166,8 @@ export function TokenFlowChart() {
                         </button>
 
                         {isDropdownOpen && (
-                            <div className="absolute top-full left-0 mt-3 w-56 bg-card/95 backdrop-blur-2xl border border-border/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
-                                <div className="p-3 bg-secondary/20 border-b border-border/5">
+                            <div className="absolute top-full left-0 mt-2 w-52 bg-background border border-border rounded-xl shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+                                <div className="p-2 border-b border-border">
                                     <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground/40">Select Token</span>
                                 </div>
                                 <div className="max-h-64 overflow-y-auto p-1.5 custom-scrollbar">
@@ -194,16 +193,16 @@ export function TokenFlowChart() {
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-1 bg-secondary/10 p-1.5 rounded-2xl border border-border/5">
+                <div className="flex flex-wrap gap-1">
                     {(['7day', '30day', '6month', '1year'] as const).map((range) => (
                         <button
                             key={range}
                             onClick={() => setTimeRange(range)}
                             className={cn(
-                                "text-[11px] font-bold px-4 py-2 rounded-xl transition-all",
+                                "text-[11px] font-bold px-2 py-1 transition-all pb-[3px]",
                                 timeRange === range
-                                    ? "bg-foreground text-background shadow-lg shadow-foreground/5"
-                                    : "text-muted-foreground/60 hover:text-foreground hover:bg-secondary/20"
+                                    ? "border-b border-foreground text-foreground"
+                                    : "text-muted-foreground/40 hover:text-foreground"
                             )}
                         >
                             {range.toUpperCase()}
@@ -214,21 +213,21 @@ export function TokenFlowChart() {
 
             {/* Stats Row - 3 Columns on Mobile */}
             <div className="grid grid-cols-3 gap-2 md:gap-4 mb-8">
-                <div className="p-3 md:p-5 rounded-2xl md:rounded-3xl bg-emerald-500/5 border border-emerald-500/10 flex flex-col gap-0.5 md:gap-1">
+                <div className="p-3 md:p-4 rounded-xl bg-background border border-border flex flex-col gap-0.5 md:gap-1">
                     <div className="flex items-center gap-1 md:gap-2 mb-0.5 md:mb-1">
                         <ArrowUpRight className="w-3 h-3 md:w-4 md:h-4 text-emerald-500" />
                         <span className="text-[7px] md:text-[10px] font-bold text-emerald-500/60 uppercase tracking-widest truncate">Deposits</span>
                     </div>
                     <span className="text-xs md:text-xl font-black text-emerald-400 truncate">{formatNumber(stats.totalDepo)} {selectedToken}</span>
                 </div>
-                <div className="p-3 md:p-5 rounded-2xl md:rounded-3xl bg-red-500/5 border border-red-500/10 flex flex-col gap-0.5 md:gap-1">
+                <div className="p-3 md:p-4 rounded-xl bg-background border border-border flex flex-col gap-0.5 md:gap-1">
                     <div className="flex items-center gap-1 md:gap-2 mb-0.5 md:mb-1">
                         <ArrowDownRight className="w-3 h-3 md:w-4 md:h-4 text-red-500" />
                         <span className="text-[7px] md:text-[10px] font-bold text-red-500/60 uppercase tracking-widest truncate">Withdrawals</span>
                     </div>
                     <span className="text-xs md:text-xl font-black text-red-400 truncate">{formatNumber(stats.totalWth)} {selectedToken}</span>
                 </div>
-                <div className="p-3 md:p-5 rounded-2xl md:rounded-3xl bg-foreground/5 border border-foreground/10 flex flex-col gap-0.5 md:gap-1">
+                <div className="p-3 md:p-4 rounded-xl bg-background border border-border flex flex-col gap-0.5 md:gap-1">
                     <div className="flex items-center gap-1 md:gap-2 mb-0.5 md:mb-1">
                         <div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-foreground/40" />
                         <span className="text-[7px] md:text-[10px] font-bold text-foreground/40 uppercase tracking-widest truncate">Net Flow</span>
@@ -272,7 +271,7 @@ export function TokenFlowChart() {
                                     const d = new Date(label as string)
                                     const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                                     return (
-                                        <div className="bg-card/95 backdrop-blur-md border border-border/20 p-4 rounded-2xl shadow-2xl min-w-[180px]">
+                                        <div className="bg-background border border-border p-4 rounded-xl shadow-xl min-w-[180px]">
                                             <p className="text-[10px] text-muted-foreground/60 font-black mb-3 uppercase tracking-widest">{dateStr}</p>
                                             <div className="space-y-3">
                                                 <div className="flex items-center justify-between gap-4">

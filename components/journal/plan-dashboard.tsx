@@ -44,7 +44,7 @@ function StatCard({ label, value, sub, accent }: { label: string; value: string;
 }
 
 function GoalStat({ label, value, percent, color = "green" }: { percent: number, label: string, value: string, color?: "green" | "blue" }) {
-    const barColor = color === 'green' ? 'bg-emerald-500' : 'bg-primary';
+    const barColor = color === 'green' ? 'bg-emerald-500' : 'bg-foreground';
 
     return (
         <div className="flex flex-col gap-3">
@@ -60,7 +60,7 @@ function GoalStat({ label, value, percent, color = "green" }: { percent: number,
             </div>
             <div className="flex justify-between items-center text-[10px] font-bold">
                 <span className="text-muted-foreground/30 uppercase">Progress</span>
-                <span className={cn(color === 'green' ? 'text-emerald-500' : 'text-primary')}>{Math.round(percent)}%</span>
+                <span className={cn(color === 'green' ? 'text-emerald-500' : 'text-foreground')}>{Math.round(percent)}%</span>
             </div>
         </div>
     );
@@ -153,7 +153,7 @@ export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps
                         className={cn(
                             "px-4 py-2 text-[10px] font-bold uppercase tracking-widest border-b-2 transition-all",
                             activeTab === tab 
-                                ? "border-primary text-foreground" 
+                                ? "border-foreground text-foreground" 
                                 : "border-transparent text-muted-foreground/40 hover:text-foreground"
                         )}
                     >
@@ -240,7 +240,7 @@ export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps
                         </thead>
                         <tbody className="divide-y divide-border/10">
                             {allPositions.slice(historyPage * 10, (historyPage + 1) * 10).map((pos, i) => (
-                                <tr key={i} className="group hover:bg-primary/5 transition-colors">
+                                <tr key={i} className="group hover:bg-secondary/5 transition-colors">
                                     <td className="px-4 md:px-6 py-2.5 md:py-3">
                                         <div className="font-black text-foreground/90 text-[10px] md:text-xs tracking-tight">{pos.pairName}</div>
                                         <div className="text-[8px] text-muted-foreground/30 font-bold uppercase">{new Date(pos.created_at).toLocaleDateString()}</div>

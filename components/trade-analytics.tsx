@@ -107,7 +107,7 @@ function MetricCard({
 }) {
   return (
     <Card className={cn(
-      "p-3 min-[380px]:p-4 sm:p-6 bg-card/40 backdrop-blur-sm border-border rounded-xl sm:rounded-3xl relative overflow-hidden group transition-all duration-500 hover:border-primary/20",
+      "p-3 min-[380px]:p-4 sm:p-6 bg-background border border-border rounded-lg relative overflow-hidden group transition-all duration-300",
       className
     )}>
       <div className="flex flex-col gap-1 sm:gap-2 relative z-10 w-full">
@@ -478,7 +478,7 @@ export function TradeAnalytics() {
             </p>
           </div>
 
-          <Card className="p-8 bg-card/40 backdrop-blur-xl border-border/50 rounded-3xl shadow-none dark:shadow-2xl relative overflow-hidden">
+          <Card className="p-8 bg-background border border-border rounded-xl shadow-none relative overflow-hidden">
             <div className="space-y-6 relative z-10">
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] ml-1">Wallet Address</label>
@@ -617,8 +617,7 @@ export function TradeAnalytics() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Market Exposure Matrix */}
-        <Card className="lg:col-span-2 p-10 bg-card/40 backdrop-blur-md border border-border/50 rounded-[3.5rem] shadow-none dark:shadow-2xl overflow-hidden relative group">
-          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        <Card className="lg:col-span-2 p-6 sm:p-8 bg-background border border-border rounded-xl shadow-none overflow-hidden relative group">
           
           <div className="flex items-center justify-between mb-8 relative z-10">
             <div className="flex items-center gap-4">
@@ -628,22 +627,18 @@ export function TradeAnalytics() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="sm"
+              <button
                 onClick={() => setSortConfig({ key: 'net_pnl', direction: 'desc' })}
-                className={cn("h-7 px-3 text-[8px] font-bold uppercase tracking-widest rounded-lg transition-all", sortConfig.key === 'net_pnl' && sortConfig.direction === 'desc' ? "bg-primary/10 text-primary" : "text-muted-foreground/20 hover:text-foreground/40")}
+                className={cn("h-7 px-2 text-[9px] font-bold uppercase tracking-widest transition-all pb-0.5", sortConfig.key === 'net_pnl' && sortConfig.direction === 'desc' ? "border-b border-foreground text-foreground" : "text-muted-foreground/30 hover:text-foreground/50")}
               >
                 Best
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm"
+              </button>
+              <button
                 onClick={() => setSortConfig({ key: 'net_pnl', direction: 'asc' })}
-                className={cn("h-7 px-3 text-[8px] font-bold uppercase tracking-widest rounded-lg transition-all", sortConfig.key === 'net_pnl' && sortConfig.direction === 'asc' ? "bg-orange-500/10 text-orange-500" : "text-muted-foreground/20 hover:text-foreground/40")}
+                className={cn("h-7 px-2 text-[9px] font-bold uppercase tracking-widest transition-all pb-0.5", sortConfig.key === 'net_pnl' && sortConfig.direction === 'asc' ? "border-b border-foreground text-foreground" : "text-muted-foreground/30 hover:text-foreground/50")}
               >
                 Worst
-              </Button>
+              </button>
             </div>
           </div>
 
@@ -694,9 +689,9 @@ export function TradeAnalytics() {
 
         {/* Tactical Edge Detection */}
         <div className="space-y-6">
-          <Card className="p-10 bg-card/40 backdrop-blur-md border-border/50 rounded-3xl shadow-none dark:shadow-2xl relative overflow-hidden group">
+          <Card className="p-6 bg-background border border-border rounded-xl shadow-none relative overflow-hidden">
              
-             <div className="flex items-center gap-3 mb-8">
+             <div className="flex items-center gap-3 mb-6">
                <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">Top Pairs</h3>
              </div>
 
@@ -747,8 +742,8 @@ export function TradeAnalytics() {
           </Card>
 
           {marketType === 'futures' && (
-            <Card className="p-10 bg-card/40 backdrop-blur-md border-border/50 rounded-3xl shadow-none dark:shadow-2xl overflow-hidden group">
-               <div className="flex items-center gap-3 mb-8">
+            <Card className="p-6 bg-background border border-border rounded-xl shadow-none overflow-hidden">
+               <div className="flex items-center gap-3 mb-6">
                  <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">Long vs Short</h3>
                </div>
 
@@ -779,8 +774,8 @@ export function TradeAnalytics() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Statistical Distribution */}
-          <Card className="p-10 bg-card/40 backdrop-blur-md border-border/50 rounded-3xl shadow-none dark:shadow-2xl relative overflow-hidden group">
-            <div className="flex items-center gap-4 mb-10">
+          <Card className="p-6 sm:p-8 bg-background border border-border rounded-xl shadow-none relative overflow-hidden">
+            <div className="flex items-center gap-4 mb-8">
               <div>
                 <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">PnL Distribution</h3>
                 <p className="text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">Breakdown of trade results</p>
@@ -813,8 +808,8 @@ export function TradeAnalytics() {
           </Card>
 
           {/* Fee Impact */}
-          <Card className="p-10 bg-card/40 backdrop-blur-md border-border/50 rounded-3xl shadow-none dark:shadow-2xl relative overflow-hidden group">
-            <div className="flex items-center gap-4 mb-10">
+          <Card className="p-6 sm:p-8 bg-background border border-border rounded-xl shadow-none relative overflow-hidden">
+            <div className="flex items-center gap-4 mb-6">
               <div>
                 <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">Fee Impact</h3>
                 <p className="text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">Impact on net profitability</p>
@@ -856,8 +851,8 @@ export function TradeAnalytics() {
 
       {/* Advanced Visual Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card className={cn("p-10 bg-card/40 backdrop-blur-md border-border/50 rounded-3xl shadow-none dark:shadow-2xl", marketType === 'spot' ? "lg:col-span-2" : "")}>
-            <div className="flex items-center gap-4 mb-10">
+          <Card className={cn("p-6 sm:p-8 bg-background border border-border rounded-xl shadow-none", marketType === 'spot' ? "lg:col-span-2" : "")}>
+            <div className="flex items-center gap-4 mb-6">
               <div>
                 <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">PnL by Hold Time</h3>
                 <p className="text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">Performance by duration</p>
@@ -894,8 +889,8 @@ export function TradeAnalytics() {
           </Card>
 
           {marketType === 'futures' && (
-            <Card className="p-10 bg-card/40 backdrop-blur-md border-border/50 rounded-3xl shadow-none dark:shadow-2xl">
-              <div className="flex items-center gap-4 mb-10">
+            <Card className="p-6 sm:p-8 bg-background border border-border rounded-xl shadow-none">
+              <div className="flex items-center gap-4 mb-6">
                 <div>
                   <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">PnL by Leverage</h3>
                   <p className="text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">Performance by risk exposure</p>

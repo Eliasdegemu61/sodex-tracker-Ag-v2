@@ -89,12 +89,12 @@ function AddressPrompt({ onSetAddress }: { onSetAddress: (addr: string) => void 
                         placeholder="0x..."
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        className="w-full h-11 bg-secondary/10 border border-border/10 rounded-xl px-4 font-mono text-sm outline-none focus:border-primary/20 transition-all placeholder:text-muted-foreground/20 text-center"
+                        className="w-full h-11 bg-secondary/10 border border-border/20 rounded-xl px-4 font-mono text-sm outline-none focus:border-border transition-all placeholder:text-muted-foreground/20 text-center"
                     />
                     {error && <p className="text-xs text-red-400 font-medium">{error}</p>}
                     <button 
                         onClick={handleManualLink} 
-                        className="w-full h-11 bg-primary text-primary-foreground rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-primary/10"
+                        className="w-full h-11 bg-foreground text-background rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-foreground/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                         disabled={!input.trim() || isLoading}
                     >
                         {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Continue'}
@@ -297,7 +297,7 @@ export function JournalPageClient({ isDashboard = false }: { isDashboard?: boole
         )}>
             {/* Header */}
             {!isDashboard && (
-                <header className="h-12 md:h-16 border-b border-border/10 flex items-center justify-between px-4 md:px-6 shrink-0 sticky top-0 bg-background/80 backdrop-blur-xl z-50">
+                <header className="h-12 md:h-16 border-b border-border/10 flex items-center justify-between px-4 md:px-6 shrink-0 sticky top-0 bg-background z-50">
                     <div className="flex items-center gap-4">
                         <div 
                             className="text-xs font-black tracking-widest cursor-pointer hover:text-foreground/80 transition-colors opacity-50"

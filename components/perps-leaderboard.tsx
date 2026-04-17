@@ -95,9 +95,9 @@ export function PerpsLeaderboard() {
 
   if (loading && items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 animate-pulse">
-        <div className="w-10 h-10 rounded-full border-2 border-orange-500/20 border-t-orange-500 animate-spin mb-4" />
-        <p className="text-[10px] text-muted-foreground/40 font-bold uppercase tracking-widest">Loading...</p>
+      <div className="flex flex-col items-center justify-center py-20">
+        <div className="w-8 h-8 rounded-full border-2 border-border border-t-foreground animate-spin mb-4" />
+        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Loading...</p>
       </div>
     )
   }
@@ -106,39 +106,36 @@ export function PerpsLeaderboard() {
     <div className="min-h-screen bg-background flex flex-col space-y-6 p-4 md:p-8">
       {/* Controls Section */}
       <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between">
-        <div className="flex flex-wrap gap-2 items-center">
-          <div className="flex gap-2 p-1 bg-card/95 shadow-sm border border-border/20 rounded-2xl w-fit">
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="flex items-center gap-1">
             <button
               onClick={() => { setSortType('pnl'); setPage(1); }}
-              className={`px-4 py-2 text-[10px] font-bold rounded-xl transition-all flex items-center gap-2 ${sortType === 'pnl'
-                ? 'bg-orange-500/10 text-orange-400 shadow-sm'
-                : 'text-muted-foreground/40 hover:text-foreground'
-                }`}
+              className={`px-3 py-1.5 text-[10px] font-bold transition-all flex items-center gap-1.5 border-b ${
+                sortType === 'pnl' ? 'text-foreground border-foreground' : 'text-muted-foreground/50 border-transparent hover:text-muted-foreground'
+              }`}
             >
               <TrendingUp className="w-3 h-3" />
               Top PnL
             </button>
             <button
               onClick={() => { setSortType('volume'); setPage(1); }}
-              className={`px-4 py-2 text-[10px] font-bold rounded-xl transition-all flex items-center gap-2 ${sortType === 'volume'
-                ? 'bg-orange-500/10 text-orange-400 shadow-sm'
-                : 'text-muted-foreground/40 hover:text-foreground'
-                }`}
+              className={`px-3 py-1.5 text-[10px] font-bold transition-all flex items-center gap-1.5 border-b ${
+                sortType === 'volume' ? 'text-foreground border-foreground' : 'text-muted-foreground/50 border-transparent hover:text-muted-foreground'
+              }`}
             >
               <BarChart2 className="w-3 h-3" />
               Top Volume
             </button>
           </div>
 
-          <div className="flex gap-1.5 p-1 bg-card/95 shadow-sm border border-border/20 rounded-2xl w-fit">
+          <div className="flex items-center gap-1">
             {(['24H', '7D', '30D', 'ALL_TIME'] as WindowType[]).map((type) => (
               <button
                 key={type}
                 onClick={() => { setWindowType(type); setPage(1); }}
-                className={`px-3 py-2 text-[9px] font-bold rounded-xl transition-all ${windowType === type
-                  ? 'bg-orange-500/10 text-orange-400 shadow-sm'
-                  : 'text-muted-foreground/40 hover:text-foreground'
-                  }`}
+                className={`px-2.5 py-1.5 text-[9px] font-bold transition-all border-b ${
+                  windowType === type ? 'text-foreground border-foreground' : 'text-muted-foreground/50 border-transparent hover:text-muted-foreground'
+                }`}
               >
                 {type === 'ALL_TIME' ? 'All Time' : type}
               </button>
@@ -147,21 +144,21 @@ export function PerpsLeaderboard() {
         </div>
 
         <div className="flex gap-2">
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/30 group-focus-within:text-orange-500 transition-colors" />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/30" />
             <input
               type="text"
-              placeholder="Search Address..."
+              placeholder="Search address..."
               value={searchAddress}
               onChange={(e) => setSearchAddress(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              className="bg-card/95 border border-border/20 rounded-2xl pl-9 pr-4 py-2 text-[10px] font-bold w-full md:w-64 focus:outline-none focus:ring-1 focus:ring-orange-500/30 transition-all placeholder:text-muted-foreground/20 text-foreground"
+              className="bg-background border border-border rounded-lg pl-9 pr-4 py-2 text-[10px] font-bold w-full md:w-64 focus:outline-none focus:ring-1 focus:ring-border transition-all placeholder:text-muted-foreground/30 text-foreground"
             />
           </div>
           <Button
             onClick={handleSearch}
             disabled={isSearching}
-            className="h-9 px-6 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border-none rounded-2xl text-[10px] font-bold uppercase transition-all"
+            className="h-9 px-5 bg-foreground hover:bg-foreground/90 text-background border-none rounded-lg text-[10px] font-bold uppercase transition-all"
           >
             {isSearching ? '...' : 'Search'}
           </Button>
@@ -173,111 +170,93 @@ export function PerpsLeaderboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-8 items-end justify-items-center py-4 md:py-10 px-2 md:px-4 relative max-w-4xl mx-auto mb-4 md:mb-8">
           {/* Rank 2 */}
           <div className="order-2 md:order-1 flex flex-col items-center scale-90 md:scale-100">
-            <div className="relative mb-2 group rotate-[-2deg]">
-              <div className="absolute -inset-1 bg-gradient-to-b from-orange-500/20 to-transparent blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative mb-2">
               <img
                 src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${podiumItems[1].wallet_address}`}
                 alt="Avatar"
-                className="w-10 h-10 md:w-16 md:h-16 rounded-xl bg-orange-500/10 border border-orange-500/20 relative z-10"
+                className="w-10 h-10 md:w-16 md:h-16 rounded-xl bg-secondary/20 border border-border relative z-10"
               />
             </div>
-            <div className="w-full min-w-[140px] md:w-48 h-12 md:h-28 bg-gradient-to-t from-card/80 to-card/40 border-x border-t border-border/20 rounded-t-xl md:rounded-t-[2.5rem] relative flex flex-col items-center justify-center p-2 md:p-4 shadow-2xl">
-              <p className="text-[8px] md:text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-1">[2] rank</p>
+            <div className="w-full min-w-[140px] md:w-48 h-12 md:h-28 bg-background border-x border-t border-border rounded-t-xl relative flex flex-col items-center justify-center p-2 md:p-4">
+              <p className="text-[8px] md:text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-1">#2</p>
               <p className="text-[10px] font-mono text-foreground/80 mb-1 truncate max-w-full px-2 text-center">
                 {podiumItems[1].wallet_address.slice(0, 4)}...{podiumItems[1].wallet_address.slice(-4)}
               </p>
-              <p className="text-xs md:text-base font-bold text-foreground flex items-center gap-1">
-                <span className="text-orange-500">◈</span>
-                {formatNumber(parseFloat(sortType === 'pnl' ? podiumItems[1].pnl_usd : podiumItems[1].volume_usd))}
+              <p className="text-xs md:text-base font-bold text-foreground">
+                ${formatNumber(parseFloat(sortType === 'pnl' ? podiumItems[1].pnl_usd : podiumItems[1].volume_usd))}
               </p>
             </div>
           </div>
 
           {/* Rank 1 */}
           <div className="order-1 md:order-2 flex flex-col items-center -translate-y-2 md:-translate-y-6 z-10 scale-105 md:scale-110">
-            <div className="relative mb-3 group">
-              <div className="absolute -inset-2 bg-gradient-to-b from-orange-500/40 to-transparent blur-xl opacity-30 transition-opacity group-hover:opacity-100" />
+            <div className="relative mb-3">
               <img
                 src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${podiumItems[0].wallet_address}`}
                 alt="Avatar"
-                className="w-12 h-12 md:w-20 md:h-20 rounded-2xl bg-orange-500/20 border-2 border-orange-500/40 relative z-10 shadow-[0_0_20px_rgba(249,115,22,0.1)]"
+                className="w-12 h-12 md:w-20 md:h-20 rounded-2xl bg-foreground/5 border-2 border-foreground/20 relative z-10"
               />
-              <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center text-black font-black text-[8px] md:text-[10px] border-2 border-background z-20">1</div>
+              <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-foreground rounded-full flex items-center justify-center text-background font-black text-[8px] md:text-[10px] border-2 border-background z-20">1</div>
             </div>
-            <div className="w-full min-w-[160px] md:w-64 h-20 md:h-40 bg-gradient-to-t from-card to-card/60 border-x border-t border-orange-500/20 rounded-t-2xl md:rounded-t-[3rem] relative flex flex-col items-center justify-center p-3 md:p-6 shadow-[0_-10px_30px_rgba(0,0,0,0.2)]">
-              <p className="text-[9px] md:text-[11px] font-bold text-orange-500 uppercase tracking-[0.2em] mb-1">[1] RANK</p>
+            <div className="w-full min-w-[160px] md:w-64 h-20 md:h-40 bg-background border-x border-t border-foreground/30 rounded-t-2xl md:rounded-t-[2rem] relative flex flex-col items-center justify-center p-3 md:p-6">
+              <p className="text-[9px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-1">#1 RANK</p>
               <p className="text-xs font-mono text-foreground mb-2 truncate max-w-full px-2 text-center">
                 {podiumItems[0].wallet_address.slice(0, 6)}...{podiumItems[0].wallet_address.slice(-4)}
               </p>
-              <p className="text-base md:text-xl font-black text-foreground flex items-center gap-1.5">
-                <span className="text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.3)]">◈</span>
-                {formatNumber(parseFloat(sortType === 'pnl' ? podiumItems[0].pnl_usd : podiumItems[0].volume_usd))}
+              <p className="text-base md:text-xl font-black text-foreground">
+                ${formatNumber(parseFloat(sortType === 'pnl' ? podiumItems[0].pnl_usd : podiumItems[0].volume_usd))}
               </p>
             </div>
           </div>
 
           {/* Rank 3 */}
           <div className="order-3 md:order-3 flex flex-col items-center scale-85 md:scale-95 origin-bottom">
-            <div className="relative mb-2 group rotate-[2deg]">
-              <div className="absolute -inset-1 bg-gradient-to-b from-orange-500/10 to-transparent blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative mb-2">
               <img
                 src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${podiumItems[2].wallet_address}`}
                 alt="Avatar"
-                className="w-10 h-10 md:w-16 md:h-16 rounded-xl bg-orange-500/10 border border-orange-500/20 relative z-10"
+                className="w-10 h-10 md:w-16 md:h-16 rounded-xl bg-secondary/20 border border-border relative z-10"
               />
             </div>
-            <div className="w-full min-w-[120px] md:w-48 h-10 md:h-24 bg-gradient-to-t from-card/60 to-card/30 border-x border-t border-border/20 rounded-t-lg md:rounded-t-[2.5rem] relative flex flex-col items-center justify-center p-2 md:p-4 shadow-xl">
-              <p className="text-[8px] md:text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-1">[3] rank</p>
+            <div className="w-full min-w-[120px] md:w-48 h-10 md:h-24 bg-background border-x border-t border-border rounded-t-lg md:rounded-t-xl relative flex flex-col items-center justify-center p-2 md:p-4">
+              <p className="text-[8px] md:text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-1">#3</p>
               <p className="text-[9px] md:text-[10px] font-mono text-foreground/80 mb-1 truncate max-w-full px-2 text-center">
                 {podiumItems[2].wallet_address.slice(0, 4)}...{podiumItems[2].wallet_address.slice(-4)}
               </p>
-              <p className="text-xs md:text-sm font-bold text-foreground flex items-center gap-1">
-                <span className="text-orange-500">◈</span>
-                {formatNumber(parseFloat(sortType === 'pnl' ? podiumItems[2].pnl_usd : podiumItems[2].volume_usd))}
+              <p className="text-xs md:text-sm font-bold text-foreground">
+                ${formatNumber(parseFloat(sortType === 'pnl' ? podiumItems[2].pnl_usd : podiumItems[2].volume_usd))}
               </p>
             </div>
           </div>
-
-          {/* Grid Background */}
-          <div className="absolute inset-0 opacity-[0.03] pointer-events-none -z-10"
-            style={{ backgroundImage: 'linear-gradient(#f97316 1px, transparent 1px), linear-gradient(90deg, #f97316 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
         </div>
       )}
 
       {/* Search Result Card */}
       {searchResult && (
-        <Card className="bg-orange-500/[0.03] border-orange-500/20 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 mb-6 relative overflow-hidden group animate-in slide-in-from-top duration-500">
-          <div className="absolute top-4 right-4 z-10">
-            <Button variant="ghost" size="icon" onClick={() => setSearchResult(null)} className="rounded-full w-8 h-8 hover:bg-orange-500/10 text-muted-foreground/40 hover:text-orange-500">×</Button>
+        <Card className="bg-background border border-border rounded-xl p-4 md:p-6 mb-4 relative overflow-hidden animate-in slide-in-from-top duration-300">
+          <div className="absolute top-3 right-3">
+            <Button variant="ghost" size="icon" onClick={() => setSearchResult(null)} className="rounded-lg w-7 h-7 hover:bg-secondary/10 text-muted-foreground/50 hover:text-foreground">×</Button>
           </div>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-            <div className="flex items-center gap-6">
-              <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl md:rounded-3xl bg-orange-500/10 flex items-center justify-center text-orange-500 font-black text-[10px] md:text-sm shadow-inner shrink-0">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-center gap-5">
+              <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl bg-secondary/10 border border-border flex items-center justify-center font-black text-[10px] md:text-sm text-foreground shrink-0">
                 #{searchResult.rank}
               </div>
               <div>
-                <p className="text-[10px] font-bold text-orange-500 uppercase tracking-[0.3em] mb-1.5">
-                  <span className="md:hidden">Rank</span>
-                  <span className="hidden md:inline">Personal Performance</span>
-                </p>
-                <p className="text-sm font-mono text-foreground/80 tracking-tight">
-                  <span className="md:hidden">
-                    {searchResult.wallet_address.slice(0, 4)}...{searchResult.wallet_address.slice(-4)}
-                  </span>
-                  <span className="hidden md:inline">{searchResult.wallet_address}</span>
-                </p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-1">Personal Performance</p>
+                <p className="text-sm font-mono text-foreground/80">{searchResult.wallet_address}</p>
               </div>
             </div>
-            <div className="grid grid-cols-2 md:flex md:gap-16 gap-x-12 gap-y-6">
+            <div className="grid grid-cols-2 md:flex md:gap-12 gap-x-12 gap-y-4">
               <div>
-                <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-[0.2em] mb-2">PnL (USD)</p>
+                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">PnL (USD)</p>
                 <p className={`text-xl font-bold ${parseFloat(searchResult.pnl_usd) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                   {parseFloat(searchResult.pnl_usd) >= 0 ? '+' : '-'}${formatNumber(Math.abs(parseFloat(searchResult.pnl_usd)))}
                 </p>
               </div>
               <div>
-                <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-[0.2em] mb-2">Volume (USD)</p>
-                <p className="text-xl font-bold text-foreground/80 tracking-tight">${formatNumber(parseFloat(searchResult.volume_usd))}</p>
+                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Volume (USD)</p>
+                <p className="text-xl font-bold text-foreground">${formatNumber(parseFloat(searchResult.volume_usd))}</p>
               </div>
             </div>
           </div>
@@ -285,10 +264,10 @@ export function PerpsLeaderboard() {
       )}
 
       {/* Table Section */}
-      <Card className="flex-1 overflow-hidden bg-card/95 border border-border/20 rounded-2xl md:rounded-[2.5rem] shadow-sm flex flex-col p-3 md:p-10 relative">
+      <Card className="flex-1 overflow-hidden bg-background border border-border rounded-xl shadow-sm flex flex-col p-3 md:p-8 relative">
         {loading && (
-          <div className="absolute inset-0 bg-background/40 backdrop-blur-[2px] z-20 flex items-center justify-center rounded-[2.5rem]">
-            <div className="w-8 h-8 border-2 border-orange-500/20 border-t-orange-500 animate-spin rounded-full" />
+          <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-20 flex items-center justify-center rounded-xl">
+            <div className="w-6 h-6 border-2 border-border border-t-foreground animate-spin rounded-full" />
           </div>
         )}
 
@@ -305,7 +284,7 @@ export function PerpsLeaderboard() {
             <tbody>
               {tableItems.map((entry) => (
                 <tr key={entry.account_id} className="group relative border-b border-border/5 last:border-0 hover:bg-secondary/5 transition-all">
-                  <td className="px-2 md:px-6 py-3 md:py-4 text-[10px] md:text-sm font-bold text-orange-500/80 tabular-nums">
+                  <td className="px-2 md:px-6 py-3 md:py-4 text-[10px] md:text-sm font-bold text-muted-foreground tabular-nums">
                     #{entry.rank}
                   </td>
                   <td className="px-2 md:px-6 py-3 md:py-4">
@@ -338,8 +317,8 @@ export function PerpsLeaderboard() {
         </div>
 
         {/* Pagination Controls */}
-        <div className="flex items-center justify-between mt-8 pt-8 border-t border-border/10">
-          <div className="text-[10px] text-muted-foreground/30 font-bold uppercase tracking-wider">
+        <div className="flex items-center justify-between mt-6 pt-6 border-t border-border">
+          <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
             Page {page}
           </div>
           <div className="flex gap-2">
@@ -347,7 +326,7 @@ export function PerpsLeaderboard() {
               onClick={() => { setPage(Math.max(1, page - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
               disabled={page === 1}
               variant="outline"
-              className="h-9 px-4 bg-secondary/5 border-border/10 rounded-xl hover:bg-orange-500/10 hover:text-orange-400 transition-all gap-2 text-[10px] font-bold uppercase"
+              className="h-8 px-4 bg-transparent border-border rounded-lg hover:bg-secondary/10 hover:text-foreground transition-all gap-2 text-[10px] font-bold uppercase"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
               Previous
@@ -356,7 +335,7 @@ export function PerpsLeaderboard() {
               onClick={() => { setPage(page + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
               disabled={items.length < pageSize}
               variant="outline"
-              className="h-9 px-4 bg-secondary/5 border-border/10 rounded-xl hover:bg-orange-500/10 hover:text-orange-400 transition-all gap-2 text-[10px] font-bold uppercase"
+              className="h-8 px-4 bg-transparent border-border rounded-lg hover:bg-secondary/10 hover:text-foreground transition-all gap-2 text-[10px] font-bold uppercase"
             >
               Next
               <ChevronRight className="w-3.5 h-3.5" />
@@ -364,9 +343,6 @@ export function PerpsLeaderboard() {
           </div>
         </div>
       </Card>
-
-      {/* Background decoration */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-orange-500/[0.02] blur-[120px] rounded-full pointer-events-none -z-10" />
     </div>
   )
 }

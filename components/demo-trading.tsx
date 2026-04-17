@@ -793,7 +793,7 @@ export function DemoTrading() {
                     onChange={(e) => setTempLeverage(parseInt(e.target.value))}
                     className="w-full h-1.5 rounded-lg appearance-none cursor-pointer mb-6 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary slider-thumb"
                     style={{
-                       background: `linear-gradient(to right, #f97316 ${(tempLeverage - 1) * (100 / 99)}%, #3f3f46 ${(tempLeverage - 1) * (100 / 99)}%)`
+                       background: `linear-gradient(to right, hsl(var(--foreground)) ${(tempLeverage - 1) * (100 / 99)}%, hsl(var(--muted)) ${(tempLeverage - 1) * (100 / 99)}%)`
                     }}
                  />
                  <button 
@@ -868,7 +868,7 @@ export function DemoTrading() {
             />
             <button 
               onClick={() => setLimitPrice(activePrice.toFixed(2))}
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-primary/10 hover:bg-primary/20 text-primary text-[10px] font-black rounded transition-colors uppercase"
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-muted hover:bg-muted/80 text-foreground text-[10px] font-black rounded transition-colors uppercase"
             >
               Mid
             </button>
@@ -908,7 +908,7 @@ export function DemoTrading() {
            onChange={(e) => handleSliderChange(parseInt(e.target.value))}
            className="w-full h-1.5 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary slider-thumb relative z-10"
            style={{
-             background: `linear-gradient(to right, #f97316 ${balanceSlider}%, #3f3f46 ${balanceSlider}%)`
+              background: `linear-gradient(to right, hsl(var(--foreground)) ${balanceSlider}%, hsl(var(--muted)) ${balanceSlider}%)`
            }}
         />
         <div className="flex justify-between text-[10px] text-muted-foreground font-bold mt-2 font-mono">
@@ -923,7 +923,7 @@ export function DemoTrading() {
       {/* TP / SL Checkbox */}
       <div className="pt-2">
         <label className="flex items-center gap-2 cursor-pointer group">
-          <div className={cn("w-4 h-4 rounded-sm flex items-center justify-center border transition-all", useTpSl ? "bg-primary border-primary" : "border-border bg-transparent group-hover:border-foreground/20")}>
+          <div className={cn("w-4 h-4 rounded-sm flex items-center justify-center border transition-all", useTpSl ? "bg-foreground border-foreground" : "border-border bg-transparent group-hover:border-foreground/20")}>
             {useTpSl && <Check className="w-3 h-3 text-primary-foreground absolute" />}
           </div>
           <input type="checkbox" checked={useTpSl} onChange={(e) => setUseTpSl(e.target.checked)} className="hidden" />
@@ -1057,13 +1057,13 @@ export function DemoTrading() {
                        setShowPairSelector(false);
                        setSearchQuery('');
                      }}
-                     className={cn("flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-all group", activeSymbol === sym && "bg-primary/5")}
+                     className={cn("flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-all group", activeSymbol === sym && "bg-muted/30")}
                    >
                      <div className="flex items-center gap-3">
                         <div className="w-6 h-6 rounded-full bg-background flex items-center justify-center border border-border/50 p-0.5 overflow-hidden group-hover:scale-110 transition-transform">
                           {getTokenLogo(sym) ? <img src={getTokenLogo(sym)} alt={sym} className="w-full h-full object-cover" /> : <div className="text-[10px] font-bold">{sym[0]}</div>}
                         </div>
-                        <span className={cn("font-bold text-sm", activeSymbol === sym ? "text-primary" : "text-foreground")}>{sym}</span>
+                        <span className="font-bold text-sm text-foreground">{sym}</span>
                      </div>
                      <div className="text-right">
                        <div className="text-xs font-mono font-bold">{markPrices[sym]?.toLocaleString(undefined, { minimumFractionDigits: 2 }) || '--'}</div>
@@ -1091,7 +1091,7 @@ export function DemoTrading() {
         <div className="flex-1 flex flex-col min-h-0 min-w-0">
 
           {/* Mobile: Floating Pair Picker and Stats Header */}
-          <div className="lg:hidden w-full flex-none p-2 z-20 sticky top-0 bg-background/60 backdrop-blur-lg border-b border-border/50">
+          <div className="lg:hidden w-full flex-none p-2 z-20 sticky top-0 bg-background border-b border-border/50">
              <div className="flex items-center justify-between gap-2">
                 <Sheet>
                   <SheetTrigger asChild>
@@ -1174,8 +1174,8 @@ export function DemoTrading() {
                         key={int}
                         onClick={() => setActiveInterval(int)}
                         className={cn(
-                          "px-1.5 md:px-2 py-0.5 text-[10px] md:text-xs font-semibold rounded transition-all",
-                          activeInterval === int ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"
+                          "px-1.5 md:px-2 py-0.5 text-[10px] md:text-xs font-semibold transition-all pb-[3px]",
+                          activeInterval === int ? "border-b border-foreground text-foreground" : "text-muted-foreground hover:text-foreground"
                         )}
                       >
                         {int}
@@ -1190,7 +1190,7 @@ export function DemoTrading() {
                     className={cn(
                       "h-7 px-2 flex items-center gap-1.5 rounded-md text-[10px] font-medium transition-colors border",
                       showTPSL 
-                        ? "bg-primary/20 text-primary border-primary/30" 
+                        ? "bg-foreground/10 text-foreground border-border" 
                         : "bg-muted/50 text-muted-foreground border-transparent hover:bg-muted"
                     )}
                     title="Toggle Price Lines"

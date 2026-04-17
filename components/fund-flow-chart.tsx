@@ -116,39 +116,38 @@ export function FundFlowChart() {
     }, [data, selectedToken, timeRange])
     if (isLoading) {
         return (
-            <Card className="p-8 bg-card border border-border/50 rounded-2xl animate-pulse">
-                <h3 className="text-xs font-semibold text-muted-foreground/60 mb-8">Interrogating Flows</h3>
-                <div className="h-64 bg-secondary/10 rounded-2xl" />
+            <Card className="p-8 bg-background border border-border rounded-lg animate-pulse">
+                <h3 className="text-xs font-semibold text-muted-foreground/60 mb-8">Fund Flow</h3>
+                <div className="h-64 bg-secondary/10 rounded-lg" />
             </Card>
         )
     }
 
     return (
-        <Card className="p-8 bg-card border border-border/50 rounded-2xl flex flex-col transition-all duration-300">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
-                <div>
-                    <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60 uppercase">Fund Flow</h3>
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
+        <Card className="p-6 md:p-8 bg-background border border-border rounded-lg flex flex-col">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Fund Flow</h3>
+                <div className="flex flex-wrap items-center gap-2">
                     <Select value={selectedToken} onValueChange={setSelectedToken}>
-                        <SelectTrigger className="w-[110px] h-9 bg-white/5 border border-border/50 rounded-xl text-[10px] font-bold text-foreground/60 uppercase hover:bg-white/10 transition-colors">
+                        <SelectTrigger className="w-[100px] h-8 bg-transparent border border-border rounded-lg text-[10px] font-bold text-muted-foreground uppercase hover:bg-secondary/10 transition-colors">
                             <SelectValue placeholder="Asset" />
                         </SelectTrigger>
-                        <SelectContent className="bg-card border border-border/50 rounded-xl">
+                        <SelectContent className="bg-card border border-border rounded-lg">
                             {tokens.map((t) => (
                                 <SelectItem key={t} value={t} className="text-[10px] font-bold uppercase">{t}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
-                    <div className="flex gap-1 bg-secondary/10 p-1 rounded-xl border border-border/5">
+                    <div className="flex items-center gap-1">
                         {(['1w', '1m', '3m', '6m', '1y'] as const).map((range) => (
                             <button
                                 key={range}
                                 onClick={() => setTimeRange(range)}
-                                className={`text-[9px] font-bold px-3 py-1.5 rounded-lg transition-all ${timeRange === range
-                                    ? 'bg-primary text-white shadow-[0_0_15px_rgba(255,77,0,0.3)]'
-                                    : 'text-muted-foreground/40 hover:text-foreground hover:bg-white/5'
-                                    }`}
+                                className={`text-[10px] font-bold px-2 py-1 transition-all ${
+                                    timeRange === range
+                                        ? 'text-foreground border-b border-foreground'
+                                        : 'text-muted-foreground/50 hover:text-muted-foreground border-b border-transparent'
+                                }`}
                             >
                                 {range}
                             </button>
@@ -269,30 +268,30 @@ export function FundFlowChart() {
                 )}
             </div>
 
-            <div className="mt-8 pt-6 border-t border-border/10 flex flex-wrap items-center justify-between gap-4">
+            <div className="mt-6 pt-4 border-t border-border flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                        <span className="text-[8px] text-muted-foreground/30 font-bold   leading-none">deposits</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-foreground" />
+                        <span className="text-[8px] text-muted-foreground font-bold uppercase tracking-wider">deposits</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                        <span className="text-[8px] text-muted-foreground/30 font-bold   leading-none">withdrawals</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
+                        <span className="text-[8px] text-muted-foreground font-bold uppercase tracking-wider">withdrawals</span>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 bg-white/5 px-3 py-1.5 rounded-xl border border-border/50">
+                <div className="flex items-center gap-3 px-3 py-1.5 rounded-lg border border-border">
                     <Checkbox
                         id="show-net-remaining"
                         checked={showNetRemaining}
                         onCheckedChange={(checked) => setShowNetRemaining(checked as boolean)}
-                        className="h-3.5 w-3.5 border-amber-500/20 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                        className="h-3.5 w-3.5 border-border data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
                     />
                     <label
                         htmlFor="show-net-remaining"
-                        className="text-[9px] font-bold  text-muted-foreground/60 cursor-pointer select-none"
+                        className="text-[9px] font-bold text-muted-foreground cursor-pointer select-none"
                     >
-                        Trace Retention
+                        Show Retention
                     </label>
                 </div>
             </div>

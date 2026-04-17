@@ -23,11 +23,11 @@ export function TopPairsWidget() {
 
   if (isLoading || !volumeData) {
     return (
-      <Card className="p-8 bg-card border border-border/50 rounded-2xl animate-pulse">
-        <div className="h-4 w-32 bg-secondary/20 rounded-full mb-8" />
-        <div className="space-y-4">
+      <Card className="p-8 bg-background border border-border rounded-lg animate-pulse">
+        <div className="h-4 w-32 bg-secondary/20 rounded mb-6" />
+        <div className="space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-12 bg-secondary/10 rounded-xl" />
+            <div key={i} className="h-10 bg-secondary/10 rounded-lg" />
           ))}
         </div>
       </Card>
@@ -48,19 +48,19 @@ export function TopPairsWidget() {
     currentItems = stats.top_5_futures
   }
 
-  const COLORS = ['#FF4D00', '#EA580C', '#F97316', '#FB923C', '#FDBA74']
+  const COLORS = ['hsl(var(--foreground))', 'hsl(var(--foreground) / 0.7)', 'hsl(var(--foreground) / 0.5)', 'hsl(var(--foreground) / 0.3)', 'hsl(var(--foreground) / 0.15)']
   const maxVolume = Math.max(...currentItems.map(i => i.volume))
 
   return (
-    <Card className="p-6 md:p-8 bg-card border border-border/50 rounded-2xl flex flex-col transition-all duration-300">
+    <Card className="p-6 md:p-8 bg-background border border-border rounded-lg flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <h3 className="text-xs font-semibold text-muted-foreground/80 dark:text-muted-foreground/60 uppercase tracking-wider">Volume Split</h3>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Volume Split</h3>
           <TooltipProvider delayDuration={100}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <HelpCircle className="w-3.5 h-3.5 text-muted-foreground/30 hover:text-muted-foreground transition-colors cursor-help" />
+                <HelpCircle className="w-3.5 h-3.5 text-muted-foreground/40 hover:text-muted-foreground transition-colors cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="bg-popover border-border text-[10px] max-w-[200px]">
                 <p>Volume distribution among top performing pairs.</p>
@@ -69,72 +69,75 @@ export function TopPairsWidget() {
           </TooltipProvider>
         </div>
         
-        <Tabs defaultValue="all" onValueChange={(val) => setActiveTab(val)}>
-          <TabsList className="bg-secondary/20 dark:bg-white/[0.02] h-8 p-0.5 rounded-lg border border-border/50">
-            {['all', 'spot', 'futures'].map((t) => (
-              <TabsTrigger 
-                key={t}
-                value={t} 
-                className="rounded-md text-[9px] font-bold uppercase px-3 h-7 data-[state=active]:bg-card data-[state=active]:text-primary dark:data-[state=active]:bg-white/[0.05]"
-              >
-                {t}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-4">
+          {(['all', 'spot', 'futures'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setActiveTab(t)}
+              className={`text-[10px] font-black transition-all uppercase tracking-wider pb-1 ${
+                activeTab === t
+                  ? 'text-foreground border-b-2 border-foreground'
+                  : 'text-muted-foreground/30 hover:text-muted-foreground border-b-2 border-transparent'
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Main List with Bars */}
-      <div className="space-y-4">
+      {/* Ranked Pairs */}
+      <div className="space-y-1">
         {currentItems.map((item, index) => {
           const percentage = (item.volume / maxVolume) * 100
+          const opacity = 1 - index * 0.15
           return (
-            <div key={item.pair} className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    {getTokenLogo(item.pair) ? (
-                      <img
-                        src={getTokenLogo(item.pair)}
-                        alt={item.pair}
-                        className="w-7 h-7 rounded-full bg-background p-0.5 border border-border/50 transition-colors"
-                        onError={(e) => { e.currentTarget.style.display = 'none' }}
-                      />
-                    ) : (
-                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">{item.pair.slice(0, 1)}</div>
-                    )}
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[11px] font-bold text-foreground/80 transition-colors">{item.pair}</span>
-                    <span className="text-[8px] text-muted-foreground/30 font-bold uppercase tracking-tight">{item.pair.includes('-') ? 'Futures' : 'Spot'}</span>
-                  </div>
+            <div key={item.pair} className="relative overflow-hidden rounded-lg group">
+              {/* Background fill bar */}
+              <div
+                className="absolute inset-y-0 left-0 rounded-lg transition-all duration-1000 ease-out"
+                style={{ width: `${percentage}%`, backgroundColor: `hsl(var(--foreground) / ${opacity * 0.08})` }}
+              />
+              {/* Content */}
+              <div className="relative flex items-center gap-3 px-3 py-2.5">
+                <span className="text-[10px] font-black text-muted-foreground/40 w-4 shrink-0 tabular-nums">#{index + 1}</span>
+                <div className="shrink-0">
+                  {getTokenLogo(item.pair) ? (
+                    <img
+                      src={getTokenLogo(item.pair)}
+                      alt={item.pair}
+                      className="w-7 h-7 rounded-full bg-background border border-border/50"
+                      onError={(e) => { e.currentTarget.style.display = 'none' }}
+                    />
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-secondary/20 border border-border flex items-center justify-center text-[9px] font-black text-foreground">
+                      {item.pair.slice(0, 1)}
+                    </div>
+                  )}
                 </div>
-                <span className="text-[11px] font-bold text-foreground/90 tabular-nums">${formatVolume(item.volume)}</span>
-              </div>
-              
-              <div className="relative h-1.5 w-full bg-secondary/10 dark:bg-white/[0.02] rounded-full overflow-hidden">
-                <div 
-                  className="absolute inset-y-0 left-0 transition-all duration-1000 ease-out rounded-full"
-                  style={{ 
-                    width: `${percentage}%`,
-                    backgroundColor: COLORS[index % COLORS.length]
-                  }}
-                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] font-bold text-foreground truncate">{item.pair}</div>
+                  <div className="text-[8px] font-bold text-muted-foreground/60 uppercase tracking-wider">{item.pair.includes('-') ? 'Futures' : 'Spot'}</div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-[11px] font-bold text-foreground tabular-nums">${formatVolume(item.volume)}</div>
+                  <div className="text-[8px] font-bold text-muted-foreground/50 tabular-nums">{percentage.toFixed(1)}%</div>
+                </div>
               </div>
             </div>
           )
         })}
       </div>
 
-      {/* Subtle Totals at Bottom */}
-      <div className="grid grid-cols-2 gap-4 mt-8 pt-8 border-t border-border/50">
+      {/* Totals */}
+      <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-border">
         <div className="flex flex-col">
-          <span className="text-[8px] text-muted-foreground/40 font-bold uppercase tracking-wider mb-1">Total Spot</span>
-          <span className="text-sm font-bold text-foreground/80">${formatVolume(stats.total_spot_volume)}</span>
+          <span className="text-[8px] text-muted-foreground font-bold uppercase tracking-wider mb-1">Total Spot</span>
+          <span className="text-sm font-bold text-foreground">${formatVolume(stats.total_spot_volume)}</span>
         </div>
         <div className="flex flex-col items-end text-right">
-          <span className="text-[8px] text-muted-foreground/40 font-bold uppercase tracking-wider mb-1">Total Futures</span>
-          <span className="text-sm font-bold text-foreground/80">${formatVolume(stats.total_futures_volume)}</span>
+          <span className="text-[8px] text-muted-foreground font-bold uppercase tracking-wider mb-1">Total Futures</span>
+          <span className="text-sm font-bold text-foreground">${formatVolume(stats.total_futures_volume)}</span>
         </div>
       </div>
     </Card>

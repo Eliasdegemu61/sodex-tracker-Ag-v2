@@ -157,24 +157,24 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
   if (!walletAddress) {
     return (
       <div className="flex items-center justify-center min-h-[600px] px-4">
-        <div className="p-8 sm:p-10 bg-card/40 dark:bg-[#141414]/90 border border-border/20 dark:border-white/5 rounded-[2rem] shadow-2xl max-w-md w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <h2 className="text-2xl font-bold text-foreground dark:text-white mb-3 tracking-tight">Wallet Tracker</h2>
-          <p className="text-muted-foreground/80 dark:text-muted-foreground/80 mb-8 text-sm leading-relaxed">Enter a wallet address to track trading positions and performance</p>
+        <div className="p-8 sm:p-10 bg-background border border-border rounded-xl max-w-md w-full">
+          <h2 className="text-xl font-bold text-foreground mb-2 tracking-tight">Wallet Tracker</h2>
+          <p className="text-muted-foreground mb-8 text-sm leading-relaxed">Enter a wallet address to track trading positions and performance</p>
 
-          <div className="space-y-4">
-            <div className="relative group">
+          <div className="space-y-3">
+            <div className="relative">
               <input
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Enter wallet address"
-                className="w-full px-5 py-4 bg-secondary/50 dark:bg-[#1f1f1f] border border-border/20 dark:border-none rounded-2xl text-sm font-medium text-foreground dark:text-white placeholder-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-border/50 dark:focus:ring-zinc-700 transition-all duration-300"
+                className="w-full px-4 py-3 bg-secondary/5 border border-border rounded-lg text-sm font-medium text-foreground placeholder-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-border transition-all"
               />
             </div>
 
             {error && (
-              <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20">
+              <div className="p-3 rounded-lg bg-red-500/5 border border-red-500/20">
                 <p className="text-red-400 text-xs font-medium">{error}</p>
               </div>
             )}
@@ -182,7 +182,7 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
             <button
               onClick={() => handleSearch(searchInput)}
               disabled={isLoading || !searchInput.trim()}
-              className="w-full flex items-center justify-center gap-2 py-4 bg-zinc-400 hover:bg-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed text-zinc-900 rounded-2xl font-semibold transition-all duration-300 active:scale-[0.98]"
+              className="w-full flex items-center justify-center gap-2 py-3 bg-foreground hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed text-background rounded-lg font-semibold text-sm transition-all active:scale-[0.99]"
             >
               <Search className="w-4 h-4" />
               {isLoading ? 'Searching...' : 'Search Wallet'}
@@ -210,24 +210,24 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <ShareStatsModal 
-              walletAddress={walletAddress} 
-              userId={userId || ''} 
-              sourceWalletAddress={sourceWalletAddress || undefined}
-              trigger={
-                <Button
-                  variant="outline"
-                  className="gap-1.5 md:gap-2 text-orange-500 hover:text-orange-400 bg-orange-500/5 hover:bg-orange-500/10 border-orange-500/20 rounded-xl px-3 md:px-4 h-9 md:h-10 text-[11px] md:text-xs font-bold"
-                >
-                  <Share2 className="w-3.5 h-3.5" />
-                  Share Results
-                </Button>
-              }
-            />
+              <ShareStatsModal 
+                walletAddress={walletAddress} 
+                userId={userId || ''} 
+                sourceWalletAddress={sourceWalletAddress || undefined}
+                trigger={
+                  <Button
+                    variant="outline"
+                    className="gap-1.5 md:gap-2 text-muted-foreground hover:text-foreground bg-transparent border-border rounded-lg px-3 md:px-4 h-9 md:h-10 text-[11px] md:text-xs font-bold"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    Share
+                  </Button>
+                }
+              />
             <Button
               variant="outline"
               onClick={handleClear}
-              className="gap-1.5 md:gap-2 text-muted-foreground hover:text-foreground bg-transparent border-white/5 rounded-xl px-3 md:px-4 h-9 md:h-10 text-[11px] md:text-xs font-bold"
+              className="gap-1.5 md:gap-2 text-muted-foreground hover:text-foreground bg-transparent border-border rounded-xl px-3 md:px-4 h-9 md:h-10 text-[11px] md:text-xs font-bold"
             >
               <X className="w-3.5 h-3.5" />
               Clear

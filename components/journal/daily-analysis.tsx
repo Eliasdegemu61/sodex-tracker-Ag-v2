@@ -83,8 +83,8 @@ export function DailyAnalysis({ allPositions, dailyPerformance }: DailyAnalysisP
                                     className={cn(
                                         "flex flex-col items-center min-w-[64px] py-3 rounded-2xl border transition-all duration-300",
                                         isSelected 
-                                            ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20" 
-                                            : "bg-secondary/5 border-border/5 text-muted-foreground/40 hover:bg-secondary/10 hover:border-border/10"
+                                            ? "bg-foreground border-foreground text-background" 
+                                            : "bg-secondary/5 border-border text-muted-foreground/40 hover:bg-secondary/10"
                                     )}
                                 >
                                     <span className={cn(
@@ -171,7 +171,7 @@ export function DailyAnalysis({ allPositions, dailyPerformance }: DailyAnalysisP
                             </thead>
                             <tbody className="divide-y divide-border/5">
                                 {dailyStats.positions.map((pos, i) => (
-                                    <tr key={i} className="group hover:bg-primary/5 transition-colors">
+                                    <tr key={i} className="group hover:bg-secondary/5 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="font-bold text-foreground">{pos.pairName}</div>
                                             <div className="text-[9px] text-muted-foreground/20 font-mono">{new Date(pos.created_at).toLocaleTimeString()}</div>

@@ -15,7 +15,7 @@ export function TradeAnalytics({ analytics }: TradeAnalyticsProps) {
 
     if (analytics.length === 0) {
         return (
-            <Card className="p-5 bg-card/40 backdrop-blur-3xl border border-border/10 rounded-3xl">
+            <Card className="p-5 bg-background border border-border rounded-xl">
                 <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-4">Trade Analytics</h3>
                 <p className="text-sm text-muted-foreground/30 text-center py-8">No trades in this plan period</p>
             </Card>
@@ -40,14 +40,14 @@ export function TradeAnalytics({ analytics }: TradeAnalyticsProps) {
     const SortTh = ({ label, field }: { label: string; field: keyof SymbolAnalytics }) => (
         <th
             onClick={() => toggleSort(field)}
-            className={`py-2 px-2 text-right cursor-pointer select-none hover:text-foreground/60 transition-colors ${sortKey === field ? 'text-primary' : 'text-muted-foreground/30'} text-[10px] font-black uppercase tracking-widest`}
+            className={`py-2 px-2 text-right cursor-pointer select-none hover:text-foreground transition-colors text-[10px] font-black uppercase tracking-widest ${sortKey === field ? 'text-foreground border-b border-foreground' : 'text-muted-foreground/30'}`}
         >
             {label} {sortKey === field ? (sortDir === 'desc' ? '↓' : '↑') : ''}
         </th>
     );
 
     return (
-        <Card className="p-5 bg-card/40 backdrop-blur-3xl border border-border/10 rounded-3xl">
+        <Card className="p-5 bg-background border border-border rounded-xl">
             <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-4">Trade Analytics</h3>
 
             {/* Highlights */}

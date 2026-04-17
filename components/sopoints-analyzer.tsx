@@ -4,13 +4,12 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Loader2, Calendar as CalendarIcon, AlertCircle, Search, X } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, Calendar as CalendarIcon, Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatNumber } from '@/lib/format-number';
+import { cn } from '@/lib/utils';
 
 interface UserVolumeData {
   userId: string;
@@ -54,12 +53,10 @@ export function SopointsAnalyzer() {
       setError('Please select both start and end dates');
       return;
     }
-
     if (startDate > endDate) {
       setError('Start date must be before end date');
       return;
     }
-
     if (!validateDateRange(startDate, endDate)) {
       setError('Date range must not exceed 7 days');
       return;
@@ -73,8 +70,6 @@ export function SopointsAnalyzer() {
     try {
       const startD = new Date(startDate);
       const endD = new Date(endDate);
-
-      // Generate all dates in the range
       const allDates: string[] = [];
       const currentDate = new Date(startD);
       while (currentDate <= endD) {
@@ -82,40 +77,24 @@ export function SopointsAnalyzer() {
         currentDate.setDate(currentDate.getDate() + 1);
       }
 
-      console.log('[v0] Analyzing dates:', allDates);
-
-      // Fetch futures data for all dates
       let futuresDataByDate: Record<string, any[]> = {};
       let hasFuturesData = false;
-
       for (const date of allDates) {
         try {
           const url = `https://raw.githubusercontent.com/Eliasdegemu61/Sodex-Tracker-new-v1/main/history/daily/${date}.json`;
           const res = await fetch(url);
-          if (res.ok) {
-            futuresDataByDate[date] = await res.json();
-            hasFuturesData = true;
-          }
-        } catch (err) {
-          console.log(`[v0] No futures data for ${date}`);
-        }
+          if (res.ok) { futuresDataByDate[date] = await res.json(); hasFuturesData = true; }
+        } catch {}
       }
 
-      // Fetch spot data for all dates
       let spotDataByDate: Record<string, Record<string, { total_volume: number }>> = {};
       let hasSpotData = false;
-
       for (const date of allDates) {
         try {
           const url = `https://raw.githubusercontent.com/Eliasdegemu61/sodex-spot-volume-data/refs/heads/main/daily_stats/${date}.json`;
           const res = await fetch(url);
-          if (res.ok) {
-            spotDataByDate[date] = await res.json();
-            hasSpotData = true;
-          }
-        } catch (err) {
-          console.log(`[v0] No spot data for ${date}`);
-        }
+          if (res.ok) { spotDataByDate[date] = await res.json(); hasSpotData = true; }
+        } catch {}
       }
 
       setAnalysisState({ hasFuturesData, hasSpotData });
@@ -127,17 +106,12 @@ export function SopointsAnalyzer() {
       }
 
       const usersMap = new Map<string, UserVolumeData>();
-
-      // Track first and last appearance of each user across all dates
       const userFirstLast = new Map<string, { firstFuturesDate: string | null; lastFuturesDate: string | null; firstSpotDate: string | null; lastSpotDate: string | null }>();
 
-      // First pass: identify first and last dates for each user in each market
       if (hasFuturesData) {
         Object.entries(futuresDataByDate).forEach(([date, data]: [string, any]) => {
           data.forEach((entry: any) => {
-            if (!userFirstLast.has(entry.address)) {
-              userFirstLast.set(entry.address, { firstFuturesDate: null, lastFuturesDate: null, firstSpotDate: null, lastSpotDate: null });
-            }
+            if (!userFirstLast.has(entry.address)) userFirstLast.set(entry.address, { firstFuturesDate: null, lastFuturesDate: null, firstSpotDate: null, lastSpotDate: null });
             const user = userFirstLast.get(entry.address)!;
             if (!user.firstFuturesDate) user.firstFuturesDate = date;
             user.lastFuturesDate = date;
@@ -148,9 +122,7 @@ export function SopointsAnalyzer() {
       if (hasSpotData) {
         Object.entries(spotDataByDate).forEach(([date, data]: [string, any]) => {
           Object.keys(data).forEach((address: string) => {
-            if (!userFirstLast.has(address)) {
-              userFirstLast.set(address, { firstFuturesDate: null, lastFuturesDate: null, firstSpotDate: null, lastSpotDate: null });
-            }
+            if (!userFirstLast.has(address)) userFirstLast.set(address, { firstFuturesDate: null, lastFuturesDate: null, firstSpotDate: null, lastSpotDate: null });
             const user = userFirstLast.get(address)!;
             if (!user.firstSpotDate) user.firstSpotDate = date;
             user.lastSpotDate = date;
@@ -158,72 +130,32 @@ export function SopointsAnalyzer() {
         });
       }
 
-      // Second pass: calculate volume from first to last date for each user
       userFirstLast.forEach((dateRange, address) => {
         let futuresVolGained = 0;
         let spotVolGained = 0;
-
-        // Calculate futures volume from first to last futures date
         if (dateRange.firstFuturesDate && dateRange.lastFuturesDate && hasFuturesData) {
-          const firstData = futuresDataByDate[dateRange.firstFuturesDate];
-          const lastData = futuresDataByDate[dateRange.lastFuturesDate];
-
-          const firstEntry = firstData.find((e: any) => e.address === address);
-          const lastEntry = lastData.find((e: any) => e.address === address);
-
-          if (firstEntry && lastEntry) {
-            const startVol = parseFloat(firstEntry.vol) || 0;
-            const endVol = parseFloat(lastEntry.vol) || 0;
-            futuresVolGained = Math.max(0, endVol - startVol);
-          }
+          const firstEntry = futuresDataByDate[dateRange.firstFuturesDate].find((e: any) => e.address === address);
+          const lastEntry = futuresDataByDate[dateRange.lastFuturesDate].find((e: any) => e.address === address);
+          if (firstEntry && lastEntry) futuresVolGained = Math.max(0, (parseFloat(lastEntry.vol) || 0) - (parseFloat(firstEntry.vol) || 0));
         }
-
-        // Calculate spot volume from first to last spot date
         if (dateRange.firstSpotDate && dateRange.lastSpotDate && hasSpotData) {
           const firstData = spotDataByDate[dateRange.firstSpotDate];
           const lastData = spotDataByDate[dateRange.lastSpotDate];
-
-          if (firstData[address] && lastData[address]) {
-            const startVol = firstData[address].total_volume || 0;
-            const endVol = lastData[address].total_volume || 0;
-            spotVolGained = Math.max(0, endVol - startVol);
-          }
+          if (firstData[address] && lastData[address]) spotVolGained = Math.max(0, (lastData[address].total_volume || 0) - (firstData[address].total_volume || 0));
         }
-
         const totalVolGained = futuresVolGained + spotVolGained;
-
-        if (totalVolGained > 0) {
-          usersMap.set(address, {
-            userId: '',
-            address,
-            futuresVolGained,
-            spotVolGained,
-            totalVolGained,
-          });
-        }
+        if (totalVolGained > 0) usersMap.set(address, { userId: '', address, futuresVolGained, spotVolGained, totalVolGained });
       });
 
-      // Yield to browser after computation
       await new Promise(resolve => setTimeout(resolve, 0));
-
       const resultsArray = Array.from(usersMap.values());
-
       if (resultsArray.length === 0) {
         setError('No trading volume detected across all date combinations in the selected range');
         setIsLoading(false);
         return;
       }
-
-      // Sort by selected criteria
-      const sorted = [...resultsArray].sort((a, b) => {
-        if (sortBy === 'total') return b.totalVolGained - a.totalVolGained;
-        if (sortBy === 'futures') return b.futuresVolGained - a.futuresVolGained;
-        return b.spotVolGained - a.spotVolGained;
-      });
-
-      setResults(sorted);
+      setResults([...resultsArray].sort((a, b) => b.totalVolGained - a.totalVolGained));
     } catch (err) {
-      console.error('[v0] Sopoints analysis error:', err);
       setError('Failed to analyze data. Please try again.');
     } finally {
       setIsLoading(false);
@@ -237,92 +169,70 @@ export function SopointsAnalyzer() {
     return b.spotVolGained - a.spotVolGained;
   });
 
-  return (
-    <div className="space-y-4">
-      <Card className="p-6 bg-card/95 shadow-sm border-border/20 border rounded-3xl shadow-sm">
-        <h3 className="text-lg font-semibold mb-6">Volume Analysis (Max 7 Days)</h3>
+  const filteredResults = sortedResults.filter(u => u.address.toLowerCase().includes(searchQuery.toLowerCase()));
+  const totalPages = Math.ceil(filteredResults.length / rowsPerPage);
+  const startIdx = (currentPage - 1) * rowsPerPage;
+  const displayedRows = filteredResults.slice(startIdx, startIdx + rowsPerPage);
+  const totalWeightedVolume = sortedResults.reduce((s, u) => s + u.futuresVolGained + u.spotVolGained * 2, 0);
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <label className="block text-sm font-medium mb-2 text-foreground">Start Date</label>
+  const formatDate = (d: string) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+
+  return (
+    <div className="space-y-6 pb-16 animate-in fade-in duration-500">
+
+      {/* Page Header */}
+      <div className="pb-6 border-b border-border">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1">Reverse Search</h1>
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-[0.2em]">Volume analysis · Max 7-day window</p>
+      </div>
+
+      {/* Controls Card */}
+      <Card className="bg-background border border-border rounded-xl p-6 sm:p-8 shadow-none">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          {/* Start Date */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Start Date</label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={`w-full justify-start text-left font-normal bg-transparent hover:bg-accent/5 border h-10 px-3 py-2 text-foreground transition-all ${
-                    startDate 
-                      ? 'border-orange-500/50 bg-orange-500/5 hover:bg-orange-500/10 hover:border-orange-500' 
-                      : 'border-border/50 hover:border-border'
-                  }`}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span className={`flex-1 ${startDate ? 'text-orange-500 font-semibold' : ''}`}>
-                    {startDate ? new Date(startDate).toLocaleDateString('en-US', { 
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric'
-                    }) : 'Select date'}
-                  </span>
-                </Button>
+                <button className={cn(
+                  "w-full flex items-center gap-3 h-10 px-3 rounded-lg border text-left transition-all text-sm",
+                  startDate ? "border-border bg-secondary/5 text-foreground" : "border-border/50 text-muted-foreground hover:border-border"
+                )}>
+                  <CalendarIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <span className="font-medium">{startDate ? formatDate(startDate) : 'Select date'}</span>
+                </button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 border border-border">
+              <PopoverContent className="w-auto p-0 border border-border bg-background shadow-xl rounded-xl">
                 <Calendar
                   mode="single"
                   selected={startDate ? new Date(startDate + 'T00:00:00') : undefined}
-                  onSelect={(date) => {
-                    if (date) {
-                      const dateStr = date.toLocaleDateString('en-CA');
-                      setStartDate(dateStr);
-                    }
-                  }}
-                  disabled={(date) => {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    return date > today;
-                  }}
+                  onSelect={(date) => { if (date) setStartDate(date.toLocaleDateString('en-CA')); }}
+                  disabled={(date) => { const t = new Date(); t.setHours(0,0,0,0); return date > t; }}
                   className="border-none"
                 />
               </PopoverContent>
             </Popover>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2 text-foreground">End Date</label>
+          {/* End Date */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">End Date</label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={`w-full justify-start text-left font-normal bg-transparent hover:bg-accent/5 border h-10 px-3 py-2 text-foreground transition-all ${
-                    endDate 
-                      ? 'border-orange-500/50 bg-orange-500/5 hover:bg-orange-500/10 hover:border-orange-500' 
-                      : 'border-border/50 hover:border-border'
-                  }`}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span className={`flex-1 ${endDate ? 'text-orange-500 font-semibold' : ''}`}>
-                    {endDate ? new Date(endDate).toLocaleDateString('en-US', { 
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric'
-                    }) : 'Select date'}
-                  </span>
-                </Button>
+                <button className={cn(
+                  "w-full flex items-center gap-3 h-10 px-3 rounded-lg border text-left transition-all text-sm",
+                  endDate ? "border-border bg-secondary/5 text-foreground" : "border-border/50 text-muted-foreground hover:border-border"
+                )}>
+                  <CalendarIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <span className="font-medium">{endDate ? formatDate(endDate) : 'Select date'}</span>
+                </button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 border border-border">
+              <PopoverContent className="w-auto p-0 border border-border bg-background shadow-xl rounded-xl">
                 <Calendar
                   mode="single"
                   selected={endDate ? new Date(endDate + 'T00:00:00') : undefined}
-                  onSelect={(date) => {
-                    if (date) {
-                      const dateStr = date.toLocaleDateString('en-CA');
-                      setEndDate(dateStr);
-                    }
-                  }}
-                  disabled={(date) => {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    return date > today;
-                  }}
+                  onSelect={(date) => { if (date) setEndDate(date.toLocaleDateString('en-CA')); }}
+                  disabled={(date) => { const t = new Date(); t.setHours(0,0,0,0); return date > t; }}
                   className="border-none"
                 />
               </PopoverContent>
@@ -331,169 +241,153 @@ export function SopointsAnalyzer() {
         </div>
 
         {error && (
-          <Alert className="mb-6 border-red-500/50 bg-red-500/10">
-            <AlertCircle className="h-4 w-4 text-red-500" />
-            <AlertDescription className="text-red-600">{error}</AlertDescription>
-          </Alert>
+          <p className="text-xs font-bold text-red-500 mb-4">{error}</p>
         )}
 
-        <Button
+        <button
           onClick={handleAnalyze}
           disabled={isLoading || !startDate || !endDate}
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+          className="w-full h-11 bg-foreground text-background rounded-lg font-bold text-[11px] uppercase tracking-[0.2em] hover:bg-foreground/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2"
         >
-          {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-          {isLoading ? 'Analyzing...' : 'Analyze Volume'}
-        </Button>
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Analyzing...</span>
+            </>
+          ) : 'Analyze Volume'}
+        </button>
 
         {isLoading && (
-          <Card className="p-4 mt-6 bg-orange-500/10 border border-orange-500/50">
-            <div className="flex items-center gap-3">
-              <Loader2 className="w-4 h-4 text-orange-500 animate-spin" />
-              <span className="text-sm text-orange-600">Analyzing data across all date combinations... This may take a moment.</span>
-            </div>
-          </Card>
+          <p className="text-[10px] text-muted-foreground text-center mt-4 uppercase tracking-widest animate-pulse">
+            Fetching data across all dates… this may take a moment
+          </p>
         )}
       </Card>
 
+      {/* Results */}
       {results.length > 0 && (
-        <Card className="p-6 bg-card/95 shadow-sm border-border/20 border rounded-3xl shadow-sm">
-          <div className="flex justify-between items-center mb-4 gap-4">
-            <h3 className="text-lg font-semibold">Results</h3>
-            <div className="flex-1 max-w-md relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search by address..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="pl-10 pr-10 border-border/50"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => {
-                    setSearchQuery('');
-                    setCurrentPage(1);
-                  }}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                >
-                  <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-                </button>
-              )}
+        <Card className="bg-background border border-border rounded-xl shadow-none overflow-hidden">
+
+          {/* Results Header */}
+          <div className="px-6 py-5 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-bold text-foreground tracking-tight">Results</h2>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-0.5">{filteredResults.length.toLocaleString()} addresses</p>
             </div>
-            <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="total">Sort by Total</SelectItem>
-                <SelectItem value="futures">Sort by Futures</SelectItem>
-                <SelectItem value="spot">Sort by Spot</SelectItem>
-              </SelectContent>
-            </Select>
+
+            <div className="flex items-center gap-3">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search address..."
+                  value={searchQuery}
+                  onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                  className="h-9 pl-9 pr-8 w-52 bg-secondary/5 border border-border rounded-lg text-xs font-mono text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-border/80 transition-all"
+                />
+                {searchQuery && (
+                  <button onClick={() => { setSearchQuery(''); setCurrentPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2">
+                    <X className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                  </button>
+                )}
+              </div>
+
+              {/* Sort */}
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                <SelectTrigger className="h-9 w-36 text-xs border-border bg-secondary/5 rounded-lg">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="total">Total Vol</SelectItem>
+                  <SelectItem value="futures">Futures Vol</SelectItem>
+                  <SelectItem value="spot">Spot Vol</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-            <p className="text-xs text-blue-600">
-              <span className="font-semibold">Note:</span> Estimated SO Points is a fun calculation based on volume proportion and should not be considered 100% accurate. This is for estimation purposes only.
-            </p>
-          </div>
-
-          {!analysisState.hasFuturesData && analysisState.hasSpotData && (
-            <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-              <p className="text-xs text-amber-600">
-                <span className="font-semibold">Spot Only:</span> Data is only available from Spot markets for the selected date range.
+          {/* Data Notice */}
+          {(!analysisState.hasFuturesData || !analysisState.hasSpotData) && (
+            <div className="px-6 py-3 border-b border-border bg-secondary/5">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+                {!analysisState.hasFuturesData ? '⚡ Spot data only for this range' : '⚡ Futures data only for this range'}
               </p>
             </div>
           )}
 
-          {analysisState.hasFuturesData && !analysisState.hasSpotData && (
-            <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-              <p className="text-xs text-amber-600">
-                <span className="font-semibold">Futures Only:</span> Data is only available from Futures markets for the selected date range.
-              </p>
-            </div>
-          )}
-
+          {/* Table */}
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border/50">
-                  <TableHead>Rank</TableHead>
-                  <TableHead>Address</TableHead>
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-border/50">
+                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 w-12">#</th>
+                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Address</th>
                   {analysisState.hasFuturesData && (
-                    <TableHead className="text-right">Futures Vol Gained</TableHead>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 text-right">Futures</th>
                   )}
                   {analysisState.hasSpotData && (
-                    <TableHead className="text-right">Spot Vol Gained</TableHead>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 text-right">Spot</th>
                   )}
-                  <TableHead className="text-right">Total Vol Gained</TableHead>
-                  <TableHead className="text-right">Estimated SO Points</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(() => {
-                  const totalVolume = sortedResults.reduce((sum, user) => sum + user.totalVolGained, 0);
-                  
-                  // Filter results based on search query
-                  const filteredResults = sortedResults.filter(user =>
-                    user.address.toLowerCase().includes(searchQuery.toLowerCase())
+                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 text-right">Total Vol</th>
+                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 text-right hidden sm:table-cell">Est. SO Points</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/30">
+                {searchQuery && filteredResults.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-xs text-muted-foreground">
+                      No results for "{searchQuery}"
+                    </td>
+                  </tr>
+                ) : displayedRows.map((user, idx) => {
+                  const rank = startIdx + idx + 1;
+                  const weightedVol = user.futuresVolGained + user.spotVolGained * 2;
+                  const estimatedSoPoints = totalWeightedVolume > 0 ? (weightedVol / totalWeightedVolume) * 1_000_000 : 0;
+                  return (
+                    <tr key={user.address} className="group hover:bg-secondary/5 transition-colors duration-200">
+                      <td className="px-6 py-4">
+                        <span className={cn(
+                          "text-xs font-bold tabular-nums",
+                          rank === 1 ? "text-foreground" : rank <= 3 ? "text-foreground/70" : "text-muted-foreground/30"
+                        )}>
+                          {rank}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-xs font-mono text-muted-foreground/70 truncate max-w-[180px] sm:max-w-xs block group-hover:text-foreground transition-colors">
+                          {user.address}
+                        </span>
+                      </td>
+                      {analysisState.hasFuturesData && (
+                        <td className="px-6 py-4 text-xs font-semibold text-foreground/60 text-right tabular-nums">
+                          {formatNumber(user.futuresVolGained)}
+                        </td>
+                      )}
+                      {analysisState.hasSpotData && (
+                        <td className="px-6 py-4 text-xs font-semibold text-foreground/60 text-right tabular-nums">
+                          {formatNumber(user.spotVolGained)}
+                        </td>
+                      )}
+                      <td className="px-6 py-4 text-xs font-bold text-foreground text-right tabular-nums">
+                        {formatNumber(user.totalVolGained)}
+                      </td>
+                      <td className="px-6 py-4 text-xs font-bold text-foreground/50 text-right tabular-nums hidden sm:table-cell">
+                        {formatNumber(estimatedSoPoints)}
+                      </td>
+                    </tr>
                   );
-                  
-                  const startIdx = (currentPage - 1) * rowsPerPage;
-                  const endIdx = startIdx + rowsPerPage;
-                  const displayedRows = filteredResults.slice(startIdx, endIdx);
-                  
-                  // If search has results but none on this page, show a message
-                  if (searchQuery && filteredResults.length === 0) {
-                    return (
-                      <TableRow>
-                        <TableCell colSpan={analysisState.hasFuturesData && analysisState.hasSpotData ? 7 : 6} className="text-center py-4 text-muted-foreground">
-                          No results found for "{searchQuery}"
-                        </TableCell>
-                      </TableRow>
-                    );
-                  }
-                  
-                  return displayedRows.map((user, idx) => {
-                    // Calculate weighted volume: futures at 1x, spot at 2x
-                    const weightedVolume = user.futuresVolGained + (user.spotVolGained * 2);
-                    const totalWeightedVolume = sortedResults.reduce((sum, u) => 
-                      sum + u.futuresVolGained + (u.spotVolGained * 2), 0
-                    );
-                    const estimatedSoPoints = (weightedVolume / totalWeightedVolume) * 1_000_000;
-                    return (
-                      <TableRow key={user.address} className="border-border/30">
-                        <TableCell className="font-medium text-orange-500">#{startIdx + idx + 1}</TableCell>
-                        <TableCell className=" text-xs truncate max-w-xs text-muted-foreground">{user.address}</TableCell>
-                        {analysisState.hasFuturesData && (
-                          <TableCell className="text-right text-foreground">{formatNumber(user.futuresVolGained)}</TableCell>
-                        )}
-                        {analysisState.hasSpotData && (
-                          <TableCell className="text-right text-foreground">{formatNumber(user.spotVolGained)}</TableCell>
-                        )}
-                        <TableCell className="text-right font-semibold text-orange-500">{formatNumber(user.totalVolGained)}</TableCell>
-                        <TableCell className="text-right font-semibold text-orange-600">{formatNumber(estimatedSoPoints)}</TableCell>
-                      </TableRow>
-                    );
-                  });
-                })()}
-              </TableBody>
-            </Table>
+                })}
+              </tbody>
+            </table>
           </div>
 
-          {/* Pagination Controls */}
-          <div className="flex items-center justify-between mt-6 pt-4 border-t border-border/30">
+          {/* Pagination */}
+          <div className="px-6 py-4 border-t border-border flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Rows per page:</span>
-              <Select value={rowsPerPage.toString()} onValueChange={(v) => {
-                setRowsPerPage(parseInt(v));
-                setCurrentPage(1);
-              }}>
-                <SelectTrigger className="w-20">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Rows</span>
+              <Select value={rowsPerPage.toString()} onValueChange={(v) => { setRowsPerPage(parseInt(v)); setCurrentPage(1); }}>
+                <SelectTrigger className="h-7 w-16 text-xs border-border bg-transparent rounded-md">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -505,57 +399,39 @@ export function SopointsAnalyzer() {
               </Select>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                {(() => {
-                  const filteredResults = sortedResults.filter(user =>
-                    user.address.toLowerCase().includes(searchQuery.toLowerCase())
-                  );
-                  const startIdx = (currentPage - 1) * rowsPerPage;
-                  const endIdx = Math.min(currentPage * rowsPerPage, filteredResults.length);
-                  const totalCount = filteredResults.length;
-                  
-                  if (totalCount === 0) return 'No results';
-                  return `${startIdx + 1} - ${endIdx} of ${totalCount}`;
-                })()}
-              </span>
-            </div>
+            <span className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">
+              {filteredResults.length === 0 ? 'No results' : `${startIdx + 1}–${Math.min(startIdx + rowsPerPage, filteredResults.length)} of ${filteredResults.length}`}
+            </span>
 
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
-                className="border-border/50 text-foreground hover:text-foreground hover:bg-accent/10 dark:hover:text-foreground"
+                className="h-7 w-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-secondary/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => {
-                  const filteredResults = sortedResults.filter(user =>
-                    user.address.toLowerCase().includes(searchQuery.toLowerCase())
-                  );
-                  const maxPage = Math.ceil(filteredResults.length / rowsPerPage);
-                  return Math.min(prev + 1, maxPage);
-                })}
-                disabled={(() => {
-                  const filteredResults = sortedResults.filter(user =>
-                    user.address.toLowerCase().includes(searchQuery.toLowerCase())
-                  );
-                  return currentPage >= Math.ceil(filteredResults.length / rowsPerPage);
-                })()}
-                className="border-border/50 text-foreground hover:text-foreground hover:bg-accent/10 dark:hover:text-foreground"
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+              <span className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                {currentPage} / {totalPages || 1}
+              </span>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                disabled={currentPage >= totalPages}
+                className="h-7 w-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-secondary/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               >
-                Next
-              </Button>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
             </div>
+          </div>
+
+          {/* Disclaimer */}
+          <div className="px-6 py-3 border-t border-border/30">
+            <p className="text-[9px] text-muted-foreground/30 uppercase tracking-widest font-medium">
+              Est. SO Points is calculated from volume proportion — for estimation only, not official.
+            </p>
           </div>
         </Card>
       )}
     </div>
   );
 }
-

@@ -18,7 +18,8 @@ import {
   Send,
   BookOpen,
   LineChart,
-  CandlestickChart
+  CandlestickChart,
+  MessageSquare
 } from 'lucide-react'
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -65,6 +66,7 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
     { id: 'journal', label: 'Journal', icon: BookOpen },
     { id: 'demo-trading', label: 'Demo Trading', icon: CandlestickChart },
     { id: 'analytics', label: 'Trade analytics', icon: LineChart },
+    { id: 'pulse', label: 'Community Pulse', icon: MessageSquare },
   ]
 
   const { theme, toggleTheme } = useTheme()
@@ -73,15 +75,15 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
     : "https://testnet.sodex.com/assets/SoDEX-Dh5Mk-Pl.svg"
 
   return (
-    <Sidebar collapsible="none" className="hidden lg:flex sticky top-0 h-screen border-r border-border bg-card text-foreground transition-colors duration-500">
+    <Sidebar collapsible="none" className="hidden lg:flex sticky top-0 h-screen border-r border-border bg-background text-foreground">
       <SidebarHeader className="p-5">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col items-start gap-1">
           <img 
             src={logoUrl} 
             alt="SoDEX Logo" 
             className="h-9 w-auto object-contain" 
           />
-          <h1 className="text-sm font-bold tracking-tight text-foreground mb-0.5 translate-y-[1px]">Tracker</h1>
+          <h1 className="text-[10px] font-black tracking-[0.2em] text-foreground uppercase pt-1 px-1 opacity-80">Tracker</h1>
         </div>
       </SidebarHeader>
       
@@ -92,23 +94,19 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
               {workspaceItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
-                    isActive={currentPage === item.id}
                     onClick={() => onNavigate(item.id)}
                     className={cn(
-                      "group relative flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-300",
+                      "group relative flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 !bg-transparent",
                       currentPage === item.id 
-                        ? "bg-primary/10 text-primary font-semibold" 
+                        ? "text-orange-500 font-semibold" 
                         : "text-muted-foreground hover:bg-secondary/10 hover:text-foreground"
                     )}
                   >
                     <item.icon className={cn(
-                      "h-4 w-4 transition-transform duration-300 group-hover:scale-110",
-                      currentPage === item.id ? "text-primary" : "text-muted-foreground"
+                      "h-4 w-4 transition-colors",
+                      currentPage === item.id ? "text-orange-500" : "text-muted-foreground"
                     )} />
                     <span className="text-sm">{item.label}</span>
-                    {currentPage === item.id && (
-                      <div className="absolute left-0 h-4 w-1 rounded-r-full bg-primary" />
-                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -125,18 +123,17 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
               {betaItems.map((item) => (
                 <SidebarMenuItem key={item.label}>
                   <SidebarMenuButton 
-                    isActive={currentPage === item.id}
                     onClick={() => item.id && onNavigate(item.id)}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-300",
+                      "flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 !bg-transparent",
                       item.id && currentPage === item.id 
-                        ? "bg-primary/10 text-primary font-semibold" 
+                        ? "text-orange-500 font-semibold" 
                         : "text-muted-foreground hover:bg-secondary/10 hover:text-foreground"
                     )}
                   >
                     <item.icon className={cn(
-                      "h-4 w-4",
-                      item.id && currentPage === item.id ? "text-primary" : "text-muted-foreground"
+                      "h-4 w-4 transition-colors",
+                      item.id && currentPage === item.id ? "text-orange-500" : "text-muted-foreground"
                     )} />
                     <span className="text-sm">{item.label}</span>
                   </SidebarMenuButton>
@@ -152,8 +149,8 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <a href="https://x.com/eliasing__" target="_blank" rel="noopener noreferrer" className="w-full">
-                  <SidebarMenuButton className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all duration-300 hover:bg-white/5 hover:text-foreground">
+                <a href="https://x.com/eliasing00" target="_blank" rel="noopener noreferrer" className="w-full">
+                  <SidebarMenuButton className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all duration-200 hover:bg-secondary/10 hover:text-foreground">
                     <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.6l-5.165-6.756-5.868 6.756h-3.308l7.732-8.835L2.882 2.25h6.6l4.759 6.318L18.244 2.25zM17.55 19.5h1.832L6.281 3.75H4.38L17.55 19.5z" />
                     </svg>
@@ -163,7 +160,7 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <a href="https://t.me/fallphile" target="_blank" rel="noopener noreferrer" className="w-full">
-                  <SidebarMenuButton className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all duration-300 hover:bg-white/5 hover:text-foreground">
+                  <SidebarMenuButton className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all duration-200 hover:bg-secondary/10 hover:text-foreground">
                     <Send className="h-4 w-4" />
                     <span className="text-sm">Telegram</span>
                   </SidebarMenuButton>
@@ -172,7 +169,7 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   onClick={() => setShowDisclaimer(true)}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all duration-300 hover:bg-white/5 hover:text-foreground"
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all duration-200 hover:bg-secondary/10 hover:text-foreground"
                 >
                   <HelpCircle className="h-4 w-4" />
                   <span className="text-sm">Disclaimer</span>
