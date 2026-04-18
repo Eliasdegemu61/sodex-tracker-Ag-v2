@@ -153,9 +153,9 @@ export function MonthlyCalendar() {
           </div>
         </div>
 
-        {/* Weekday Headers */}
-        <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
-          <div className="min-w-[560px] sm:min-w-0">
+        {/* Mobile Calendar */}
+        <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:hidden">
+          <div className="min-w-[560px]">
             <div className="mb-2 grid grid-cols-7 gap-2">
               {weekDays.map((d) => (
                 <div key={d} className="py-2 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35">
@@ -201,11 +201,11 @@ export function MonthlyCalendar() {
               <div
                 key={idx}
                 onClick={() => hasActivity && isCurrentMonth && setSelectedDay(dayTrades)}
-                className={`relative flex aspect-[1/1.18] flex-col justify-between rounded-xl p-2 transition-all duration-200 sm:rounded-2xl sm:aspect-[3/2.2] sm:p-2
+                className={`relative flex aspect-[1/1.18] flex-col justify-between rounded-xl p-2 transition-all duration-200
                   ${cellBg} ${hasActivity && isCurrentMonth ? 'cursor-pointer scale-[1.02] shadow-sm' : 'cursor-default'}`}
               >
                 {/* Day number — top left */}
-                <span className={`text-[13px] font-bold leading-none sm:text-[13px] ${numColor}`}>
+                <span className={`text-[13px] font-bold leading-none ${numColor}`}>
                   {date.getDate()}
                 </span>
                 {/* Simplified PnL info — bottom right */}
@@ -214,8 +214,8 @@ export function MonthlyCalendar() {
                     <span className={cn(
                       "w-full truncate rounded-full px-1.5 py-1 text-right font-bold leading-tight tabular-nums",
                       (Math.abs(dayTrades.pnl).toFixed(2).length > 8) 
-                        ? "text-[9px] sm:text-[9px]" 
-                        : "text-[10px] sm:text-[10px]",
+                        ? "text-[9px]" 
+                        : "text-[10px]",
                       isPositive ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
                     )}>
                       {isPositive ? '+' : '-'}${Math.abs(dayTrades.pnl).toFixed(2)}
@@ -226,6 +226,76 @@ export function MonthlyCalendar() {
             );
               })}
             </div>
+          </div>
+        </div>
+
+        {/* Desktop Calendar */}
+        <div className="hidden sm:block">
+          <div className="mb-2 grid grid-cols-7 gap-2">
+            {weekDays.map((d) => (
+              <div key={d} className="py-2 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35">
+                {d}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-2">
+            {calendarDays.map((dayObj, idx) => {
+              const { date, isCurrentMonth } = dayObj;
+              const dayTrades = isCurrentMonth ? getDayPnL(date) : null;
+              const hasActivity = !!dayTrades && dayTrades.pnl !== 0;
+              const isPositive = hasActivity && (dayTrades?.pnl ?? 0) > 0;
+
+              const now = new Date();
+              const isToday =
+                isCurrentMonth &&
+                date.getDate() === now.getDate() &&
+                date.getMonth() === now.getMonth() &&
+                date.getFullYear() === now.getFullYear();
+
+              let cellBg = '';
+              let numColor = '';
+
+              if (!isCurrentMonth) {
+                cellBg = 'bg-black/[0.015] border border-black/6 opacity-35 dark:bg-white/[0.015] dark:border-white/6';
+                numColor = 'text-black/20 dark:text-white/20';
+              } else if (hasActivity) {
+                cellBg = isPositive
+                  ? 'border border-green-500/22 bg-green-500/10 hover:border-green-500/45'
+                  : 'border border-red-500/22 bg-red-500/10 hover:border-red-500/45';
+                numColor = 'text-foreground';
+              } else if (isToday) {
+                cellBg = 'border border-black/20 bg-black/[0.04] dark:border-white/20 dark:bg-white/[0.04]';
+                numColor = 'text-foreground font-semibold';
+              } else {
+                cellBg = 'border border-black/8 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/8 dark:bg-white/[0.02] dark:hover:bg-white/[0.05]';
+                numColor = 'text-black/45 dark:text-white/45';
+              }
+
+              return (
+                <div
+                  key={idx}
+                  onClick={() => hasActivity && isCurrentMonth && setSelectedDay(dayTrades)}
+                  className={`relative flex aspect-[3/2.2] flex-col justify-between rounded-2xl p-2 transition-all duration-200
+                    ${cellBg} ${hasActivity && isCurrentMonth ? 'cursor-pointer scale-[1.02] shadow-sm' : 'cursor-default'}`}
+                >
+                  <span className={`text-[13px] font-bold leading-none ${numColor}`}>
+                    {date.getDate()}
+                  </span>
+                  {hasActivity && isCurrentMonth && dayTrades && (
+                    <div className="mt-auto flex min-w-0 flex-col items-end gap-0.5 overflow-hidden text-right">
+                      <span className={cn(
+                        "w-full truncate text-right font-bold leading-tight tabular-nums",
+                        (Math.abs(dayTrades.pnl).toFixed(2).length > 8) ? "text-[9px]" : "text-[10px]",
+                        isPositive ? 'text-green-500' : 'text-red-500'
+                      )}>
+                        {isPositive ? '+' : '-'}${Math.abs(dayTrades.pnl).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </Card>
