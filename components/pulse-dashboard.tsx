@@ -100,17 +100,17 @@ function SentimentBar({ score }: { score: number }) {
     <div className="space-y-3">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35 md:text-[10px] md:tracking-[0.22em]">
             Community Hype
           </p>
           <div className="mt-2 flex items-baseline gap-3">
-            <span className="text-4xl font-semibold tracking-[-0.05em] text-foreground">{normalized}</span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-black/35 dark:text-white/35">
+            <span className="text-3xl font-semibold tracking-[-0.05em] text-foreground md:text-4xl">{normalized}</span>
+            <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-black/35 dark:text-white/35 md:text-[10px] md:tracking-[0.2em]">
               {getSentimentLabel(normalized)}
             </span>
           </div>
         </div>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-black/25 dark:text-white/25">
+        <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-black/25 dark:text-white/25 md:text-[10px] md:tracking-[0.2em]">
           0-100
         </span>
       </div>
@@ -129,7 +129,7 @@ function SentimentBar({ score }: { score: number }) {
         />
       </div>
 
-      <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.18em] text-black/25 dark:text-white/25">
+      <div className="flex items-center justify-between text-[8px] font-semibold uppercase tracking-[0.12em] text-black/25 dark:text-white/25 md:text-[10px] md:tracking-[0.18em]">
         <span>Sleeping</span>
         <span>Neutral</span>
         <span>Hopium</span>
@@ -150,13 +150,13 @@ function SectionHeader({
   return (
     <div className="mb-5 flex items-end justify-between gap-4">
       <div>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">
+        <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35 md:text-[10px] md:tracking-[0.22em]">
           {label}
         </p>
-        <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-foreground">{title}</h2>
+        <h2 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-foreground md:text-2xl">{title}</h2>
       </div>
       {meta ? (
-        <p className="text-right text-[10px] font-semibold uppercase tracking-[0.2em] text-black/25 dark:text-white/25">
+        <p className="text-right text-[9px] font-semibold uppercase tracking-[0.16em] text-black/25 dark:text-white/25 md:text-[10px] md:tracking-[0.2em]">
           {meta}
         </p>
       ) : null}
@@ -251,7 +251,7 @@ export function PulseDashboard() {
           </div>
           <div>
             <h1 className="text-2xl font-semibold tracking-[-0.04em] text-foreground">Community Pulse</h1>
-            <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">
+            <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35 md:text-[10px] md:tracking-[0.22em]">
               Feed Offline
             </p>
           </div>
@@ -270,44 +270,44 @@ export function PulseDashboard() {
       </Card>
 
       <Card className="rounded-[2rem] border border-black/8 bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
-        <SectionHeader label="Hot Topics" title="Conversation clusters" meta={`${data.hot_topics.length} tracked`} />
+        <SectionHeader label="Hot Topics" title="Hot Topics" meta={`${data.hot_topics.length} tracked`} />
         <div className="grid gap-4 xl:grid-cols-2">
           {data.hot_topics.map((topic, index) => (
             <div
               key={topic.topic}
-              className="relative overflow-hidden rounded-[1.75rem] border border-black/10 bg-[#fbfbf9] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] dark:border-white/10 dark:bg-[#060606]"
+              className="relative overflow-hidden rounded-[1.5rem] border border-black/10 bg-[#fbfbf9] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] dark:border-white/10 dark:bg-[#060606] sm:p-5 xl:rounded-[1.75rem] xl:p-6"
             >
-              <div className="pointer-events-none absolute right-5 top-5 text-[52px] font-semibold tracking-[-0.08em] text-black/[0.05] dark:text-white/[0.05]">
+              <div className="pointer-events-none absolute right-4 top-4 text-[38px] font-semibold tracking-[-0.08em] text-black/[0.05] dark:text-white/[0.05] sm:right-5 sm:top-5 sm:text-[44px] xl:text-[52px]">
                 {index + 1}
               </div>
               <div className="relative">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-black/30 dark:text-white/30">
+                <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-black/30 dark:text-white/30 md:text-[10px] md:tracking-[0.2em]">
                   Topic {String(index + 1).padStart(2, '0')}
                 </p>
-                <h3 className="mt-3 text-[26px] font-semibold tracking-[-0.05em] text-foreground">{topic.topic}</h3>
-                <p className="mt-4 max-w-[52ch] text-[15px] leading-8 text-black/65 dark:text-white/65">{topic.summary}</p>
+                <h3 className="mt-2 text-[20px] font-semibold tracking-[-0.04em] text-foreground sm:text-[22px] xl:mt-3 xl:text-[26px] xl:tracking-[-0.05em]">{topic.topic}</h3>
+                <p className="mt-3 max-w-[52ch] text-[11px] leading-5 text-black/65 dark:text-white/65 sm:text-[13px] sm:leading-6 xl:mt-4 xl:text-[15px] xl:leading-8">{topic.summary}</p>
 
-                <div className="mt-6 space-y-3 border-t border-dashed border-black/10 pt-5 dark:border-white/10">
+                <div className="mt-5 space-y-3 border-t border-dashed border-black/10 pt-4 dark:border-white/10 xl:mt-6 xl:pt-5">
                   {topic.related_posts.map((post, postIndex) => (
                     <div
                       key={`${topic.topic}-${postIndex}`}
-                      className="rounded-[1.25rem] border border-black/8 bg-white/90 p-4 dark:border-white/8 dark:bg-black"
+                      className="rounded-[1.1rem] border border-black/8 bg-white/90 p-3 dark:border-white/8 dark:bg-black sm:p-4 xl:rounded-[1.25rem]"
                     >
                       <div className="flex items-start gap-3">
-                        <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-black/8 bg-black/[0.03] dark:border-white/8 dark:bg-white/[0.03]">
-                          <MessageCircle className="h-4 w-4 text-black/45 dark:text-white/45" />
+                        <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-black/8 bg-black/[0.03] dark:border-white/8 dark:bg-white/[0.03] sm:h-8 sm:w-8 sm:rounded-xl">
+                          <MessageCircle className="h-3.5 w-3.5 text-black/45 dark:text-white/45 sm:h-4 sm:w-4" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-[14px] leading-7 text-black/72 dark:text-white/72">{post.content}</p>
+                          <p className="text-[10px] leading-[1.125rem] text-black/72 dark:text-white/72 sm:text-[12px] sm:leading-5 xl:text-[14px] xl:leading-7">{post.content}</p>
                         </div>
                         <a
                           href={post.url}
                           target="_blank"
                           rel="noopener noreferrer"
                           aria-label="View source"
-                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/8 bg-black/[0.03] text-black/45 transition-colors hover:bg-black/[0.06] hover:text-black dark:border-white/8 dark:bg-white/[0.03] dark:text-white/45 dark:hover:bg-white/[0.08] dark:hover:text-white"
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-black/8 bg-black/[0.03] text-black/45 transition-colors hover:bg-black/[0.06] hover:text-black dark:border-white/8 dark:bg-white/[0.03] dark:text-white/45 dark:hover:bg-white/[0.08] dark:hover:text-white sm:h-9 sm:w-9"
                         >
-                          <ArrowUpRight className="h-3.5 w-3.5" />
+                          <ArrowUpRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                         </a>
                       </div>
                     </div>
@@ -329,25 +329,25 @@ export function PulseDashboard() {
           {data.top_engaged_posts.map((post, index) => (
             <div
               key={`${post.url}-${index}`}
-              className="rounded-[1.75rem] border border-black/8 bg-black/[0.03] p-5 dark:border-white/8 dark:bg-white/[0.03]"
+              className="rounded-[1.5rem] border border-black/8 bg-black/[0.03] p-4 dark:border-white/8 dark:bg-white/[0.03] sm:p-5 xl:rounded-[1.75rem]"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-black/8 bg-white text-[10px] font-semibold text-black/45 dark:border-white/10 dark:bg-black dark:text-white/45">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full border border-black/8 bg-white text-[9px] font-semibold text-black/45 dark:border-white/10 dark:bg-black dark:text-white/45 sm:h-8 sm:w-8 sm:text-[10px]">
                       {index + 1}
                     </div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55 dark:text-white/55">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-black/55 dark:text-white/55 sm:text-[11px] sm:tracking-[0.16em]">
                       {post.username}
                     </p>
                   </div>
 
-                  <p className="mt-4 text-[15px] leading-8 text-black/72 dark:text-white/72">{post.content}</p>
+                  <p className="mt-3 text-[11px] leading-5 text-black/72 dark:text-white/72 sm:mt-4 sm:text-[13px] sm:leading-6 xl:text-[15px] xl:leading-8">{post.content}</p>
                 </div>
 
                 <div className="flex flex-col items-end gap-3">
-                  <div className="inline-flex items-center gap-1.5 rounded-full border border-black/8 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-black/45 dark:border-white/10 dark:bg-black dark:text-white/45">
-                    <Heart className="h-3 w-3" />
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-black/8 bg-white px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-black/45 dark:border-white/10 dark:bg-black dark:text-white/45 sm:px-2.5 sm:text-[10px] sm:tracking-[0.16em]">
+                    <Heart className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                     {post.likes.toLocaleString()}
                   </div>
                   <a
@@ -355,9 +355,9 @@ export function PulseDashboard() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Open post on X"
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-black/8 bg-white text-black/45 transition-colors hover:bg-black/[0.06] hover:text-black dark:border-white/10 dark:bg-black dark:text-white/45 dark:hover:bg-white/[0.08] dark:hover:text-white"
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-black/8 bg-white text-black/45 transition-colors hover:bg-black/[0.06] hover:text-black dark:border-white/10 dark:bg-black dark:text-white/45 dark:hover:bg-white/[0.08] dark:hover:text-white sm:h-9 sm:w-9"
                   >
-                    <ArrowUpRight className="h-3.5 w-3.5" />
+                    <ArrowUpRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                   </a>
                 </div>
               </div>
@@ -420,7 +420,7 @@ export function PulseDashboard() {
                     <ArrowUpRight className="h-3.5 w-3.5" />
                   </a>
                 </div>
-                <p className="mt-4 text-[14px] leading-7 text-black/70 dark:text-white/70">{announcement.content}</p>
+                <p className="mt-4 text-[11px] leading-5 text-black/70 dark:text-white/70 sm:text-[13px] sm:leading-6 xl:text-[14px] xl:leading-7">{announcement.content}</p>
               </div>
             ))}
           </div>
