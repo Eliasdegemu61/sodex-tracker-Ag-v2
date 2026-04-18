@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
+  experimental: process.platform === 'win32' && !process.env.VERCEL ? {
     workerThreads: true,
-  },
+  } : undefined,
   typescript: {
     ignoreBuildErrors: true,
   },
