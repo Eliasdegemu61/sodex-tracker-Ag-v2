@@ -145,37 +145,46 @@ export function AssetFlowCard({ walletAddress }: AssetFlowCardProps) {
 
   if (isLoading) {
     return (
-      <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl animate-pulse flex flex-col items-center justify-center min-h-[200px]">
-        <div className="w-8 h-8 rounded-full border-2 border-accent/20 border-t-accent animate-spin mb-4" />
-        <p className="text-[10px] text-muted-foreground/40 font-bold  ">checking holdings...</p>
+      <Card className="flex min-h-[200px] flex-col items-center justify-center rounded-[2rem] border border-black/8 bg-white p-5 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] animate-pulse dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+        <div className="mb-4 h-8 w-8 rounded-full border-2 border-black/15 border-t-black animate-spin dark:border-white/15 dark:border-t-white" />
+        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">Checking holdings</p>
       </Card>
     );
   }
 
   if (error) {
     return (
-      <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl flex flex-col items-center justify-center min-h-[200px]">
-        <h3 className="text-xs font-semibold text-muted-foreground/60 mb-2">Asset Allocation</h3>
-        <p className="text-[10px] text-muted-foreground/30 font-bold uppercase ">{error}</p>
+      <Card className="flex min-h-[200px] flex-col items-center justify-center rounded-[2rem] border border-black/8 bg-white p-5 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+        <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">Asset allocation</h3>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35">{error}</p>
       </Card>
     );
   }
 
   if (assets.length === 0) {
     return (
-      <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl flex flex-col items-center justify-center min-h-[200px]">
-        <h3 className="text-xs font-semibold text-muted-foreground/60 mb-2">Asset Allocation</h3>
-        <p className="text-[10px] text-muted-foreground/20 font-bold uppercase ">no holdings detected</p>
+      <Card className="flex min-h-[200px] flex-col items-center justify-center rounded-[2rem] border border-black/8 bg-white p-5 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+        <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">Asset allocation</h3>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/25 dark:text-white/25">No holdings detected</p>
       </Card>
     );
   }
 
   return (
-    <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm">
+    <Card className="rounded-[2rem] border border-black/8 bg-white p-5 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
       <div className="space-y-6">
-        {/* Holdings List */}
         <div className="space-y-4">
-          <h3 className="text-xs font-semibold text-muted-foreground/60">Asset Allocation</h3>
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">Asset allocation</h3>
+              <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-foreground">
+                ${totalBalance.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+              </p>
+            </div>
+            <p className="text-right text-[10px] font-semibold uppercase tracking-[0.18em] text-black/30 dark:text-white/30">
+              Holdings breakdown
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 gap-2">
             {assets.map((asset, idx) => {
@@ -183,11 +192,10 @@ export function AssetFlowCard({ walletAddress }: AssetFlowCardProps) {
               return (
                 <div
                   key={idx}
-                  className="group relative flex items-center justify-between p-3 rounded-2xl bg-secondary/10 hover:bg-secondary/20 transition-all border border-transparent hover:border-border/10"
+                  className="group relative flex items-center justify-between rounded-2xl border border-black/8 bg-black/[0.03] p-3 transition-all hover:bg-black/[0.06] dark:border-white/8 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]"
                 >
-                  {/* Color Glow */}
                   <div
-                    className="absolute inset-y-2 left-0 w-1.5 rounded-r-full opacity-60 transition-opacity group-hover:opacity-80"
+                    className="absolute inset-y-2 left-0 w-1 rounded-r-full opacity-70 transition-opacity group-hover:opacity-100"
                     style={{ backgroundColor: asset.color }}
                   />
 
@@ -197,29 +205,29 @@ export function AssetFlowCard({ walletAddress }: AssetFlowCardProps) {
                         <img
                           src={tokenLogo}
                           alt={asset.coin}
-                          className="w-6 h-6 rounded-full flex-shrink-0 bg-secondary/50 p-0.5"
+                          className="h-6 w-6 flex-shrink-0 rounded-full bg-black/[0.06] p-0.5 dark:bg-white/[0.06]"
                           onError={(e) => {
                             e.currentTarget.style.display = 'none'
                           }}
                         />
                       ) : (
-                        <div className="w-6 h-6 rounded-full bg-secondary/50 flex items-center justify-center text-[8px] font-bold text-muted-foreground">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/[0.06] text-[8px] font-semibold text-black/45 dark:bg-white/[0.06] dark:text-white/45">
                           {asset.coin[0]}
                         </div>
                       )}
                     </div>
                     <div className="flex flex-col">
-                      <span className="font-bold text-[11px] text-foreground/80 tracking-tight">
+                      <span className="text-[11px] font-semibold tracking-tight text-foreground">
                         {getDisplayName(asset.coin)}
                       </span>
                       {asset.isFuture && (
-                        <span className="text-[7px] text-accent/40 font-bold   leading-none mt-0.5">futures</span>
+                        <span className="mt-0.5 text-[7px] font-semibold uppercase tracking-[0.14em] leading-none text-black/30 dark:text-white/30">futures</span>
                       )}
                     </div>
                   </div>
 
                   <div className="text-right flex-shrink-0">
-                    <p className="text-[11px] font-bold text-muted-foreground/60">
+                    <p className="text-[11px] font-semibold text-black/55 dark:text-white/55">
                       {formatTokenBalance(asset.balance, asset.coin)}
                     </p>
                   </div>

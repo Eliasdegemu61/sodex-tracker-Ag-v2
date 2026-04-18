@@ -202,10 +202,10 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
 
   if (isLoading) {
     return (
-      <Card className="p-12 bg-card/95 shadow-sm border border-border/20 rounded-3xl text-center">
+      <Card className="rounded-[2rem] border border-black/8 bg-white p-12 text-center text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
         <div className="flex flex-col items-center justify-center p-8">
-          <div className="w-8 h-8 rounded-full border-2 border-accent/20 border-t-accent animate-spin mb-4" />
-          <p className="text-[10px] text-muted-foreground/40 font-bold  ">Interrogating ledgers...</p>
+          <div className="mb-4 h-8 w-8 rounded-full border-2 border-black/15 border-t-black animate-spin dark:border-white/15 dark:border-t-white" />
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">Interrogating ledgers</p>
         </div>
       </Card>
     );
@@ -213,12 +213,12 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
 
   if (error) {
     return (
-      <Card className="p-8 bg-card/95 shadow-sm border border-red-500/20 rounded-3xl">
+      <Card className="rounded-[2rem] border border-red-500/20 bg-white p-8 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
         <div className="flex flex-col items-center justify-center py-6 text-center">
           <AlertCircle className="w-8 h-8 text-red-400/40 mb-3" />
-          <h3 className="text-[10px] font-bold  text-red-400/60  mb-1">Stream Blocked</h3>
-          <p className="text-[10px] text-muted-foreground/30 font-bold uppercase ">{error}</p>
-          <Button onClick={fetchFundFlow} variant="outline" size="sm" className="mt-4 bg-secondary/10 border-border/10 rounded-xl text-[10px] font-bold ">
+          <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-red-300">Stream blocked</h3>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35">{error}</p>
+          <Button onClick={fetchFundFlow} variant="outline" size="sm" className="mt-4 rounded-xl border-black/10 bg-black/[0.03] text-[10px] font-semibold text-foreground hover:bg-black/[0.07] dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:hover:bg-white/[0.07]">
             Retry Sync
           </Button>
         </div>
@@ -228,35 +228,35 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
 
   if (flows.length === 0) {
     return (
-      <Card className="p-12 bg-card/95 shadow-sm border border-border/20 rounded-3xl text-center">
-        <h3 className="text-xs font-semibold text-muted-foreground/60 mb-2">Fund Flow</h3>
-        <p className="text-[10px] text-muted-foreground/20 font-bold  ">No transfers detected</p>
+      <Card className="rounded-[2rem] border border-black/8 bg-white p-12 text-center text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+        <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">Fund flow</h3>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/25 dark:text-white/25">No transfers detected</p>
       </Card>
     );
   }
 
   return (
-    <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm overflow-hidden">
+    <Card className="overflow-hidden rounded-[2rem] border border-black/8 bg-white p-5 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
-        <h3 className="text-xs font-semibold text-muted-foreground/60">Fund Flow</h3>
+        <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">Fund flow</h3>
 
         {/* Netflow Info */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-green-500/5 border border-green-500/10 rounded-2xl p-4 space-y-1">
-            <p className="text-[7px] text-muted-foreground/30 font-bold   text-center">Inflow</p>
-            <p className="text-sm font-bold text-green-400 text-center">
+          <div className="space-y-1 rounded-2xl border border-green-500/18 bg-green-500/8 p-4">
+            <p className="text-center text-[8px] font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35">Inflow</p>
+            <p className="text-center text-sm font-semibold text-green-400">
               ${netflowStats.deposits.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </p>
           </div>
-          <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-4 space-y-1">
-            <p className="text-[7px] text-muted-foreground/30 font-bold   text-center">Outflow</p>
-            <p className="text-sm font-bold text-red-400 text-center">
+          <div className="space-y-1 rounded-2xl border border-red-500/18 bg-red-500/8 p-4">
+            <p className="text-center text-[8px] font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35">Outflow</p>
+            <p className="text-center text-sm font-semibold text-red-400">
               ${netflowStats.withdrawals.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </p>
           </div>
-          <div className={`rounded-2xl p-4 border space-y-1 ${netflowStats.netflow >= 0 ? 'bg-green-500/5 border-green-500/10' : 'bg-red-500/5 border-red-500/10'}`}>
-            <p className="text-[7px] text-muted-foreground/30 font-bold   text-center">Net</p>
-            <p className={`text-sm font-bold text-center ${netflowStats.netflow >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          <div className={`space-y-1 rounded-2xl border p-4 ${netflowStats.netflow >= 0 ? 'border-green-500/18 bg-green-500/8' : 'border-red-500/18 bg-red-500/8'}`}>
+            <p className="text-center text-[8px] font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35">Net</p>
+            <p className={`text-center text-sm font-semibold ${netflowStats.netflow >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               ${(netflowStats.netflow >= 0 ? '+' : '')}{netflowStats.netflow.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </p>
           </div>
@@ -264,11 +264,11 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
       </div>
 
       {/* Filter Buttons */}
-      <div className="flex gap-2 mb-8">
+      <div className="mb-8 flex gap-2">
         {[
-          { id: 'all', label: 'All Transfers', color: 'accent' },
-          { id: 'deposit', label: 'Deposits', color: 'green-500' },
-          { id: 'withdraw', label: 'Withdrawals', color: 'red-500' }
+          { id: 'all', label: 'All Transfers' },
+          { id: 'deposit', label: 'Deposits' },
+          { id: 'withdraw', label: 'Withdrawals' }
         ].map((type) => (
           <button
             key={type.id}
@@ -276,9 +276,13 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
               setFilterType(type.id as any);
               setCurrentPage(1);
             }}
-            className={`px-4 py-2 text-[10px] font-bold  rounded-xl transition-all border ${filterType === type.id
-              ? `bg-${type.color}/10 border-${type.color}/20 text-${type.color === 'accent' ? 'foreground' : type.color}`
-              : 'bg-secondary/5 border-border/5 text-muted-foreground/40 hover:text-foreground hover:bg-secondary/10'
+            className={`rounded-xl border px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] transition-all ${filterType === type.id
+              ? type.id === 'deposit'
+                ? 'border-green-500/25 bg-green-500/10 text-green-400'
+                : type.id === 'withdraw'
+                  ? 'border-red-500/25 bg-red-500/10 text-red-400'
+                  : 'border-black bg-black text-white dark:border-white dark:bg-white dark:text-black'
+              : 'border-black/10 bg-black/[0.03] text-black/40 hover:bg-black/[0.06] hover:text-black dark:border-white/10 dark:bg-white/[0.03] dark:text-white/40 dark:hover:bg-white/[0.06] dark:hover:text-white'
               }`}
           >
             {type.label}
@@ -290,7 +294,7 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-[11px] border-separate border-spacing-y-1.5">
           <thead>
-            <tr className="text-muted-foreground/40 font-bold  ">
+            <tr className="font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35">
               <th className="text-left py-2 px-3">Type</th>
               <th className="text-left py-2 px-3">Asset</th>
               <th className="text-right py-2 px-3">Amount</th>
@@ -300,7 +304,7 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
           </thead>
           <tbody>
             {paginatedFlows.map((flow, idx) => (
-              <tr key={`${startIndex}-${idx}`} className="group relative bg-secondary/10 hover:bg-secondary/20 transition-all rounded-xl">
+              <tr key={`${startIndex}-${idx}`} className="group relative rounded-xl bg-black/[0.03] transition-all hover:bg-black/[0.06] dark:bg-white/[0.03] dark:hover:bg-white/[0.06]">
                 <td className="py-3 px-3 first:rounded-l-xl last:rounded-r-xl">
                   <div className="flex items-center gap-2">
                     {isDeposit(flow.type) ? (
@@ -308,21 +312,21 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
                     ) : (
                       <ArrowUp className="w-3.5 h-3.5 text-red-400/60" />
                     )}
-                    <span className={`font-bold uppercase tracking-tighter ${isDeposit(flow.type) ? 'text-green-400' : 'text-red-400'}`}>
+                    <span className={`font-semibold uppercase tracking-[0.18em] ${isDeposit(flow.type) ? 'text-green-400' : 'text-red-400'}`}>
                       {isDeposit(flow.type) ? 'Deposit' : 'Withdraw'}
                     </span>
                   </div>
                 </td>
-                <td className="py-3 px-2 font-bold text-foreground/80">{flow.coin}</td>
-                <td className={`py-3 px-2 text-right font-bold ${isDeposit(flow.type) ? 'text-green-400' : 'text-red-400'}`}>
+                <td className="py-3 px-2 font-semibold text-foreground">{flow.coin}</td>
+                <td className={`py-3 px-2 text-right font-semibold ${isDeposit(flow.type) ? 'text-green-400' : 'text-red-400'}`}>
                   {isDeposit(flow.type) ? '+' : '-'} {formatAmount(flow.amount, flow.decimals)}
                 </td>
                 <td className="py-3 px-2">
-                  <span className="px-2 py-0.5 rounded-lg bg-secondary/20 text-muted-foreground/50 text-[9px] font-bold ">
+                  <span className="rounded-lg bg-black/[0.04] px-2 py-0.5 text-[9px] font-semibold text-black/45 dark:bg-white/[0.04] dark:text-white/45">
                     {flow.chain.replace('_', ' ')}
                   </span>
                 </td>
-                <td className="py-3 px-3 first:rounded-l-xl last:rounded-r-xl text-left text-muted-foreground/30 text-[9px]">{formatDate(flow.statusTime)}</td>
+                <td className="py-3 px-3 first:rounded-l-xl last:rounded-r-xl text-left text-[9px] text-black/35 dark:text-white/35">{formatDate(flow.statusTime)}</td>
               </tr>
             ))}
           </tbody>
@@ -334,11 +338,11 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
         {paginatedFlows.map((flow, idx) => {
           const rowId = `${startIndex}-${idx}`;
           return (
-            <div key={rowId} className="bg-secondary/10 border border-border/10 rounded-2xl overflow-hidden transition-all hover:border-accent/10">
+            <div key={rowId} className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition-all hover:bg-white/[0.05]">
               {/* Expandable Row Summary */}
               <button
                 onClick={() => toggleExpand(rowId)}
-                className="w-full p-4 flex items-center justify-between hover:bg-secondary/10 transition-colors text-left"
+                className="w-full p-4 text-left transition-colors hover:bg-white/[0.03]"
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
@@ -347,40 +351,40 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
                     ) : (
                       <ArrowUp className="w-4 h-4 text-red-400/60" />
                     )}
-                    <span className={`font-bold uppercase tracking-tighter ${isDeposit(flow.type) ? 'text-green-400' : 'text-red-400'}`}>
+                    <span className={`font-semibold uppercase tracking-[0.18em] ${isDeposit(flow.type) ? 'text-green-400' : 'text-red-400'}`}>
                       {isDeposit(flow.type) ? 'Deposit' : 'Withdraw'}
                     </span>
                   </div>
-                  <div className="text-[10px] text-muted-foreground/40">
+                  <div className="text-[10px] text-white/35">
                     {flow.coin} • {flow.chain.replace('_', ' ')}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <div className={`font-bold ${isDeposit(flow.type) ? 'text-green-400' : 'text-red-400'}`}>
+                    <div className={`font-semibold ${isDeposit(flow.type) ? 'text-green-400' : 'text-red-400'}`}>
                       {isDeposit(flow.type) ? '+' : '-'} {formatAmount(flow.amount, flow.decimals)}
                     </div>
                   </div>
                   <ChevronDown
-                    className={`w-4 h-4 text-muted-foreground/40 transition-transform duration-300 ${expandedRows.has(rowId) ? 'rotate-180' : ''}`}
+                    className={`h-4 w-4 text-white/35 transition-transform duration-300 ${expandedRows.has(rowId) ? 'rotate-180' : ''}`}
                   />
                 </div>
               </button>
 
               {/* Expandable Details */}
               {expandedRows.has(rowId) && (
-                <div className="p-4 border-t border-border/5 bg-secondary/[0.02] grid grid-cols-2 gap-y-4 gap-x-6">
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4 border-t border-white/8 bg-white/[0.02] p-4">
                   <div className="flex flex-col">
-                    <span className="text-muted-foreground/30 uppercase text-[8px] font-bold mb-1 ">Network</span>
-                    <p className="font-bold text-[11px] text-foreground/80">{flow.chain.replace('_', ' ')}</p>
+                    <span className="mb-1 text-[8px] font-semibold uppercase tracking-[0.16em] text-white/30">Network</span>
+                    <p className="text-[11px] font-semibold text-white">{flow.chain.replace('_', ' ')}</p>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-muted-foreground/30 uppercase text-[8px] font-bold mb-1 ">Timestamp</span>
-                    <p className="font-bold text-[9px] text-muted-foreground/30">{formatDate(flow.statusTime)}</p>
+                    <span className="mb-1 text-[8px] font-semibold uppercase tracking-[0.16em] text-white/30">Timestamp</span>
+                    <p className="text-[9px] font-semibold text-white/35">{formatDate(flow.statusTime)}</p>
                   </div>
                   <div className="col-span-2">
-                    <span className="text-muted-foreground/30 uppercase text-[8px] font-bold mb-1 ">Total Value</span>
-                    <p className={`font-bold text-sm ${isDeposit(flow.type) ? 'text-green-400' : 'text-red-400'}`}>
+                    <span className="mb-1 text-[8px] font-semibold uppercase tracking-[0.16em] text-white/30">Total Value</span>
+                    <p className={`text-sm font-semibold ${isDeposit(flow.type) ? 'text-green-400' : 'text-red-400'}`}>
                       {isDeposit(flow.type) ? '+' : '-'} {formatAmount(flow.amount, flow.decimals)} {flow.coin}
                     </p>
                   </div>
@@ -392,17 +396,17 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
       </div>
 
       {/* Pagination Controls */}
-      <div className="flex flex-col md:flex-row items-center justify-between mt-8 pt-8 border-t border-border/5 gap-6">
+      <div className="mt-8 flex flex-col items-center justify-between gap-6 border-t border-white/8 pt-8 md:flex-row">
         <div className="flex items-center gap-3">
-          <span className="text-[10px] font-bold  text-muted-foreground/30 ">Rows</span>
-          <div className="flex gap-1.5 p-1 bg-secondary/10 rounded-xl border border-border/5">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/30">Rows</span>
+          <div className="flex gap-1.5 rounded-xl border border-white/8 bg-white/[0.03] p-1">
             {[5, 10, 20, 50].map((value) => (
               <button
                 key={value}
                 onClick={() => handleRowsPerPageChange(value)}
-                className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all ${rowsPerPage === value
-                  ? 'bg-accent text-accent-foreground shadow-lg'
-                  : 'text-muted-foreground/40 hover:text-foreground hover:bg-secondary/20'
+                className={`rounded-lg px-3 py-1 text-[10px] font-semibold transition-all ${rowsPerPage === value
+                  ? 'bg-white text-black'
+                  : 'text-white/40 hover:bg-white/[0.06] hover:text-white'
                   }`}
               >
                 {value}
@@ -411,7 +415,7 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
           </div>
         </div>
 
-        <div className="text-[10px] font-bold text-muted-foreground/20 ">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/25">
           {startIndex + 1}-{Math.min(endIndex, displayFlows.length)} of {displayFlows.length}
         </div>
 
@@ -420,14 +424,14 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
             onClick={handlePrevPage}
             disabled={currentPage === 1}
             variant="outline"
-            className="h-8 md:h-9 bg-secondary/10 border-border/10 rounded-xl hover:bg-accent/10 hover:text-accent transition-all text-[10px] font-bold "
+            className="h-8 rounded-xl border-white/10 bg-white/[0.03] text-[10px] font-semibold text-white/60 transition-all hover:bg-white/[0.07] hover:text-white md:h-9"
           >
             <ChevronLeft className="w-4 h-4 mr-1" />
             Prev
           </Button>
 
-          <div className="px-3 py-1.5 bg-secondary/5 rounded-xl border border-border/5">
-            <span className="text-[10px] font-bold text-muted-foreground/60">
+          <div className="rounded-xl border border-white/8 bg-white/[0.02] px-3 py-1.5">
+            <span className="text-[10px] font-semibold text-white/45">
               {currentPage} / {totalPages}
             </span>
           </div>
@@ -436,7 +440,7 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
             onClick={handleNextPage}
             disabled={currentPage === totalPages}
             variant="outline"
-            className="h-8 md:h-9 bg-secondary/10 border-border/10 rounded-xl hover:bg-accent/10 hover:text-accent transition-all text-[10px] font-bold "
+            className="h-8 rounded-xl border-white/10 bg-white/[0.03] text-[10px] font-semibold text-white/60 transition-all hover:bg-white/[0.07] hover:text-white md:h-9"
           >
             Next
             <ChevronRight className="w-4 h-4 ml-1" />

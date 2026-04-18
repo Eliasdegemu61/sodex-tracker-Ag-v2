@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { usePortfolio } from '@/context/portfolio-context';
-import { useTheme } from '@/app/providers';
 import { cn } from '@/lib/utils';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
@@ -21,7 +20,6 @@ interface DayTrades {
 
 export function MonthlyCalendar() {
   const { positions } = usePortfolio();
-  const { theme } = useTheme();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<DayTrades | null>(null);
 
@@ -116,39 +114,39 @@ export function MonthlyCalendar() {
       <div className="grid grid-cols-4 gap-3">
         {[
           { label: 'Net Return', value: `${monthStats.totalPnL >= 0 ? '+' : ''}$${Math.abs(monthStats.totalPnL).toFixed(0)}`, color: monthStats.totalPnL >= 0 ? 'text-green-400' : 'text-red-400' },
-          { label: 'Trades', value: monthStats.totalTrades, color: 'text-white/80' },
+          { label: 'Trades', value: monthStats.totalTrades, color: 'text-foreground' },
           { label: 'Green Days', value: monthStats.winDays, color: 'text-green-400' },
           { label: 'Red Days', value: monthStats.loseDays, color: 'text-red-400' },
         ].map((stat) => (
-          <div key={stat.label} className="bg-card/95 shadow-sm shadow-sm border border-border/20 rounded-2xl p-4 flex flex-col items-center gap-1">
-            <span className="text-[8px] font-bold text-muted-foreground/60 uppercase tracking-widest">{stat.label}</span>
-            <span className={`text-base font-bold ${stat.color}`}>{stat.value}</span>
+          <div key={stat.label} className="flex flex-col items-center gap-1 rounded-2xl border border-black/8 bg-white p-4 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.3)]">
+            <span className="text-[8px] font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35">{stat.label}</span>
+            <span className={`text-base font-semibold ${stat.color}`}>{stat.value}</span>
           </div>
         ))}
       </div>
 
       {/* Calendar */}
-      <Card className="p-4 sm:p-6 bg-card/95 shadow-sm border border-border/20 rounded-[2.5rem] shadow-xl overflow-hidden">
+      <Card className="overflow-hidden rounded-[2rem] border border-black/8 bg-white p-4 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:p-6">
         {/* Header Navigation - Modern Layout */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex flex-col">
-            <h3 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight select-none">
+            <h3 className="select-none text-xl font-semibold tracking-[-0.04em] text-foreground sm:text-2xl">
               {currentDate.toLocaleDateString('en-US', { month: 'long' })}
             </h3>
-            <span className="text-xs font-medium text-muted-foreground/60">{currentDate.getFullYear()}</span>
+            <span className="text-xs font-medium text-black/45 dark:text-white/45">{currentDate.getFullYear()}</span>
           </div>
 
-          <div className="flex items-center gap-2 bg-secondary/10 p-1 rounded-2xl border border-border/10">
+          <div className="flex items-center gap-2 rounded-2xl border border-black/10 bg-black/[0.03] p-1 dark:border-white/10 dark:bg-white/[0.03]">
             <button
               onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
-              className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/40 transition-all active:scale-90"
+              className="rounded-xl p-2 text-black/55 transition-all hover:bg-black/[0.06] hover:text-black active:scale-90 dark:text-white/55 dark:hover:bg-white/[0.06] dark:hover:text-white"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <div className="w-px h-4 bg-border/20 mx-1" />
+            <div className="mx-1 h-4 w-px bg-black/10 dark:bg-white/10" />
             <button
               onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
-              className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/40 transition-all active:scale-90"
+              className="rounded-xl p-2 text-black/55 transition-all hover:bg-black/[0.06] hover:text-black active:scale-90 dark:text-white/55 dark:hover:bg-white/[0.06] dark:hover:text-white"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -156,17 +154,18 @@ export function MonthlyCalendar() {
         </div>
 
         {/* Weekday Headers */}
-        <div className="grid grid-cols-7 gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-          {weekDays.map((d) => (
-            <div key={d} className="text-center text-[8px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest py-2">
-              {d}
+        <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+          <div className="min-w-[560px] sm:min-w-0">
+            <div className="mb-2 grid grid-cols-7 gap-2">
+              {weekDays.map((d) => (
+                <div key={d} className="py-2 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35">
+                  {d}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
-          {calendarDays.map((dayObj, idx) => {
+            <div className="grid grid-cols-7 gap-2">
+              {calendarDays.map((dayObj, idx) => {
             const { date, isCurrentMonth } = dayObj;
             const dayTrades = isCurrentMonth ? getDayPnL(date) : null;
             const hasActivity = !!dayTrades && dayTrades.pnl !== 0;
@@ -183,42 +182,41 @@ export function MonthlyCalendar() {
             let numColor = '';
 
             if (!isCurrentMonth) {
-              cellBg = 'bg-secondary/10 opacity-30';
-              numColor = 'text-muted-foreground/30';
+              cellBg = 'bg-black/[0.015] border border-black/6 opacity-35 dark:bg-white/[0.015] dark:border-white/6';
+              numColor = 'text-black/20 dark:text-white/20';
             } else if (hasActivity) {
               cellBg = isPositive
-                ? 'bg-green-500/10 border border-green-500/20 hover:border-green-500/40 text-green-600 dark:text-green-400'
-                : 'bg-red-500/10 border border-red-500/20 hover:border-red-500/40 text-red-600 dark:text-red-400';
-              numColor = 'text-foreground/80';
+                ? 'border border-green-500/22 bg-green-500/10 hover:border-green-500/45'
+                : 'border border-red-500/22 bg-red-500/10 hover:border-red-500/45';
+              numColor = 'text-foreground';
             } else if (isToday) {
-              cellBg = 'bg-accent/5 border border-accent/20';
-              numColor = 'text-foreground font-bold';
+              cellBg = 'border border-black/20 bg-black/[0.04] dark:border-white/20 dark:bg-white/[0.04]';
+              numColor = 'text-foreground font-semibold';
             } else {
-              cellBg = 'bg-secondary/5 border border-border/10 hover:bg-secondary/10';
-              numColor = 'text-muted-foreground/50';
+              cellBg = 'border border-black/8 bg-black/[0.02] hover:bg-black/[0.05] dark:border-white/8 dark:bg-white/[0.02] dark:hover:bg-white/[0.05]';
+              numColor = 'text-black/45 dark:text-white/45';
             }
 
             return (
               <div
                 key={idx}
                 onClick={() => hasActivity && isCurrentMonth && setSelectedDay(dayTrades)}
-                className={`relative rounded-xl sm:rounded-2xl transition-all duration-200 flex flex-col justify-between p-1.5 sm:p-2 
-                  aspect-[3/2.4] sm:aspect-[3/2.2]
+                className={`relative flex aspect-[1/1.18] flex-col justify-between rounded-xl p-2 transition-all duration-200 sm:rounded-2xl sm:aspect-[3/2.2] sm:p-2
                   ${cellBg} ${hasActivity && isCurrentMonth ? 'cursor-pointer scale-[1.02] shadow-sm' : 'cursor-default'}`}
               >
                 {/* Day number — top left */}
-                <span className={`text-[10px] sm:text-[13px] font-bold leading-none ${numColor}`}>
+                <span className={`text-[13px] font-bold leading-none sm:text-[13px] ${numColor}`}>
                   {date.getDate()}
                 </span>
                 {/* Simplified PnL info — bottom right */}
                 {hasActivity && isCurrentMonth && dayTrades && (
                   <div className="flex flex-col items-end text-right mt-auto gap-0.5 min-w-0 overflow-hidden">
                     <span className={cn(
-                      "font-bold leading-tight tabular-nums truncate w-full",
+                      "w-full truncate rounded-full px-1.5 py-1 text-right font-bold leading-tight tabular-nums",
                       (Math.abs(dayTrades.pnl).toFixed(2).length > 8) 
-                        ? "text-[6px] sm:text-[9px]" 
-                        : "text-[7px] sm:text-[10px]",
-                      isPositive ? 'text-green-500' : 'text-red-500'
+                        ? "text-[9px] sm:text-[9px]" 
+                        : "text-[10px] sm:text-[10px]",
+                      isPositive ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
                     )}>
                       {isPositive ? '+' : '-'}${Math.abs(dayTrades.pnl).toFixed(2)}
                     </span>
@@ -226,63 +224,65 @@ export function MonthlyCalendar() {
                 )}
               </div>
             );
-          })}
+              })}
+            </div>
+          </div>
         </div>
       </Card>
 
       {/* Trade Details Popup */}
       <Dialog open={!!selectedDay} onOpenChange={(open) => !open && setSelectedDay(null)}>
-        <DialogContent className="max-w-lg p-0 bg-card/90 border-border/20 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" showCloseButton={false}>
+        <DialogContent className="max-w-lg overflow-hidden border-black/10 bg-white p-0 text-foreground shadow-2xl animate-in zoom-in-95 duration-200 dark:border-white/10 dark:bg-[#050505] dark:text-white" showCloseButton={false}>
           {selectedDay && (
             <>
-              <DialogHeader className="p-4 border-b border-border flex flex-row items-center justify-between bg-secondary/10 space-y-0 text-left">
+              <DialogHeader className="flex flex-row items-center justify-between space-y-0 border-b border-black/10 bg-black/[0.03] p-4 text-left dark:border-white/10 dark:bg-white/[0.03]">
                 <div className="flex flex-col">
-                  <DialogTitle className="text-lg font-bold text-foreground">
+                  <DialogTitle className="text-lg font-semibold text-foreground">
                     Trades for {selectedDay.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                   </DialogTitle>
-                  <div className={`text-sm font-bold ${selectedDay.pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  <div className={`text-sm font-semibold ${selectedDay.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                     Daily PnL: {selectedDay.pnl >= 0 ? '+' : '-'}${Math.abs(selectedDay.pnl).toFixed(2)}
                   </div>
                 </div>
                 <button
                   onClick={() => setSelectedDay(null)}
-                  className="p-2 rounded-full hover:bg-secondary/40 transition-colors"
+                  className="rounded-full p-2 transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
                 >
-                  <X className="w-5 h-5 text-muted-foreground" />
+                  <X className="h-5 w-5 text-black/55 dark:text-white/55" />
                 </button>
               </DialogHeader>
               
               <div className="max-h-[60vh] overflow-y-auto p-2">
                 <div className="space-y-2">
                   {selectedDay.trades.map((trade, i) => (
-                    <div key={i} className="flex flex-col p-4 bg-secondary/5 rounded-xl border border-border/50 gap-3">
+                    <div key={i} className="flex flex-col gap-3 rounded-xl border border-black/10 bg-black/[0.03] p-4 dark:border-white/10 dark:bg-white/[0.03]">
                       <div className="flex items-center justify-between">
                         <div className="flex flex-col">
-                          <span className="text-base font-bold text-foreground">{trade.pairName}</span>
+                          <span className="text-base font-semibold text-foreground">{trade.pairName}</span>
                           <div className="flex gap-2 items-center">
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${trade.positionSideLabel === 'LONG' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                            <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${trade.positionSideLabel === 'LONG' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
                               {trade.positionSideLabel} {trade.leverage}x
                             </span>
-                            <span className="text-[10px] text-muted-foreground uppercase">{new Date(trade.created_at).toLocaleTimeString()}</span>
+                            <span className="text-[10px] uppercase text-black/35 dark:text-white/35">{new Date(trade.created_at).toLocaleTimeString()}</span>
                           </div>
                         </div>
-                        <div className={`text-base font-bold ${trade.realizedPnlValue >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        <div className={`text-base font-semibold ${trade.realizedPnlValue >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                           {trade.realizedPnlValue >= 0 ? '+' : '-'}${Math.abs(trade.realizedPnlValue).toFixed(2)}
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-4 border-t border-border/30 pt-3">
+                      <div className="grid grid-cols-3 gap-4 border-t border-black/8 pt-3 dark:border-white/8">
                         <div className="flex flex-col gap-1">
-                          <span className="text-[10px] text-muted-foreground uppercase font-semibold">Entry</span>
-                          <span className="text-sm font-medium">${parseFloat(trade.avg_entry_price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}</span>
+                          <span className="text-[10px] font-semibold uppercase text-black/35 dark:text-white/35">Entry</span>
+                          <span className="text-sm font-medium text-foreground">${parseFloat(trade.avg_entry_price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}</span>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <span className="text-[10px] text-muted-foreground uppercase font-semibold">Exit</span>
-                          <span className="text-sm font-medium">${parseFloat(trade.avg_close_price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}</span>
+                          <span className="text-[10px] font-semibold uppercase text-black/35 dark:text-white/35">Exit</span>
+                          <span className="text-sm font-medium text-foreground">${parseFloat(trade.avg_close_price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}</span>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <span className="text-[10px] text-muted-foreground uppercase font-semibold">Size</span>
-                          <span className="text-sm font-medium">{trade.closedSize.toLocaleString()}</span>
+                          <span className="text-[10px] font-semibold uppercase text-black/35 dark:text-white/35">Size</span>
+                          <span className="text-sm font-medium text-foreground">{trade.closedSize.toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
@@ -290,10 +290,10 @@ export function MonthlyCalendar() {
                 </div>
               </div>
               
-              <div className="p-4 bg-secondary/5 border-t border-border flex justify-end">
+              <div className="flex justify-end border-t border-black/10 bg-black/[0.02] p-4 dark:border-white/10 dark:bg-white/[0.02]">
                 <button
                   onClick={() => setSelectedDay(null)}
-                  className="px-6 py-2 bg-foreground text-background font-bold rounded-xl hover:opacity-90 transition-opacity"
+                  className="rounded-xl bg-white px-6 py-2 font-semibold text-black transition-opacity hover:opacity-90"
                 >
                   Close
                 </button>

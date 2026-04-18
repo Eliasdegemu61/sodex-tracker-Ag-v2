@@ -6,12 +6,10 @@ import React, { useMemo, useState, useEffect } from "react"
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Trophy, TrendingUp, DollarSign, Activity, BarChart3, Settings2, Target, Zap } from 'lucide-react';
+import { Trophy, TrendingUp, DollarSign, Activity, BarChart3, Settings2, Target } from 'lucide-react';
 import { usePortfolio } from '@/context/portfolio-context';
 import { fetchPnLOverview, getVolumeFromPnLOverview, fetchDetailedBalance } from '@/lib/sodex-api';
-import { fetchSpotTradesData } from '@/lib/spot-api';
 import { getTokenPrice } from '@/lib/token-price-service';
-import { useSessionCache } from '@/context/session-cache-context';
 import { cn } from '@/lib/utils';
 
 // Cool loading animation component with gradient shimmer effect
@@ -231,180 +229,146 @@ export function PortfolioOverview() {
     return num.toFixed(2);
   };
 
+  const summaryCards = [
+    {
+      label: 'Total net worth',
+      value: `$${totalNetWorth.toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
+      helper: balances.hasUnpricedAssets ? 'Includes priced assets, some holdings omitted' : 'Spot + futures + vault',
+      icon: <DollarSign className="h-4 w-4" />,
+      tone: 'text-foreground dark:text-white',
+    },
+    {
+      label: '30D performance',
+      value: `${metrics.pnl30d >= 0 ? '+' : '-'}$${Math.abs(metrics.pnl30d).toLocaleString('en-US', { maximumFractionDigits: 2 })}`,
+      helper: 'Realized profit and loss over the last 30 days',
+      icon: <TrendingUp className="h-4 w-4" />,
+      tone: metrics.pnl30d >= 0 ? 'text-green-400' : 'text-red-400',
+    },
+    {
+      label: `${rankOptions.windowType} ${rankOptions.sortBy} rank`,
+      value: isRankLoading ? 'Loading...' : `#${userRankData?.rank || '---'}`,
+      helper: 'Live leaderboard snapshot',
+      icon: <Trophy className="h-4 w-4" />,
+      tone: 'text-foreground dark:text-white',
+    },
+    {
+      label: 'Vault shares',
+      value: `${metrics.vaultShares.toFixed(2)} MAG7`,
+      helper: `${metrics.vaultPnl >= 0 ? '+' : '-'}${Math.abs(metrics.vaultPnl).toFixed(2)} vault PnL`,
+      icon: <Target className="h-4 w-4" />,
+      tone: metrics.vaultPnl >= 0 ? 'text-green-400' : 'text-red-400',
+    },
+  ];
+
   return (
-    <Card className="group relative overflow-hidden bg-card/40 border border-border/40 rounded-2xl md:rounded-[2.5rem] shadow-2xl transition-all duration-500 hover:border-accent/20">
-      {/* Dynamic Background Glows */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/[0.03] dark:bg-accent/[0.01] blur-[120px] -mr-64 -mt-64 rounded-full animate-pulse opacity-20 md:opacity-100" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-500/[0.02] dark:bg-purple-500/[0.01] blur-[100px] -ml-40 -mb-40 rounded-full" />
-
-      <div className="p-4 md:p-10 relative z-10">
-
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-10">
-
-          {/* 1. Primary Balance Section (Condensed) */}
-          <div className="md:col-span-3 space-y-6">
-            <div className="space-y-1">
-              <p className="text-[9px] md:text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.3em] flex items-center gap-2">
-                <DollarSign className="w-2.5 h-2.5 text-orange-500" /> Total Balance
-              </p>
-              <div className="flex items-baseline gap-2">
-                {loading.balances && totalNetWorth === 0 ? (
-                  <LoadingShimmer className="h-8 w-24 md:h-12 md:w-40" />
-                ) : (
-                  <h2 className="text-2xl md:text-4xl font-black italic tracking-tighter text-foreground drop-shadow-sm">
-                    ${totalNetWorth.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-                  </h2>
-                )}
-                {balances.hasUnpricedAssets && (
-                  <span className="text-[8px] md:text-[10px] font-bold text-accent/40">+ assets</span>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 md:flex md:flex-col gap-2.5 pt-4 md:pt-6 border-t border-border/10">
-              {[
-                { label: 'Futures', value: balances.futures, color: 'text-foreground/60', isLoading: loading.balances },
-                { label: 'Spot', value: balances.spot, color: 'text-foreground/60', isLoading: loading.balances },
-                { label: 'Vault', value: balances.vault, color: 'text-orange-500 font-black', isLoading: loading.vault }
-              ].map((item, idx) => (
-                <div key={idx} className="flex flex-col md:flex-row md:items-center md:justify-between group/item gap-0.5">
-                  <span className="text-[8px] md:text-[9px] text-muted-foreground/40 font-bold uppercase tracking-widest leading-none">{item.label}</span>
-                  {item.isLoading && item.value === 0 ? (
-                    <LoadingShimmer className="h-3 w-12 md:h-4 md:w-16" />
-                  ) : (
-                    <span className={cn("text-[10px] md:text-[11px] font-bold tabular-nums", item.color)}>
-                      ${item.value.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
+    <Card className="relative overflow-hidden rounded-[2rem] border border-black/8 bg-white text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+      <div className="p-5 md:p-8">
+        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-black/35 dark:text-white/35">Portfolio</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-foreground md:text-3xl">
+              Overview
+            </h2>
           </div>
 
-          {/* 2. Performance & Rankings Section */}
-          <div className="md:col-span-5 space-y-6 md:space-y-10 md:border-x md:border-border/10 md:px-10">
-            {/* PnL Section */}
-            <div className="space-y-2 md:space-y-3">
-              <p className="text-[9px] md:text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.3em] flex items-center gap-2">
-                <TrendingUp className="w-2.5 h-2.5 text-orange-500" /> 30D Performance
-              </p>
-              <div className="flex flex-col gap-1">
-                <p className={cn("text-xl md:text-3xl font-black italic tracking-tighter", metrics.pnl30d >= 0 ? "text-green-500" : "text-red-500")}>
-                  {metrics.pnl30d >= 0 ? '+' : ''}${Math.abs(metrics.pnl30d).toLocaleString('en-US', { maximumFractionDigits: 2 })}
-                </p>
-                <div className="h-1 w-full bg-muted/20 rounded-full overflow-hidden">
-                  <div className={cn("h-full transition-all duration-1000", metrics.pnl30d >= 0 ? "bg-green-500/30 w-1/2" : "bg-red-500/30 w-1/3")} />
-                </div>
-              </div>
-            </div>
-
-            {/* Global Rankings */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.3em] flex items-center gap-2">
-                  <Trophy className="w-3 h-3 text-orange-500" /> Leaderboard status
-                </p>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-lg hover:bg-orange-500/10">
-                      <Settings2 className="w-3.5 h-3.5 text-orange-500/60" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-56 p-4 bg-card/95 backdrop-blur-xl border-border/20 rounded-2xl shadow-2xl" align="end">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Timeframe</label>
-                        <div className="grid grid-cols-2 gap-1.5">
-                          {(['24H', '7D', '30D', 'ALL_TIME'] as const).map((t) => (
-                            <button
-                              key={t}
-                              onClick={() => setRankOptions(prev => ({ ...prev, windowType: t }))}
-                              className={cn(
-                                "px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all border",
-                                rankOptions.windowType === t
-                                  ? "bg-orange-500/10 border-orange-500/20 text-orange-500"
-                                  : "bg-secondary/5 border-border/10 text-muted-foreground hover:bg-secondary/10"
-                              )}
-                            >
-                              {t}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Sort By</label>
-                        <div className="grid grid-cols-2 gap-1.5">
-                          {(['pnl', 'volume'] as const).map((s) => (
-                            <button
-                              key={s}
-                              onClick={() => setRankOptions(prev => ({ ...prev, sortBy: s }))}
-                              className={cn(
-                                "px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all border flex items-center justify-center gap-1.5",
-                                rankOptions.sortBy === s
-                                  ? "bg-orange-500/10 border-orange-500/20 text-orange-500"
-                                  : "bg-secondary/5 border-border/10 text-muted-foreground hover:bg-secondary/10"
-                              )}
-                            >
-                              {s === 'pnl' ? <Activity className="w-3 h-3" /> : <BarChart3 className="w-3 h-3" />}
-                              <span className="capitalize">{s}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-2xl border border-black/10 bg-black/[0.03] text-black/65 hover:bg-black/[0.06] hover:text-black dark:border-white/10 dark:bg-white/[0.03] dark:text-white/65 dark:hover:bg-white/[0.07] dark:hover:text-white">
+                  <Settings2 className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 rounded-2xl border-black/10 bg-white p-4 text-foreground shadow-2xl dark:border-white/10 dark:bg-[#090909] dark:text-white" align="end">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40 dark:text-white/40">Timeframe</label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {(['24H', '7D', '30D', 'ALL_TIME'] as const).map((t) => (
+                        <button
+                          key={t}
+                          onClick={() => setRankOptions(prev => ({ ...prev, windowType: t }))}
+                          className={cn(
+                            "rounded-xl border px-2 py-2 text-[10px] font-semibold transition-all",
+                            rankOptions.windowType === t
+                              ? "border-black bg-black text-white dark:border-white dark:bg-white dark:text-black"
+                              : "border-black/10 bg-black/[0.03] text-black/60 hover:bg-black/[0.06] hover:text-black dark:border-white/10 dark:bg-white/[0.03] dark:text-white/60 dark:hover:bg-white/[0.06] dark:hover:text-white"
+                          )}
+                        >
+                          {t}
+                        </button>
+                      ))}
                     </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="p-4 md:p-6 rounded-2xl md:rounded-3xl bg-orange-500/[0.03] border border-orange-500/10 flex items-center justify-between group/rank transition-all hover:bg-orange-500/[0.05]">
-                <div className="space-y-0.5 md:space-y-1">
-                  <span className="text-[8px] md:text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em] block">
-                    {rankOptions.windowType} Rank
-                  </span>
-                  {isRankLoading ? (
-                    <LoadingShimmer className="h-6 w-16 md:h-8 md:w-20" />
-                  ) : (
-                    <span className="text-xl md:text-3xl font-black text-orange-500 italic drop-shadow-sm">
-                      #{userRankData?.rank || '---'}
-                    </span>
-                  )}
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/40 dark:text-white/40">Sort by</label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {(['pnl', 'volume'] as const).map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => setRankOptions(prev => ({ ...prev, sortBy: s }))}
+                          className={cn(
+                            "flex items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-[10px] font-semibold transition-all",
+                            rankOptions.sortBy === s
+                              ? "border-black bg-black text-white dark:border-white dark:bg-white dark:text-black"
+                              : "border-black/10 bg-black/[0.03] text-black/60 hover:bg-black/[0.06] hover:text-black dark:border-white/10 dark:bg-white/[0.03] dark:text-white/60 dark:hover:bg-white/[0.06] dark:hover:text-white"
+                          )}
+                        >
+                          {s === 'pnl' ? <Activity className="h-3 w-3" /> : <BarChart3 className="h-3 w-3" />}
+                          <span className="capitalize">{s}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div className="h-8 w-8 md:h-10 md:w-10 rounded-xl md:rounded-2xl bg-orange-500/10 flex items-center justify-center">
-                  <Trophy className="w-4 h-4 md:w-5 md:h-5 text-orange-500" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 3. Operational Metrics Section */}
-          <div className="md:col-span-4 space-y-8 flex flex-col justify-center">
-            {/* Vault Shares */}
-            <div className="space-y-1 md:space-y-1.5 p-4 md:p-5 rounded-2xl md:rounded-3xl bg-orange-500/[0.04] border border-orange-500/10">
-              <p className="text-[8px] md:text-[9px] font-black text-orange-500/60 uppercase tracking-[0.2em] flex items-center gap-2">
-                <Target className="w-2 md:w-2.5 h-2 md:h-2.5" /> Vault
-              </p>
-              <div className="flex items-baseline justify-between">
-                {loading.futuresMetrics && metrics.vaultShares === 0 ? (
-                  <LoadingShimmer className="h-6 w-20 md:h-8 md:w-24" />
-                ) : (
-                  <p className="text-lg md:text-2xl font-black tracking-tighter text-orange-400">
-                    {metrics.vaultShares.toFixed(2)} <span className="text-[7px] md:text-[8px] opacity-30">MAG7</span>
-                  </p>
-                )}
-                <span className={cn("text-[9px] md:text-[10px] font-bold px-1.5 md:py-0.5 rounded-lg bg-background/95 border border-border/10", metrics.vaultPnl >= 0 ? "text-green-500/80" : "text-red-500/80")}>
-                  {metrics.vaultPnl >= 0 ? '↑' : '↓'} {Math.abs(metrics.vaultPnl).toFixed(2)}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex-1" />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {summaryCards.map((item) => (
+            <div key={item.label} className="rounded-[1.5rem] border border-black/8 bg-black/[0.02] p-5 dark:border-white/10 dark:bg-white/[0.03]">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">{item.label}</span>
+                <span className="text-black/35 dark:text-white/40">{item.icon}</span>
+              </div>
+              <div className="mt-6">
+                {loading.balances && item.label === 'Total net worth' && totalNetWorth === 0 ? (
+                  <LoadingShimmer className="h-8 w-32" />
+                ) : (
+                  <p className={cn("text-2xl font-semibold tracking-[-0.04em] md:text-3xl", item.tone)}>
+                    {item.value}
+                  </p>
+                )}
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.helper}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+          {[
+            { label: 'Futures', value: balances.futures, loading: loading.balances },
+            { label: 'Spot', value: balances.spot, loading: loading.balances },
+            { label: 'Vault', value: balances.vault, loading: loading.vault },
+          ].map((item) => (
+            <div key={item.label} className="rounded-[1.5rem] border border-black/8 bg-black/[0.02] p-4 dark:border-white/8 dark:bg-white/[0.02]">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-black/35 dark:text-white/35">{item.label} balance</p>
+              {item.loading && item.value === 0 ? (
+                <LoadingShimmer className="mt-3 h-7 w-24" />
+              ) : (
+                <p className="mt-3 text-xl font-medium text-foreground">
+                  ${item.value.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+
         {isSyncing && (
-          <div className="absolute bottom-4 right-8 flex items-center gap-2 text-[8px] text-muted-foreground/20 font-bold uppercase tracking-widest">
-            <div className="w-1 h-1 bg-accent rounded-full animate-pulse" />
-            {loading.spotMetrics ? 'Syncing Spot History' : 'Updating Data'}
+          <div className="mt-5 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-black/30 dark:text-white/30">
+            <div className="h-2 w-2 rounded-full bg-black/35 animate-pulse dark:bg-white/35" />
+            {loading.spotMetrics ? 'Syncing spot history' : 'Updating account data'}
           </div>
         )}
       </div>

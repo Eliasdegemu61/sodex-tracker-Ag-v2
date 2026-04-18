@@ -5,6 +5,7 @@ import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Respons
 import { usePortfolio } from '@/context/portfolio-context';
 import { useMemo, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTheme } from '@/app/providers';
 
 interface PnLChartProps {
   title?: string;
@@ -12,6 +13,7 @@ interface PnLChartProps {
 
 export function PnLChart({ title = 'Profit & Loss' }: PnLChartProps) {
   const { positions } = usePortfolio();
+  const { theme } = useTheme();
   const [timePeriod, setTimePeriod] = useState<'all' | '1w' | '1m' | '3m' | '1y'>('all');
 
   const getFilteredPositions = useMemo(() => {
@@ -112,6 +114,13 @@ export function PnLChart({ title = 'Profit & Loss' }: PnLChartProps) {
   };
 
   const hasData = chartData.length > 0;
+  const axisColor = theme === 'dark' ? '#ffffff45' : 'rgba(0,0,0,0.45)';
+  const axisSecondary = theme === 'dark' ? '#ffffff35' : 'rgba(0,0,0,0.35)';
+  const tooltipBg = theme === 'dark' ? '#050505' : '#ffffff';
+  const tooltipBorder = theme === 'dark' ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)';
+  const tooltipText = theme === 'dark' ? '#fff' : '#111';
+  const cursorColor = theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+  const lineColor = theme === 'dark' ? '#ffffff' : '#111111';
 
   // New: Calculate synchronized domains to align the zero line
   const domains = useMemo(() => {
@@ -136,17 +145,17 @@ export function PnLChart({ title = 'Profit & Loss' }: PnLChartProps) {
   }, [chartData, hasData]);
 
   return (
-    <Card className="p-5 bg-card/95 shadow-sm border border-border/20 rounded-3xl shadow-sm">
+    <Card className="rounded-[2rem] border border-black/8 bg-white p-5 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xs font-semibold text-muted-foreground/60">
+          <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">
             {title}
           </h3>
           <Select value={timePeriod} onValueChange={(value: any) => setTimePeriod(value)}>
-            <SelectTrigger className="w-28 h-7 text-[10px] font-bold  bg-secondary/10 border-border/10 rounded-lg">
+            <SelectTrigger className="h-9 w-28 rounded-xl border-black/10 bg-black/[0.03] text-[10px] font-semibold text-foreground dark:border-white/10 dark:bg-white/[0.03] dark:text-white">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-card border-border/10">
+            <SelectContent className="border-black/10 bg-white text-foreground dark:border-white/10 dark:bg-[#090909] dark:text-white">
               <SelectItem value="all" className="text-[10px]">All Time</SelectItem>
               <SelectItem value="1w" className="text-[10px]">1 Week</SelectItem>
               <SelectItem value="1m" className="text-[10px]">1 Month</SelectItem>
@@ -156,10 +165,10 @@ export function PnLChart({ title = 'Profit & Loss' }: PnLChartProps) {
           </Select>
         </div>
         <div className="flex items-baseline gap-2">
-          <p className={`text-2xl font-bold tracking-tight ${stats.isPositive ? 'text-green-400' : 'text-red-400'}`}>
+          <p className={`text-3xl font-semibold tracking-[-0.04em] ${stats.isPositive ? 'text-green-400' : 'text-red-400'}`}>
             {stats.displayValue}
           </p>
-          <p className={`text-[10px] font-bold ${stats.isPositive ? 'text-green-400' : 'text-red-400'}`}>
+          <p className={`text-[10px] font-semibold uppercase tracking-[0.18em] ${stats.isPositive ? 'text-green-400' : 'text-red-400'}`}>
             {stats.isPositive ? '+' : ''}{stats.percentageChange}%
           </p>
         </div>
@@ -167,24 +176,24 @@ export function PnLChart({ title = 'Profit & Loss' }: PnLChartProps) {
 
       <div className="h-[250px] w-full flex items-center justify-center relative">
         {!hasData ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-secondary/5 rounded-2xl border border-dashed border-border/10 transition-colors">
-            <p className="text-[10px] text-muted-foreground/40 font-bold  ">No data available...</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-black/10 bg-black/[0.02] transition-colors dark:border-white/10 dark:bg-white/[0.02]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/30 dark:text-white/30">No data available</p>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <XAxis
                 dataKey="date"
-                stroke="#ffffff10"
-                tick={{ fill: '#ffffff30', fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}
+                stroke={cursorColor}
+                tick={{ fill: axisColor, fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 yAxisId="cumulative-axis"
                 domain={domains.cumulative}
-                stroke="#ffffff10"
-                tick={{ fill: '#f97316', fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}
+                stroke={cursorColor}
+                tick={{ fill: axisColor, fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}
                 tickFormatter={(value) => value.toLocaleString('en-US', { maximumFractionDigits: 2 })}
                 axisLine={false}
                 tickLine={false}
@@ -194,8 +203,8 @@ export function PnLChart({ title = 'Profit & Loss' }: PnLChartProps) {
               <YAxis
                 yAxisId="daily-axis"
                 domain={domains.daily}
-                stroke="#ffffff10"
-                tick={{ fill: '#ffffff30', fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}
+                stroke={cursorColor}
+                tick={{ fill: axisSecondary, fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}
                 tickFormatter={(value) => value.toLocaleString('en-US', { maximumFractionDigits: 2 })}
                 axisLine={false}
                 tickLine={false}
@@ -204,18 +213,18 @@ export function PnLChart({ title = 'Profit & Loss' }: PnLChartProps) {
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#0a0a0a',
-                  border: '1px solid rgba(255,255,255,0.05)',
+                  backgroundColor: tooltipBg,
+                  border: tooltipBorder,
                   borderRadius: '12px',
-                  color: '#fff',
+                  color: tooltipText,
                   fontSize: '10px',
                   fontFamily: 'monospace',
                   boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
                   backdropFilter: 'blur(10px)'
                 }}
-                itemStyle={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#fff' }}
-                labelStyle={{ color: '#ffffff30', marginBottom: '4px', fontSize: '9px' }}
-                cursor={{ stroke: 'rgba(255,255,255,0.05)', strokeWidth: 1 }}
+                itemStyle={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: tooltipText }}
+                labelStyle={{ color: axisColor, marginBottom: '4px', fontSize: '9px' }}
+                cursor={{ stroke: cursorColor, strokeWidth: 1 }}
                 formatter={(value: any, name: any, props: any) => {
                   const numValue = value as number;
                   const displayValue = Math.abs(numValue) > 999
@@ -229,7 +238,7 @@ export function PnLChart({ title = 'Profit & Loss' }: PnLChartProps) {
                 }}
               />
               {/* Unified zero line using the cumulative axis (scales are aligned now) */}
-              <ReferenceLine yAxisId="cumulative-axis" y={0} stroke="rgba(255,255,255,0.1)" strokeWidth={1} strokeDasharray="4 4" />
+              <ReferenceLine yAxisId="cumulative-axis" y={0} stroke={cursorColor} strokeWidth={1} strokeDasharray="4 4" />
               <Bar
                 yAxisId="daily-axis"
                 dataKey="pnl"
@@ -244,7 +253,7 @@ export function PnLChart({ title = 'Profit & Loss' }: PnLChartProps) {
                 yAxisId="cumulative-axis"
                 type="monotone"
                 dataKey="cumulative"
-                stroke="#f97316"
+                stroke={lineColor}
                 strokeWidth={3}
                 dot={false}
                 isAnimationActive={true}

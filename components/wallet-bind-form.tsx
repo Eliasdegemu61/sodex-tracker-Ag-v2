@@ -46,18 +46,14 @@ export function WalletBindForm() {
   };
 
   return (
-    <div className="flex flex-col items-center pt-12 md:pt-24 min-h-[500px] px-4">
-      <div className="p-8 sm:p-10 bg-background border border-border rounded-[24px] max-w-md w-full shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="flex min-h-[calc(100vh-13rem)] flex-col items-center justify-center px-4 py-6">
+      <div className="w-full max-w-xl animate-in fade-in slide-in-from-bottom-4 duration-500 rounded-[2rem] border border-black/8 bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-[#050505] dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:p-10">
         
-        {/* Header */}
         <div className="mb-8">
-          <h2 className="text-xl md:text-2xl font-bold text-foreground tracking-tight mb-2">Bind your address</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            to load your sodex portfolio in a new way
-          </p>
+          <h2 className="mb-2 text-3xl font-semibold tracking-[-0.04em] text-foreground sm:text-4xl">Portfolio</h2>
+          <p className="text-sm leading-relaxed text-muted-foreground">Enter wallet address.</p>
         </div>
 
-        {/* Form */}
         <div className="space-y-4">
           <div className="relative">
             <input
@@ -67,7 +63,7 @@ export function WalletBindForm() {
               onChange={(e) => { setAddress(e.target.value); setError(null); }}
               onKeyDown={handleKeyDown}
               disabled={isLoading}
-              className="w-full px-4 py-3 bg-secondary/5 border border-border rounded-xl text-sm font-medium text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-border transition-all disabled:opacity-50"
+              className="w-full rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-3.5 text-sm font-medium text-foreground placeholder:text-black/25 focus:outline-none focus:ring-1 focus:ring-black/15 transition-all disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.02] dark:placeholder:text-white/25 dark:focus:ring-white/25"
             />
           </div>
 
@@ -79,15 +75,15 @@ export function WalletBindForm() {
           )}
 
           {error && (
-            <div className="p-3 rounded-lg bg-red-500/5 border border-red-500/20">
-              <p className="text-red-400 text-xs font-medium">{error}</p>
+            <div className="rounded-2xl border border-red-500/25 bg-red-500/8 p-3">
+              <p className="text-xs font-medium text-red-600 dark:text-red-300">{error}</p>
             </div>
           )}
 
           <button
             onClick={() => handleBind()}
             disabled={isLoading || !address.trim()}
-            className="w-full py-3 bg-muted-foreground/60 hover:bg-muted-foreground/80 text-white rounded-xl font-bold text-sm transition-all disabled:opacity-40 flex items-center justify-center gap-2 shadow-sm"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white bg-white py-3.5 text-sm font-semibold text-black shadow-sm transition-all hover:bg-white/90 disabled:opacity-40"
           >
             {isLoading ? (
               <>
