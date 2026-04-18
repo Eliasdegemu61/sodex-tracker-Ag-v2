@@ -42,8 +42,19 @@ export function TVLCard() {
 
   if (isLoading) {
     return (
-      <Card className="p-5 bg-background border border-border rounded-lg animate-pulse">
-        <div className="h-[40px] bg-secondary/10 rounded-xl" />
+      <Card className="p-4 lg:p-5 bg-background border border-border rounded-lg transition-all duration-300 min-h-[104px] animate-pulse">
+        <div className="flex flex-col h-full justify-between min-w-0">
+          <div className="flex items-center justify-between h-4">
+            <div className="h-3 w-20 bg-secondary/10 rounded" />
+            <div className="w-1.5 h-1.5 rounded-full bg-secondary/20" />
+          </div>
+          <div className="flex items-center h-6">
+            <div className="h-5 w-24 bg-secondary/10 rounded" />
+          </div>
+          <div className="flex items-end h-4">
+            <div className="h-2 w-12 bg-secondary/10 rounded" />
+          </div>
+        </div>
       </Card>
     )
   }

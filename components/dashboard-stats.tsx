@@ -61,20 +61,20 @@ export function DashboardStats({ variant = 'default' }: DashboardStatsProps) {
 
   if (isLoading || (!overallStats && dexLoading) || !volumeData) {
     return (
-      <div className="space-y-2 mb-4">
+      <>
         {variant === 'compact' ? (
-          <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
-            <Card className="p-2 md:p-3 bg-card/50 border-border h-20" />
-            <Card className="p-2 md:p-3 bg-card/50 border-border h-20" />
-          </div>
-        ) : (
           <>
-            <Card className="p-3 bg-card/50 border-border h-16" />
-            <Card className="p-3 bg-card/50 border-border h-16" />
-            <Card className="p-3 bg-card/50 border-border h-16" />
+            <Card className="p-4 lg:p-5 bg-background border border-border rounded-lg min-h-[104px] animate-pulse" />
+            <Card className="p-4 lg:p-5 bg-background border border-border rounded-lg min-h-[104px] animate-pulse" />
           </>
+        ) : (
+          <div className="space-y-2 mb-4">
+            <Card className="p-3 bg-card/50 border-border h-16" />
+            <Card className="p-3 bg-card/50 border-border h-16" />
+            <Card className="p-3 bg-card/50 border-border h-16" />
+          </div>
         )}
-      </div>
+      </>
     )
   }
 

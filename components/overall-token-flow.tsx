@@ -66,27 +66,92 @@ const WITHDRAWAL_COLORS = [
 export function AssetsSkeleton() {
     return (
         <div className="space-y-6 w-full max-w-7xl mx-auto pb-12">
-            <div className="grid grid-cols-3 gap-2 md:gap-4 mb-8">
-                {[1, 2, 3].map(i => (
-                    <Card key={i} className="p-3 md:p-6 bg-background border border-border rounded-lg h-24 md:h-32 animate-pulse" />
-                ))}
-            </div>
-            <Card className="p-6 md:p-8 bg-background border border-border rounded-lg h-[550px] animate-pulse">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
-                    <div className="h-6 w-48 bg-secondary/10 rounded" />
-                    <div className="flex gap-2">
-                        <div className="h-8 w-24 bg-secondary/10 rounded" />
-                        <div className="h-8 w-32 bg-secondary/10 rounded" />
+            <div className="relative overflow-hidden rounded-xl border border-border bg-background px-4 py-3">
+                <div className="absolute inset-y-0 left-[-35%] w-[35%] bg-gradient-to-r from-transparent via-foreground/10 to-transparent animate-[pulse_1.8s_ease-in-out_infinite]" />
+                <div className="relative flex items-center justify-between gap-4">
+                    <div className="space-y-1.5">
+                        <div className="h-2 w-24 rounded-full bg-secondary/20" />
+                        <div className="h-3 w-40 rounded-full bg-secondary/10" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-foreground/50 animate-pulse" />
+                        <span className="text-[9px] font-semibold uppercase tracking-[0.24em] text-muted-foreground/55">
+                            Processing asset flow
+                        </span>
                     </div>
                 </div>
-                <div className="w-full h-[400px] bg-secondary/5 rounded-lg" />
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 md:gap-4 mb-8">
+                {[1, 2, 3].map(i => (
+                    <Card key={i} className="relative overflow-hidden p-3 md:p-6 bg-background border border-border rounded-lg h-24 md:h-32">
+                        <div className="absolute inset-y-0 left-[-45%] w-[45%] bg-gradient-to-r from-transparent via-foreground/8 to-transparent animate-[pulse_1.6s_ease-in-out_infinite]" />
+                        <div className="relative flex h-full flex-col justify-between">
+                            <div className="h-2 w-16 md:w-24 rounded-full bg-secondary/20" />
+                            <div className="h-5 w-14 md:h-7 md:w-24 rounded-full bg-secondary/10" />
+                            <div className="h-1.5 w-10 md:w-16 rounded-full bg-secondary/15" />
+                        </div>
+                    </Card>
+                ))}
+            </div>
+            <Card className="relative overflow-hidden p-6 md:p-8 bg-background border border-border rounded-lg h-[550px]">
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/15 to-transparent" />
+                <div className="absolute inset-y-0 left-[-30%] w-[30%] bg-gradient-to-r from-transparent via-foreground/7 to-transparent animate-[pulse_1.7s_ease-in-out_infinite]" />
+
+                <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+                    <div className="space-y-3">
+                        <div className="h-2 w-20 rounded-full bg-secondary/20" />
+                        <div className="h-6 w-48 bg-secondary/10 rounded-full" />
+                    </div>
+                    <div className="flex gap-2">
+                        <div className="h-8 w-24 bg-secondary/10 rounded-full" />
+                        <div className="h-8 w-32 bg-secondary/10 rounded-full" />
+                    </div>
+                </div>
+
+                <div className="relative h-[400px] overflow-hidden rounded-lg border border-border/60 bg-secondary/[0.035] p-4 md:p-6">
+                    <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent,transparent_23px,rgba(127,127,127,0.06)_24px)] bg-[length:100%_24px]" />
+                    <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-foreground/[0.06] via-foreground/[0.02] to-transparent" />
+                    <div className="relative flex h-full items-end gap-2 md:gap-3">
+                        {[38, 54, 46, 70, 58, 82, 68, 88, 74, 92, 64, 84].map((height, index) => (
+                            <div key={index} className="flex-1">
+                                <div
+                                    className="w-full rounded-t-full bg-gradient-to-t from-foreground/15 to-foreground/5 animate-pulse"
+                                    style={{
+                                        height: `${height}%`,
+                                        animationDelay: `${index * 120}ms`,
+                                        animationDuration: '1.8s',
+                                    }}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </Card>
-            <Card className="p-6 bg-background border border-border rounded-lg h-96 animate-pulse">
-                <div className="h-6 w-48 bg-secondary/10 rounded mb-8" />
-                <div className="space-y-4">
-                    {[1, 2, 3, 4, 5].map(i => (
-                        <div key={i} className="h-12 bg-secondary/5 rounded" />
-                    ))}
+            <Card className="relative overflow-hidden p-6 bg-background border border-border rounded-lg h-96">
+                <div className="absolute inset-y-0 left-[-40%] w-[40%] bg-gradient-to-r from-transparent via-foreground/8 to-transparent animate-[pulse_1.9s_ease-in-out_infinite]" />
+                <div className="relative">
+                    <div className="h-6 w-48 bg-secondary/10 rounded-full mb-8" />
+                    <div className="space-y-4">
+                        {[1, 2, 3, 4, 5].map(i => (
+                            <div key={i} className="flex items-center gap-4 rounded-2xl border border-border/50 bg-secondary/[0.035] px-4 py-4">
+                                <div className="h-10 w-10 rounded-2xl bg-secondary/10" />
+                                <div className="flex-1 space-y-2">
+                                    <div className="h-3 w-20 rounded-full bg-secondary/20" />
+                                    <div className="h-2 w-32 rounded-full bg-secondary/10" />
+                                </div>
+                                <div className="space-y-2 text-right">
+                                    <div className="ml-auto h-3 w-16 rounded-full bg-secondary/20" />
+                                    <div className="ml-auto h-2 w-12 rounded-full bg-secondary/10" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-5 flex items-center justify-center">
+                        <span className="text-[9px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/45">
+                            Building comparative view
+                        </span>
+                    </div>
                 </div>
             </Card>
         </div>
