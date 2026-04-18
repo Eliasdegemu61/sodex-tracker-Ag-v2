@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    workerThreads: true,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },

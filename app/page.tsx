@@ -26,26 +26,8 @@ import { MobileNavMenu } from '@/components/mobile-nav-menu'
 import { NewTradersTracker } from '@/components/new-traders-tracker'
 import { AnnouncementSidePanel } from '@/components/announcement-side-panel'
 import { PortfolioSection } from '@/components/portfolio-section'
-import dynamic from 'next/dynamic'
 import { Loader2 } from 'lucide-react'
-
-const OverallDepositsCard = dynamic(
-  () => import('@/components/overall-token-flow').then((mod) => mod.OverallDepositsCard),
-  { ssr: false, loading: () => {
-    // Attempting to import the skeleton too, or just duplicating the structure for the immediate dynamic loader
-    return <div className="space-y-6 w-full max-w-7xl mx-auto pb-12 animate-in fade-in duration-500">
-        <div className="grid grid-cols-3 gap-4 mb-8">
-            {[1, 2, 3].map(i => <div key={i} className="h-32 bg-card/20 border border-border/5 rounded-[2rem] animate-pulse" />)}
-        </div>
-        <div className="h-[550px] bg-card/20 border border-border/10 rounded-[2.5rem] animate-pulse" />
-    </div>
-  } }
-)
-
-const AssetsSkeleton = dynamic(
-  () => import('@/components/overall-token-flow').then((mod) => mod.AssetsSkeleton),
-  { ssr: false }
-)
+import { OverallDepositsCard, AssetsSkeleton } from '@/components/overall-token-flow'
 
 import { TrackerSection } from '@/components/tracker-section'
 import { TradeAnalytics } from '@/components/trade-analytics'

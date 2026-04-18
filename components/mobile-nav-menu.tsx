@@ -38,13 +38,13 @@ export function MobileNavMenu({ currentPage, onNavigate }: MobileNavMenuProps) {
       { id: 'portfolio', label: 'Portfolio', icon: Wallet },
       { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
       { id: 'assets', label: 'Assets', icon: Compass },
+      { id: 'pulse', label: 'Community Pulse', icon: MessageSquare },
       { id: 'analyzer', label: 'Reverse Search', icon: Zap },
     ]},
     { section: 'Beta', items: [
       { id: 'journal', label: 'Journal', icon: BookOpen },
       { id: 'demo-trading', label: 'Demo Trading', icon: CandlestickChart },
       { id: 'analytics', label: 'Trade analytics', icon: LineChart },
-      { id: 'pulse', label: 'Community Pulse', icon: MessageSquare },
     ]}
   ];
 
