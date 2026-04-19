@@ -149,7 +149,7 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <a href="https://x.com/eliasing00" target="_blank" rel="noopener noreferrer" className="w-full">
+                <a href="https://x.com/eliasing__" target="_blank" rel="noopener noreferrer" className="w-full">
                   <SidebarMenuButton className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all duration-200 hover:bg-secondary/10 hover:text-foreground">
                     <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.6l-5.165-6.756-5.868 6.756h-3.308l7.732-8.835L2.882 2.25h6.6l4.759 6.318L18.244 2.25zM17.55 19.5h1.832L6.281 3.75H4.38L17.55 19.5z" />

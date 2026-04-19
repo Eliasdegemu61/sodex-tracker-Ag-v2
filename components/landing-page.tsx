@@ -245,7 +245,7 @@ export function LandingPage() {
 
         {/* Footer text */}
         <div className="flex items-center justify-center gap-2 sm:gap-3 pt-4 sm:pt-8 text-xs text-muted-foreground">
-          <a href="https://x.com/eliasing00" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors flex items-center justify-center p-1.5 sm:p-2 rounded-lg hover:bg-orange-500/10">
+          <a href="https://x.com/eliasing__" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors flex items-center justify-center p-1.5 sm:p-2 rounded-lg hover:bg-orange-500/10">
             <svg className="w-3.5 sm:w-4 h-3.5 sm:h-4 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.6l-5.165-6.756-5.868 6.756h-3.308l7.732-8.835L2.882 2.25h6.6l4.759 6.318L18.244 2.25zM17.55 19.5h1.832L6.281 3.75H4.38L17.55 19.5z" />
             </svg>
