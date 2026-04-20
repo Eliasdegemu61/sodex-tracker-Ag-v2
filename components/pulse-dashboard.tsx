@@ -269,47 +269,45 @@ export function PulseDashboard() {
         <SentimentBar score={data.sentiment_score} />
       </Card>
 
-      <Card className="rounded-[2rem] border border-black/8 bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+      <Card className="rounded-[2rem] border border-black/8 bg-white p-5 shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:p-6">
         <SectionHeader label="Hot Topics" title="Hot Topics" meta={`${data.hot_topics.length} tracked`} />
-        <div className="grid gap-4 xl:grid-cols-2">
+        <div className="divide-y divide-black/8 dark:divide-white/8">
           {data.hot_topics.map((topic, index) => (
             <div
               key={topic.topic}
-              className="relative overflow-hidden rounded-[1.5rem] border border-black/10 bg-[#fbfbf9] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] dark:border-white/10 dark:bg-[#060606] sm:p-5 xl:rounded-[1.75rem] xl:p-6"
+              className="relative overflow-hidden py-5 first:pt-0 last:pb-0 sm:py-6"
             >
-              <div className="pointer-events-none absolute right-4 top-4 text-[38px] font-semibold tracking-[-0.08em] text-black/[0.05] dark:text-white/[0.05] sm:right-5 sm:top-5 sm:text-[44px] xl:text-[52px]">
+              <div className="pointer-events-none absolute right-0 top-5 text-[34px] font-semibold tracking-[-0.08em] text-black/[0.05] dark:text-white/[0.05] sm:right-1 sm:top-6 sm:text-[42px] xl:text-[48px]">
                 {index + 1}
               </div>
               <div className="relative">
                 <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-black/30 dark:text-white/30 md:text-[10px] md:tracking-[0.2em]">
                   Topic {String(index + 1).padStart(2, '0')}
                 </p>
-                <h3 className="mt-2 text-[20px] font-semibold tracking-[-0.04em] text-foreground sm:text-[22px] xl:mt-3 xl:text-[26px] xl:tracking-[-0.05em]">{topic.topic}</h3>
-                <p className="mt-3 max-w-[52ch] text-[11px] leading-5 text-black/65 dark:text-white/65 sm:text-[13px] sm:leading-6 xl:mt-4 xl:text-[15px] xl:leading-8">{topic.summary}</p>
+                <h3 className="mt-2 pr-10 text-[20px] font-semibold tracking-[-0.04em] text-foreground sm:text-[22px] xl:mt-3 xl:text-[26px] xl:tracking-[-0.05em]">{topic.topic}</h3>
+                <p className="mt-3 max-w-[58ch] text-[12px] leading-6 text-black/65 dark:text-white/65 sm:text-[13px] sm:leading-6 xl:mt-4 xl:text-[15px] xl:leading-8">{topic.summary}</p>
 
                 <div className="mt-5 space-y-3 border-t border-dashed border-black/10 pt-4 dark:border-white/10 xl:mt-6 xl:pt-5">
                   {topic.related_posts.map((post, postIndex) => (
                     <div
                       key={`${topic.topic}-${postIndex}`}
-                      className="rounded-[1.1rem] border border-black/8 bg-white/90 p-3 dark:border-white/8 dark:bg-black sm:p-4 xl:rounded-[1.25rem]"
+                      className="flex items-start gap-3 rounded-[1rem] bg-black/[0.025] px-3 py-3 dark:bg-white/[0.03] sm:px-4 sm:py-4"
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-black/8 bg-black/[0.03] dark:border-white/8 dark:bg-white/[0.03] sm:h-8 sm:w-8 sm:rounded-xl">
-                          <MessageCircle className="h-3.5 w-3.5 text-black/45 dark:text-white/45 sm:h-4 sm:w-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[10px] leading-[1.125rem] text-black/72 dark:text-white/72 sm:text-[12px] sm:leading-5 xl:text-[14px] xl:leading-7">{post.content}</p>
-                        </div>
-                        <a
-                          href={post.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label="View source"
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-black/8 bg-black/[0.03] text-black/45 transition-colors hover:bg-black/[0.06] hover:text-black dark:border-white/8 dark:bg-white/[0.03] dark:text-white/45 dark:hover:bg-white/[0.08] dark:hover:text-white sm:h-9 sm:w-9"
-                        >
-                          <ArrowUpRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                        </a>
+                      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-black/[0.04] dark:bg-white/[0.05] sm:h-8 sm:w-8 sm:rounded-xl">
+                        <MessageCircle className="h-3.5 w-3.5 text-black/45 dark:text-white/45 sm:h-4 sm:w-4" />
                       </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] leading-5 text-black/72 dark:text-white/72 sm:text-[12px] sm:leading-5 xl:text-[14px] xl:leading-7">{post.content}</p>
+                      </div>
+                      <a
+                        href={post.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="View source"
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/[0.04] text-black/45 transition-colors hover:bg-black/[0.08] hover:text-black dark:bg-white/[0.05] dark:text-white/45 dark:hover:bg-white/[0.1] dark:hover:text-white sm:h-9 sm:w-9"
+                      >
+                        <ArrowUpRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                      </a>
                     </div>
                   ))}
                 </div>
