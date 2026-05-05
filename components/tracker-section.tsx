@@ -5,7 +5,7 @@ import React, { useEffect } from "react"
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Search, X, Loader2, Share2, ArrowUpRight } from 'lucide-react';
+import { Search, X, Loader2, Share2, ArrowUpRight, Activity, Calendar } from 'lucide-react';
 import { PortfolioOverview } from './portfolio-overview';
 import { PnLChart } from './pnl-chart';
 import { PositionsTable } from './positions-table';
@@ -17,19 +17,25 @@ import { ShareStatsModal } from './share-stats-modal';
 import { PortfolioProvider } from '@/context/portfolio-context';
 import { getUserIdByAddress, fetchAllPositions, enrichPositions, type EnrichedPosition } from '@/lib/sodex-api';
 import { usePortfolio } from '@/context/portfolio-context';
+import { cn } from '@/lib/utils';
 
 // Loading Spinner Component
-function LoadingSpinner({ message }: { message: string }) {
+function LoadingSpinner({ message, subMessage }: { message: string, subMessage?: string }) {
   return (
-      <div className="flex flex-col items-center justify-center gap-4 py-12">
+    <div className="flex flex-col items-center justify-center gap-4 py-12">
       <Loader2 className="h-8 w-8 animate-spin text-foreground" />
-      <span className="text-sm font-medium text-muted-foreground animate-pulse">{message}</span>
+      <div className="text-center space-y-1">
+        <span className="block text-sm font-medium text-muted-foreground animate-pulse">{message}</span>
+        {subMessage && (
+          <span className="block text-xs text-muted-foreground/60">{subMessage}</span>
+        )}
+      </div>
     </div>
   );
 }
 
 // Loading Skeleton Component
-function TrackerLoadingSkeleton() {
+function TrackerLoadingSkeleton({ loadingMessage, loadingSubMessage }: { loadingMessage?: string, loadingSubMessage?: string }) {
   const [showDots, setShowDots] = useState(true);
 
   useEffect(() => {
@@ -38,10 +44,13 @@ function TrackerLoadingSkeleton() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (showDots) {
+  if (showDots || loadingMessage) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <LoadingSpinner message="Fetching latest data..." />
+        <LoadingSpinner 
+          message={loadingMessage || "Fetching latest data..."} 
+          subMessage={loadingSubMessage}
+        />
       </div>
     );
   }
@@ -82,12 +91,20 @@ function TrackerLoadingSkeleton() {
 
 function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: string }) {
   const [searchInput, setSearchInput] = useState(initialSearchAddress || '');
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [sourceWalletAddress, setSourceWalletAddress] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [positions, setPositions] = useState<EnrichedPosition[]>([]);
+  
+  // Atomic state for the active portfolio to prevent partial rendering
+  const [activePortfolio, setActivePortfolio] = useState<{
+    walletAddress: string;
+    userId: string;
+    positions: EnrichedPosition[];
+  } | null>(null);
+
   const [isLoading, setIsLoading] = useState(false);
+  const [fetchProgress, setFetchProgress] = useState<{count: number, isLong: boolean}>({ count: 0, isLong: false });
   const [error, setError] = useState<string | null>(null);
+  
+  // Timeframe option for large accounts
+  const [timeframe, setTimeframe] = useState<'30D' | 'ALL'>('ALL');
 
   const handleSearch = async (addressToSearch?: string) => {
     const valueToSearch = (addressToSearch || searchInput || '').trim();
@@ -95,28 +112,45 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
 
     setIsLoading(true);
     setError(null);
+    setFetchProgress({ count: 0, isLong: false });
+
+    // Long fetch timer
+    const longFetchTimer = setTimeout(() => {
+      setFetchProgress(prev => ({ ...prev, isLong: true }));
+    }, 4000);
 
     try {
       const addressToFetch = valueToSearch;
       const foundUserId = await getUserIdByAddress(addressToFetch);
 
-      setWalletAddress(valueToSearch);
-      setSourceWalletAddress(valueToSearch);
-      setUserId(foundUserId);
+      // Calculate minTimestamp if 30D is selected
+      const minTimestamp = timeframe === '30D' ? Date.now() - 30 * 24 * 60 * 60 * 1000 : undefined;
 
-      const fetchedPositions = await fetchAllPositions(foundUserId);
+      const fetchedPositions = await fetchAllPositions(
+        foundUserId, 
+        (count) => {
+          setFetchProgress(prev => ({ ...prev, count }));
+        },
+        minTimestamp
+      );
+      
       const enrichedPositions = await enrichPositions(fetchedPositions);
 
-      setPositions(enrichedPositions);
+      // CRITICAL: Set everything in one go to prevent premature rendering of sub-sections
+      setActivePortfolio({
+        walletAddress: valueToSearch,
+        userId: foundUserId,
+        positions: enrichedPositions
+      });
+      
       setError(null);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch wallet data';
       console.error('[v0] Error searching wallet:', errorMessage);
       setError(errorMessage);
-      setWalletAddress(null);
-      setUserId(null);
-      setPositions([]);
+      setActivePortfolio(null);
     } finally {
+      clearTimeout(longFetchTimer);
       setIsLoading(false);
     }
   };
@@ -131,10 +165,7 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
 
   const handleClear = () => {
     setSearchInput('');
-    setWalletAddress(null);
-    setSourceWalletAddress(null);
-    setUserId(null);
-    setPositions([]);
+    setActivePortfolio(null);
     setError(null);
   };
 
@@ -146,138 +177,143 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
 
   // Render portfolio data when wallet is found
   if (isLoading) {
+    const loadingMessage = fetchProgress.isLong 
+      ? `Indexing... (${fetchProgress.count} records)` 
+      : "Resolving address...";
+    const loadingSubMessage = fetchProgress.isLong 
+      ? `Large history detected. Indexing entire trade history safely. Please wait until this process finishes for accurate metrics.` 
+      : undefined;
+
     return (
       <div className="flex items-center justify-center min-h-[400px] w-full max-w-5xl mx-auto px-4">
-        <LoadingSpinner message="Searching SoDex registry..." />
+        <TrackerLoadingSkeleton 
+          loadingMessage={loadingMessage} 
+          loadingSubMessage={loadingSubMessage}
+        />
       </div>
     );
   }
 
-  // Render search UI when no wallet is selected
-  if (!walletAddress) {
+  if (error) {
     return (
-      <div className="flex min-h-[calc(100vh-13rem)] flex-col items-center justify-center px-4 py-6">
-        <div className="w-full max-w-xl animate-in fade-in slide-in-from-bottom-4 duration-500 rounded-[2rem] border border-black/8 bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-[#050505] dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:p-10">
-          <div className="mb-8 space-y-2">
-            <h2 className="text-3xl font-semibold tracking-[-0.04em] text-foreground sm:text-4xl">Tracker</h2>
-            <p className="text-sm leading-6 text-muted-foreground">Enter wallet address.</p>
-          </div>
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <div className="p-4 rounded-full bg-red-500/10">
+          <X className="h-8 w-8 text-red-500" />
+        </div>
+        <div className="text-center">
+          <h3 className="text-lg font-semibold">Search Failed</h3>
+          <p className="text-sm text-muted-foreground">{error}</p>
+        </div>
+        <Button onClick={handleClear} variant="outline">Try Another Address</Button>
+      </div>
+    );
+  }
 
-          <div className="space-y-3">
-            <div className="relative">
+  if (!activePortfolio) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-8 max-w-2xl mx-auto px-4">
+        <div className="text-center space-y-2">
+          <h2 className="text-4xl font-black tracking-tight italic uppercase">Wallet Tracker</h2>
+          <p className="text-muted-foreground">Monitor performance, positions, and fund flows for any SoDex address.</p>
+        </div>
+        
+        <div className="w-full max-w-md space-y-4">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="0x..."
-                className="w-full rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-4 text-sm font-medium text-foreground placeholder:text-black/25 focus:outline-none focus:ring-1 focus:ring-black/15 transition-all dark:border-white/10 dark:bg-white/[0.02] dark:placeholder:text-white/25 dark:focus:ring-white/25"
+                placeholder="Enter 0x address..."
+                className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/[0.03] border border-white/10 focus:outline-none focus:border-orange-500/50 transition-all font-mono text-sm"
               />
             </div>
-
-            {error && (
-              <div className="rounded-2xl border border-red-500/25 bg-red-500/8 p-3">
-                <p className="text-xs font-medium text-red-600 dark:text-red-300">{error}</p>
-              </div>
-            )}
-
-            <button
-              onClick={() => handleSearch(searchInput)}
-              disabled={isLoading || !searchInput.trim()}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white bg-white px-4 py-3.5 text-sm font-semibold text-black transition-all active:scale-[0.99] hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Search className="h-4 w-4" />
-              {isLoading ? 'Searching...' : 'Search Wallet'}
-            </button>
+            <Button onClick={() => handleSearch()} disabled={isLoading} className="rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold italic px-6">
+              TRACK
+            </Button>
           </div>
+
+          <div className="flex items-center justify-center gap-4 py-2">
+             <div className="flex bg-white/5 rounded-xl p-1">
+                {(['ALL', '30D'] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTimeframe(t)}
+                    className={cn(
+                      "flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-black transition-all uppercase tracking-widest",
+                      timeframe === t
+                        ? "bg-white text-black shadow-lg"
+                        : "text-white/40 hover:text-white hover:bg-white/5"
+                    )}
+                  >
+                    <Calendar className="w-3 h-3" />
+                    {t === 'ALL' ? 'Full History' : 'Last 30 Days'}
+                  </button>
+                ))}
+              </div>
+          </div>
+          <p className="text-[10px] text-center text-muted-foreground/40 uppercase tracking-[0.2em]">
+            Tip: Use "Last 30 Days" for high-frequency trading accounts
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <PortfolioProvider
-      initialUserId={userId}
-      initialPositions={positions}
-      initialWalletAddress={walletAddress}
-      initialSourceWalletAddress={sourceWalletAddress}
-    >
-      <div className="space-y-5 text-foreground">
-        <div className="rounded-[1.75rem] border border-black/8 bg-white px-5 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)] md:px-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="min-w-0 space-y-1.5">
-              <h1 className="text-2xl font-semibold tracking-[-0.04em] text-foreground md:text-3xl">
-                Tracker
-              </h1>
-              <p className="max-w-3xl break-all text-sm text-muted-foreground">
-                {walletAddress}
-              </p>
+    <PortfolioProvider initialData={{ 
+      positions: activePortfolio.positions, 
+      userId: activePortfolio.userId, 
+      walletAddress: activePortfolio.walletAddress, 
+      sourceWalletAddress: activePortfolio.walletAddress 
+    }}>
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div className="flex items-center gap-3">
+            <div className="p-3 rounded-2xl bg-orange-500/10">
+              <Activity className="h-6 w-6 text-orange-500" />
             </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <ShareStatsModal 
-                walletAddress={walletAddress} 
-                userId={userId || ''} 
-                sourceWalletAddress={sourceWalletAddress || undefined}
-                trigger={
-                  <Button
-                    variant="outline"
-                    className="h-9 rounded-2xl border-black/10 bg-black/[0.02] px-3.5 text-[11px] font-semibold text-black/70 hover:bg-black/[0.05] hover:text-black dark:border-white/12 dark:bg-white/[0.02] dark:text-white/70 dark:hover:bg-white/[0.06] dark:hover:text-white"
-                  >
-                    <Share2 className="w-3.5 h-3.5" />
-                    Share
-                  </Button>
-                }
-              />
-            <Button
-              variant="outline"
-              onClick={handleClear}
-              className="h-9 rounded-2xl border-black/10 bg-black/[0.02] px-3.5 text-[11px] font-semibold text-black/70 hover:bg-black/[0.05] hover:text-black dark:border-white/12 dark:bg-white/[0.02] dark:text-white/70 dark:hover:bg-white/[0.06] dark:hover:text-white"
-            >
-              <X className="w-3.5 h-3.5" />
-              Clear
-            </Button>
-            <a
-              href={`https://sodex.com/join/TRADING`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex h-9 items-center gap-2 rounded-2xl border border-white/12 bg-white px-3.5 text-[11px] font-semibold text-black transition hover:bg-white/90"
-            >
-              Trade
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </a>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-bold tracking-tight">Tracker</h2>
+                <div className="px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20">
+                  <span className="text-[10px] font-bold text-green-500 uppercase tracking-wider">Live</span>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground font-mono">{activePortfolio.walletAddress}</p>
+            </div>
           </div>
-        </div>
+          <div className="flex items-center gap-2">
+            <Button onClick={handleClear} variant="outline" size="sm" className="rounded-xl">
+              <X className="h-4 w-4 mr-2" /> Clear
+            </Button>
+            <ShareStatsModal walletAddress={activePortfolio.walletAddress} userId={activePortfolio.userId} />
+          </div>
         </div>
 
         <PortfolioOverview />
-
-        <div className="grid grid-cols-1 gap-6">
-          <div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
             <PnLChart />
           </div>
+          <AssetFlowCard />
         </div>
 
+        <OpenPositions />
         <PositionsTable />
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <FundFlowTable walletAddress={sourceWalletAddress || walletAddress || ''} />
-          <AssetFlowCard walletAddress={sourceWalletAddress || walletAddress || ''} />
-        </div>
-
-        <div className="space-y-6">
-          <MonthlyCalendar />
-          <OpenPositions />
-        </div>
+        <FundFlowTable />
       </div>
-
     </PortfolioProvider>
   );
 }
 
 export function TrackerSection({ initialSearchAddress }: { initialSearchAddress?: string }) {
   return (
-    <TrackerContent initialSearchAddress={initialSearchAddress} />
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <TrackerContent initialSearchAddress={initialSearchAddress} />
+    </div>
   );
 }
-

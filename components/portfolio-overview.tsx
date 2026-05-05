@@ -56,9 +56,7 @@ export function PortfolioOverview() {
 
   const [metrics, setMetrics] = useState({
     futuresVolume: 0,
-    spotVolume: 0,
     futuresFees: 0,
-    spotFees: 0,
     pnl30d: 0,
     vaultPnl: 0,
     vaultShares: 0
@@ -67,13 +65,8 @@ export function PortfolioOverview() {
   const [loading, setLoading] = useState({
     balances: false,
     futuresMetrics: false,
-    spotMetrics: false,
     vault: false
   });
-  const [spotProgress, setSpotProgress] = useState<{
-    fetchedCount: number;
-    estimatedRemainingMs?: number;
-  } | null>(null);
 
   // 1. Fetch Balances
   useEffect(() => {
@@ -108,9 +101,8 @@ export function PortfolioOverview() {
     if (!userId || !positions) return;
 
     const fetchMetrics = async () => {
-      setLoading(prev => ({ ...prev, futuresMetrics: true, spotMetrics: true }));
+      setLoading(prev => ({ ...prev, futuresMetrics: true }));
       
-      // Part A: Futures Metrics (Fast)
       try {
         const pnlData = await fetchPnLOverview(userId);
         const fVol = getVolumeFromPnLOverview(pnlData);
@@ -133,9 +125,6 @@ export function PortfolioOverview() {
       } finally {
         setLoading(prev => ({ ...prev, futuresMetrics: false }));
       }
-
-      // Part B: Spot Metrics removed due to rate limits
-      setLoading(prev => ({ ...prev, spotMetrics: false }));
     };
 
     fetchMetrics();
@@ -216,18 +205,7 @@ export function PortfolioOverview() {
   }, [walletAddress, sourceWalletAddress, rankOptions]);
 
   const totalNetWorth = balances.total + balances.vault;
-  const isSyncing = loading.balances || loading.futuresMetrics || loading.spotMetrics || loading.vault;
-
-  // Helper for formatting numbers with K/M suffixes
-  const formatCompactNumber = (num: number) => {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(2) + 'M';
-    }
-    if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'k';
-    }
-    return num.toFixed(2);
-  };
+  const isSyncing = loading.balances || loading.futuresMetrics || loading.vault;
 
   const summaryCards = [
     {
@@ -368,27 +346,10 @@ export function PortfolioOverview() {
         {isSyncing && (
           <div className="mt-5 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-black/30 dark:text-white/30">
             <div className="h-2 w-2 rounded-full bg-black/35 animate-pulse dark:bg-white/35" />
-            {loading.spotMetrics ? 'Syncing spot history' : 'Updating account data'}
+            {'Updating account data'}
           </div>
         )}
       </div>
     </Card>
   );
 }
-
-function MetricBox({ label, value, icon, isPositive }: { label: string, value: string, icon: React.ReactNode, isPositive: boolean }) {
-  return (
-    <div className="space-y-2">
-      <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest flex items-center gap-2">
-        {icon} {label}
-      </p>
-      <p className={`text-xl font-bold tracking-tight ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-        {value}
-      </p>
-      <div className="w-full h-1 bg-secondary/20 rounded-full overflow-hidden">
-        <div className={`h-full ${isPositive ? 'bg-green-500' : 'bg-red-500'} w-[40%] opacity-20`} />
-      </div>
-    </div>
-  );
-}
-

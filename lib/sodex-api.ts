@@ -40,7 +40,9 @@ interface PositionsResponse {
   code: number;
   message: string;
   data: PositionData[];
-  next_cursor?: string;
+  meta?: {
+    next_cursor?: string;
+  };
 }
 
 interface SymbolsResponse {
@@ -92,80 +94,7 @@ export async function getUserIdByAddress(address: string): Promise<string> {
   return lookupWalletAddress(address);
 }
 
-export async function fetchSpotTrades(
-  accountId: string | number,
-  cursor?: string
-): Promise<{ trades: SpotTrade[]; nextCursor?: string }> {
-  // Use internal Next.js proxy to avoid CORS issues in client-side components
-  const url = new URL('/api/spot/trades', typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
-  url.searchParams.set('account_id', String(accountId));
-  if (cursor) {
-    url.searchParams.set('cursor', cursor);
-  }
-
-  const response = await fetch(url.toString());
-  if (!response.ok) {
-    throw new Error(`Failed to fetch spot trades: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  if (data.error) {
-    throw new Error(`API error: ${data.error}`);
-  }
-
-  return {
-    trades: data.trades || [],
-    nextCursor: data.nextCursor,
-  };
-}
-
-export async function fetchAllSpotTrades(
-  accountId: string | number,
-  onProgress?: (progress: { 
-    fetchedCount: number; 
-    isEstimate?: boolean; 
-    estimatedTotal?: number;
-    elapsedMs: number;
-    estimatedRemainingMs?: number;
-  }) => void
-): Promise<SpotTrade[]> {
-  const allTrades: SpotTrade[] = [];
-  let cursor: string | undefined;
-  const startTime = Date.now();
-  const REQUEST_DELAY_MS = 3000; // 3.0s delay between requests for very conservative rate limit compliance
-  const BATCH_SIZE = 20; // Lower batch size for more aggressive rate limit avoidance
-
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const { trades, nextCursor } = await fetchSpotTrades(accountId, cursor);
-    allTrades.push(...trades);
-
-    const elapsedMs = Date.now() - startTime;
-    
-    if (onProgress) {
-      // If we got nextCursor, it means there are likely more.
-      // We don't know the exact total, so we estimate based on typical trade counts if needed,
-      // or just report current progress.
-      onProgress({
-        fetchedCount: allTrades.length,
-        isEstimate: true,
-        elapsedMs,
-        // Estimation logic: if we hit a full batch, assume at least one more page
-        estimatedRemainingMs: nextCursor ? Math.max(REQUEST_DELAY_MS, (elapsedMs / allTrades.length) * BATCH_SIZE) : 0
-      });
-    }
-
-    if (!nextCursor) {
-      break;
-    }
-    cursor = nextCursor;
-    
-    // Wait before next request
-    await new Promise(resolve => setTimeout(resolve, REQUEST_DELAY_MS));
-  }
-
-  return allTrades;
-}
+// All spot trade functions removed per protocol updates
 
 export async function fetchPositions(
   accountId: string | number,
@@ -174,7 +103,7 @@ export async function fetchPositions(
   console.log('[STRICT-ID] API Fetch Positions:', accountId);
   const url = new URL('https://mainnet-data.sodex.dev/api/v1/perps/positions');
   url.searchParams.append('account_id', String(accountId));
-  url.searchParams.append('limit', '1000');
+  url.searchParams.append('limit', '500');
   if (cursor) {
     url.searchParams.append('cursor', cursor);
   }
@@ -191,12 +120,14 @@ export async function fetchPositions(
 
   return {
     positions: data.data || [],
-    nextCursor: data.next_cursor,
+    nextCursor: data.meta?.next_cursor,
   };
 }
 
 export async function fetchAllPositions(
-  accountId: string | number
+  accountId: string | number,
+  onProgress?: (count: number) => void,
+  minTimestamp?: number
 ): Promise<PositionData[]> {
   const allPositions: PositionData[] = [];
   let cursor: string | undefined;
@@ -204,12 +135,30 @@ export async function fetchAllPositions(
   // eslint-disable-next-line no-constant-condition
   while (true) {
     const { positions, nextCursor } = await fetchPositions(accountId, cursor);
+    
+    // Add new positions
     allPositions.push(...positions);
 
-    if (!nextCursor) {
+    if (onProgress) {
+      onProgress(allPositions.length);
+    }
+
+    // Check if we've reached the time limit
+    if (minTimestamp && positions.length > 0) {
+      const oldestInBatch = positions[positions.length - 1].updated_at;
+      if (oldestInBatch < minTimestamp) {
+        console.log('[v0] Reached time limit, stopping fetch.');
+        break;
+      }
+    }
+
+    if (!nextCursor || nextCursor === cursor) {
       break;
     }
     cursor = nextCursor;
+
+    // Increased delay to prevent rate limits and browser lag
+    await new Promise(resolve => setTimeout(resolve, 150));
   }
 
   return allPositions;

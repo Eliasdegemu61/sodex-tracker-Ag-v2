@@ -255,7 +255,9 @@ export function ShareStatsModal({
             </div>
             
             <div className="space-y-1">
-              <p className="text-[8px] md:text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">{walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}</p>
+              <p className="text-[8px] md:text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">
+                {walletAddress ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}` : '0x...'}
+              </p>
             </div>
           </div>
 
