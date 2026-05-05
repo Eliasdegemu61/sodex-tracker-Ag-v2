@@ -129,14 +129,21 @@ export async function fetchAllPositions(
   accountId: string | number,
   onProgress?: (count: number) => void,
   minTimestamp?: number,
-  signal?: AbortSignal
-): Promise<PositionData[]> {
+  signal?: AbortSignal,
+  maxCount?: number,
+  initialCursor?: string
+): Promise<{ positions: PositionData[]; nextCursor?: string }> {
   const allPositions: PositionData[] = [];
-  let cursor: string | undefined;
+  let cursor: string | undefined = initialCursor;
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    if (signal?.aborted) throw new Error('Fetch aborted');
+    if (signal?.aborted) {
+      const abortError = new Error('Fetch aborted');
+      abortError.name = 'AbortError';
+      throw abortError;
+    }
+
     const { positions, nextCursor } = await fetchPositions(accountId, cursor, signal);
     
     // Add new positions
@@ -144,6 +151,12 @@ export async function fetchAllPositions(
 
     if (onProgress) {
       onProgress(allPositions.length);
+    }
+
+    // Check if we've reached the record limit
+    if (maxCount && allPositions.length >= maxCount) {
+      console.log('[v0] Reached max count limit:', maxCount);
+      return { positions: allPositions, nextCursor: nextCursor };
     }
 
     // Check if we've reached the time limit
@@ -164,7 +177,7 @@ export async function fetchAllPositions(
     await new Promise(resolve => setTimeout(resolve, 150));
   }
 
-  return allPositions;
+  return { positions: allPositions };
 }
 
 export async function fetchSymbols(): Promise<Map<number, SymbolData>> {

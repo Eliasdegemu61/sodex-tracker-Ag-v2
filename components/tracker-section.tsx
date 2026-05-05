@@ -5,7 +5,7 @@ import React, { useEffect } from "react"
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Search, X, Loader2, Share2, ArrowUpRight, Activity, Calendar } from 'lucide-react';
+import { Search, X, Loader2, Share2, ArrowUpRight, Activity, Calendar, ChevronRight } from 'lucide-react';
 import { PortfolioOverview } from './portfolio-overview';
 import { PnLChart } from './pnl-chart';
 import { PositionsTable } from './positions-table';
@@ -35,7 +35,13 @@ function LoadingSpinner({ message, subMessage }: { message: string, subMessage?:
 }
 
 // Loading Skeleton Component
-function TrackerLoadingSkeleton({ loadingMessage, loadingSubMessage }: { loadingMessage?: string, loadingSubMessage?: string }) {
+function TrackerLoadingSkeleton({ loadingMessage, loadingSubMessage, onAbort, onContinue, currentCount }: { 
+  loadingMessage?: string, 
+  loadingSubMessage?: string, 
+  onAbort?: () => void,
+  onContinue?: () => void,
+  currentCount?: number
+}) {
   const [showDots, setShowDots] = useState(true);
 
   useEffect(() => {
@@ -45,12 +51,30 @@ function TrackerLoadingSkeleton({ loadingMessage, loadingSubMessage }: { loading
   }, []);
 
   if (showDots || loadingMessage) {
+    const isPaused = loadingMessage?.includes('Paused');
+
     return (
-      <div className="flex items-center justify-center min-h-96">
+      <div className="flex flex-col items-center justify-center min-h-96 space-y-8">
         <LoadingSpinner 
           message={loadingMessage || "Fetching latest data..."} 
           subMessage={loadingSubMessage}
         />
+        
+        {isPaused && (
+          <div className="flex flex-col items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="flex gap-3">
+              <Button onClick={onAbort} variant="outline" className="rounded-xl border-white/10 hover:bg-white/5 px-6">
+                Show Current ({currentCount})
+              </Button>
+              <Button onClick={onContinue} className="rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 gap-2">
+                Continue Fetching <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+            <p className="text-[10px] text-muted-foreground/40 uppercase tracking-[0.2em]">
+              Fetched 10,000 records. Continuing may slow down the browser.
+            </p>
+          </div>
+        )}
       </div>
     );
   }
@@ -100,29 +124,43 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
   } | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [fetchProgress, setFetchProgress] = useState<{count: number, isLong: boolean}>({ count: 0, isLong: false });
+  const [isPaused, setIsPaused] = useState(false);
+  const [fetchProgress, setFetchProgress] = useState<{count: number, isLong: boolean, nextCursor?: string}>({ count: 0, isLong: false });
   const [error, setError] = useState<string | null>(null);
   
+  // Store intermediate positions when paused
+  const [pendingPositions, setPendingPositions] = useState<any[]>([]);
+  const [pendingUserId, setPendingUserId] = useState<string | null>(null);
+
   // Ref to track the current abort controller for cancellation
   const abortControllerRef = React.useRef<AbortController | null>(null);
 
   // Timeframe option for large accounts
   const [timeframe, setTimeframe] = useState<'30D' | 'ALL'>('ALL');
 
-  const handleSearch = async (addressToSearch?: string) => {
+  const handleSearch = async (addressToSearch?: string, cursor?: string, accumulatedPositions: any[] = []) => {
     const valueToSearch = (addressToSearch || searchInput || '').trim();
     if (!valueToSearch) return;
 
-    // Cancel any existing fetch
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
+    // Only cancel if this is a fresh search (not a "Continue")
+    if (!cursor) {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+      setPendingPositions([]);
     }
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
+
+    const controller = abortControllerRef.current!;
 
     setIsLoading(true);
+    setIsPaused(false);
     setError(null);
-    setFetchProgress({ count: 0, isLong: false });
+    
+    if (!cursor) {
+      setFetchProgress({ count: 0, isLong: false });
+    }
 
     // Long fetch timer
     const longFetchTimer = setTimeout(() => {
@@ -131,21 +169,40 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
 
     try {
       const addressToFetch = valueToSearch;
-      const foundUserId = await getUserIdByAddress(addressToFetch);
+      const foundUserId = cursor ? pendingUserId! : await getUserIdByAddress(addressToFetch);
+      
+      if (!cursor) setPendingUserId(foundUserId);
 
       // Calculate minTimestamp if 30D is selected
       const minTimestamp = timeframe === '30D' ? Date.now() - 30 * 24 * 60 * 60 * 1000 : undefined;
 
-      const fetchedPositions = await fetchAllPositions(
+      // Soft limit of 10k records
+      const SOFT_LIMIT = 10000;
+
+      const { positions: fetchedPositions, nextCursor } = await fetchAllPositions(
         foundUserId, 
         (count) => {
-          setFetchProgress(prev => ({ ...prev, count }));
+          setFetchProgress(prev => ({ ...prev, count: accumulatedPositions.length + count }));
         },
         minTimestamp,
-        controller.signal
+        controller.signal,
+        SOFT_LIMIT,
+        cursor
       );
       
-      const enrichedPositions = await enrichPositions(fetchedPositions);
+      const totalPositions = [...accumulatedPositions, ...fetchedPositions];
+
+      if (nextCursor && totalPositions.length >= SOFT_LIMIT) {
+        // We hit the limit and there's more to fetch
+        setPendingPositions(totalPositions);
+        setFetchProgress(prev => ({ ...prev, count: totalPositions.length, nextCursor }));
+        setIsPaused(true);
+        clearTimeout(longFetchTimer);
+        return;
+      }
+
+      // Finish and enrich
+      const enrichedPositions = await enrichPositions(totalPositions);
 
       // Only set everything if this is still the active request
       if (!controller.signal.aborted) {
@@ -157,7 +214,7 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
         setError(null);
       }
     } catch (err) {
-      if (err instanceof Error && err.message === 'Fetch aborted') {
+      if (err instanceof Error && (err.name === 'AbortError' || err.message === 'Fetch aborted')) {
         console.log('[v0] Search cancelled for:', valueToSearch);
         return;
       }
@@ -166,11 +223,35 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
       setError(errorMessage);
       setActivePortfolio(null);
     } finally {
-      if (abortControllerRef.current === controller) {
+      if (abortControllerRef.current === controller && !isPaused) {
         clearTimeout(longFetchTimer);
-        setIsLoading(false);
-        abortControllerRef.current = null;
+        if (!isPaused) setIsLoading(false);
+        // Don't clear ref if we are paused, we need it for "Continue"
       }
+    }
+  };
+
+  const handleContinue = () => {
+    if (fetchProgress.nextCursor && walletAddress || searchInput) {
+      handleSearch(walletAddress || searchInput, fetchProgress.nextCursor, pendingPositions);
+    }
+  };
+
+  const handleAbortAndShow = async () => {
+    setIsLoading(true);
+    setIsPaused(false);
+    try {
+      const enriched = await enrichPositions(pendingPositions);
+      setActivePortfolio({
+        walletAddress: walletAddress || searchInput,
+        userId: pendingUserId!,
+        positions: enriched
+      });
+    } catch (err) {
+      setError('Failed to process existing data');
+    } finally {
+      setIsLoading(false);
+      if (abortControllerRef.current) abortControllerRef.current.abort();
     }
   };
 
@@ -195,6 +276,7 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
     setSearchInput('');
     setActivePortfolio(null);
     setError(null);
+    if (abortControllerRef.current) abortControllerRef.current.abort();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -204,19 +286,27 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
   };
 
   // Render portfolio data when wallet is found
-  if (isLoading) {
-    const loadingMessage = fetchProgress.isLong 
-      ? `Indexing... (${fetchProgress.count} records)` 
-      : "Resolving address...";
-    const loadingSubMessage = fetchProgress.isLong 
-      ? `Large history detected. Indexing entire trade history safely. Please wait until this process finishes for accurate metrics.` 
-      : undefined;
+  if (isLoading || isPaused) {
+    const loadingMessage = isPaused 
+      ? `Paused at ${fetchProgress.count.toLocaleString()} records`
+      : fetchProgress.isLong 
+        ? `Indexing... (${fetchProgress.count.toLocaleString()} records)` 
+        : "Resolving address...";
+        
+    const loadingSubMessage = isPaused
+      ? "Large dataset detected. You can view what we've fetched so far or continue indexing the full history."
+      : fetchProgress.isLong 
+        ? `Indexing entire trade history safely. Please wait until this process finishes for accurate metrics.` 
+        : undefined;
 
     return (
       <div className="flex items-center justify-center min-h-[400px] w-full max-w-5xl mx-auto px-4">
         <TrackerLoadingSkeleton 
           loadingMessage={loadingMessage} 
           loadingSubMessage={loadingSubMessage}
+          onAbort={handleAbortAndShow}
+          onContinue={handleContinue}
+          currentCount={fetchProgress.count}
         />
       </div>
     );
