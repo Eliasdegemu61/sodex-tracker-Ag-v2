@@ -1,20 +1,20 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Search, 
-  X, 
-  Loader2, 
-  TrendingUp, 
-  TrendingDown, 
-  Zap, 
-  BarChart3, 
-  PieChart, 
-  Activity, 
-  Clock, 
+import {
+  Search,
+  X,
+  Loader2,
+  TrendingUp,
+  TrendingDown,
+  Zap,
+  BarChart3,
+  PieChart,
+  Activity,
+  Clock,
   ShieldAlert,
   Percent,
   Coins,
@@ -25,6 +25,7 @@ import {
   AlertTriangle,
   Layers,
   Target,
+  ChevronRight,
   BarChart as BarChartIcon,
   LineChart as LineChartIcon
 } from 'lucide-react';
@@ -61,11 +62,53 @@ interface AnalyticsData {
 
 // --- Helper Components ---
 
+function LoadingSpinner({ message, subMessage, onContinue, onAbort, isPaused, currentCount }: {
+  message: string,
+  subMessage?: string,
+  onContinue?: () => void,
+  onAbort?: () => void,
+  isPaused?: boolean,
+  currentCount?: number
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-6 py-12 text-center animate-in fade-in duration-500">
+      <div className="relative">
+        <Loader2 className={cn("h-10 w-10 text-primary", !isPaused && "animate-spin")} />
+        {isPaused && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-[8px] font-black uppercase text-primary">LIMIT</span>
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <span className="block text-lg font-bold text-foreground italic uppercase tracking-tight">{message}</span>
+        {subMessage && (
+          <span className="block text-xs text-muted-foreground/60 max-w-md mx-auto font-medium leading-relaxed">{subMessage}</span>
+        )}
+      </div>
+
+      {isPaused && (
+        <div className="flex flex-col items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 mt-4">
+          <div className="flex gap-3">
+            <Button onClick={onAbort} variant="outline" className="rounded-xl border-border/10 hover:bg-muted/50 px-6 font-bold text-[10px] uppercase tracking-widest h-11">
+              Analyze Current ({currentCount?.toLocaleString()})
+            </Button>
+            <Button onClick={onContinue} className="rounded-xl bg-foreground text-background hover:bg-foreground/90 font-bold px-8 gap-2 text-[10px] uppercase tracking-widest h-11">
+              Continue Sync <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CustomTooltip({ active, payload, label }: any) {
   if (active && payload && payload.length) {
     const value = payload[0].value;
     const isPositive = value >= 0;
-    
+
     return (
       <div className="bg-card/80 backdrop-blur-xl border border-border/50 p-4 rounded-2xl shadow-2xl min-w-[140px] animate-in fade-in zoom-in duration-300 relative overflow-hidden">
         <p className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em] mb-2">{label}</p>
@@ -78,7 +121,7 @@ function CustomTooltip({ active, payload, label }: any) {
             {isPositive ? '+' : ''}${Math.abs(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
         </div>
-        
+
         {/* Decorative corner accent */}
         <div className={cn(
           "absolute top-0 right-0 w-8 h-8 opacity-10 blur-xl rounded-full",
@@ -90,18 +133,18 @@ function CustomTooltip({ active, payload, label }: any) {
   return null;
 }
 
-function MetricCard({ 
-  label, 
-  value, 
-  subValue, 
-  icon: Icon, 
-  trend, 
-  className 
-}: { 
-  label: string; 
-  value: string | number; 
-  subValue?: string; 
-  icon?: any; 
+function MetricCard({
+  label,
+  value,
+  subValue,
+  icon: Icon,
+  trend,
+  className
+}: {
+  label: string;
+  value: string | number;
+  subValue?: string;
+  icon?: any;
   trend?: 'up' | 'down' | 'neutral';
   className?: string;
 }) {
@@ -137,7 +180,7 @@ function MetricCard({
 // --- Metrics Engine ---
 
 function calculateAnalytics(positions: EnrichedPosition[]): AnalyticsData {
-  if (!positions || positions.length === 0) {
+  if (!Array.isArray(positions) || positions.length === 0) {
     return {
       portfolio_summary: {},
       pair_analysis: [],
@@ -211,7 +254,7 @@ function calculateAnalytics(positions: EnrichedPosition[]): AnalyticsData {
     const pGross = pTrades.reduce((acc, t) => acc + t.realized_pnl, 0);
     const pFees = pTrades.reduce((acc, t) => acc + t.fee, 0);
     const pNet = pGross - pFees;
-    
+
     return {
       pair,
       trade_count: pTrades.length,
@@ -232,9 +275,9 @@ function calculateAnalytics(positions: EnrichedPosition[]): AnalyticsData {
   // 3. Direction Analysis
   const longs = trades.filter(t => t.side === 'long');
   const shorts = trades.filter(t => t.side === 'short');
-  
+
   const getDirectionStats = (dirTrades: any[]) => {
-    if (dirTrades.length === 0) return { count: 0, net_pnl: 0, win_rate: 0, expectancy: 0 };
+    if (!Array.isArray(dirTrades) || dirTrades.length === 0) return { count: 0, net_pnl: 0, win_rate: 0, expectancy: 0 };
     const wins = dirTrades.filter(t => t.realized_pnl > 0);
     const dGross = dirTrades.reduce((acc, t) => acc + t.realized_pnl, 0);
     const dFees = dirTrades.reduce((acc, t) => acc + t.fee, 0);
@@ -263,7 +306,7 @@ function calculateAnalytics(positions: EnrichedPosition[]): AnalyticsData {
   const median_trade_pnl = netPnls[Math.floor(netPnls.length / 2)];
   const variance = netPnls.reduce((acc, v) => acc + Math.pow(v - mean_trade_pnl, 2), 0) / netPnls.length;
   const std_dev_pnl = Math.sqrt(variance);
-  
+
   const pnl_distribution = {
     mean_trade_pnl,
     median_trade_pnl,
@@ -360,8 +403,8 @@ function calculateAnalytics(positions: EnrichedPosition[]): AnalyticsData {
       profit: worstPair.net_pnl,
       leverage: worstPair.avg_leverage
     } : null,
-    best_long: bestLong?.net > 0 ? bestLong : null,
-    best_short: bestShort?.net > 0 ? bestShort : null
+    best_long: (bestLong && bestLong.net > 0) ? bestLong : null,
+    best_short: (bestShort && bestShort.net > 0) ? bestShort : null
   };
 
   return {
@@ -383,13 +426,17 @@ export function TradeAnalytics() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | number | null>(null);
   const [futuresPositions, setFuturesPositions] = useState<EnrichedPosition[]>([]);
-  const [marketType] = useState<'futures' | 'spot'>('futures');
   const [isLoading, setIsLoading] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [timeframe, setTimeframe] = useState<'7d' | '30d' | '3m' | 'all'>('all');
-  const [sortConfig, setSortConfig] = useState<{ key: 'net_pnl' | 'trade_count' | 'profit_factor', direction: 'asc' | 'desc' }>({ 
-    key: 'net_pnl', 
-    direction: 'desc' 
+  const [fetchProgress, setFetchProgress] = useState<{ count: number, isLong: boolean, nextCursor?: string }>({ count: 0, isLong: false });
+  const [pendingPositions, setPendingPositions] = useState<any[]>([]);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const [sortConfig, setSortConfig] = useState<{ key: 'net_pnl' | 'trade_count' | 'profit_factor', direction: 'asc' | 'desc' }>({
+    key: 'net_pnl',
+    direction: 'desc'
   });
 
   const positions = futuresPositions;
@@ -404,8 +451,8 @@ export function TradeAnalytics() {
   }, []);
 
   const analytics = useMemo(() => {
-    if (positions.length === 0) return null;
-    
+    if (!Array.isArray(positions) || positions.length === 0) return null;
+
     // Filter positions by timeframe
     const filteredPositions = positions.filter(p => {
       if (timeframe === 'all') return true;
@@ -413,7 +460,7 @@ export function TradeAnalytics() {
       const tradeDate = new Date(p.created_at);
       const diffMs = now.getTime() - tradeDate.getTime();
       const diffDays = diffMs / (1000 * 60 * 60 * 24);
-      
+
       if (timeframe === '7d') return diffDays <= 7;
       if (timeframe === '30d') return diffDays <= 30;
       if (timeframe === '3m') return diffDays <= 90;
@@ -425,7 +472,7 @@ export function TradeAnalytics() {
   }, [futuresPositions, timeframe]);
 
   const sortedPairAnalysis = useMemo(() => {
-    if (!analytics) return [];
+    if (!analytics || !Array.isArray(analytics.pair_analysis)) return [];
     return [...analytics.pair_analysis].sort((a, b) => {
       const aVal = a[sortConfig.key];
       const bVal = b[sortConfig.key];
@@ -433,37 +480,106 @@ export function TradeAnalytics() {
     });
   }, [analytics, sortConfig]);
 
-  const handleSearch = async (val?: string) => {
+  const handleSearch = async (val?: string, cursor?: string, accumulated: any[] = []) => {
     const address = (val || searchInput).trim();
     if (!address) return;
 
-    setIsLoading(true);
-    setError(null);
-    try {
-      const foundUserId = await getUserIdByAddress(address);
-      setWalletAddress(address);
-      setUserId(foundUserId);
-      localStorage.setItem('trade_analytics_address', address);
+    // Reset abort controller for new search
+    if (!cursor) {
+      if (abortControllerRef.current) abortControllerRef.current.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+      setPendingPositions([]);
+      setFetchProgress({ count: 0, isLong: false });
+    }
 
-      const rawFutures = await fetchAllPositions(foundUserId).catch(err => {
-        console.warn('Failed to fetch futures:', err);
-        return [];
-      });
-      
-      const enrichedFutures = await enrichPositions(rawFutures);
-      setFuturesPositions(enrichedFutures);
+    const controller = abortControllerRef.current!;
+
+    setIsLoading(true);
+    setIsPaused(false);
+    setError(null);
+
+    // Long fetch timer
+    const longFetchTimer = setTimeout(() => {
+      setFetchProgress(prev => ({ ...prev, isLong: true }));
+    }, 4000);
+
+    try {
+      const foundUserId = cursor ? userId! : await getUserIdByAddress(address);
+      if (!cursor) {
+        setWalletAddress(address);
+        setUserId(foundUserId);
+        localStorage.setItem('trade_analytics_address', address);
+      }
+
+      // Soft limit of 10k records for segmented fetching
+      const SOFT_LIMIT = 10000;
+
+      const { positions: fetched, nextCursor } = await fetchAllPositions(
+        foundUserId,
+        (count) => setFetchProgress(prev => ({ ...prev, count: accumulated.length + count })),
+        undefined, // no time limit here, we handle timeframe filter in useMemo for analytics
+        controller.signal,
+        SOFT_LIMIT,
+        cursor
+      );
+
+      const total = [...accumulated, ...fetched];
+
+      if (nextCursor && total.length >= SOFT_LIMIT) {
+        setPendingPositions(total);
+        setFetchProgress(prev => ({ ...prev, count: total.length, nextCursor }));
+        setIsPaused(true);
+        clearTimeout(longFetchTimer);
+        return;
+      }
+
+      const enrichedFutures = await enrichPositions(total);
+
+      if (!controller.signal.aborted) {
+        setFuturesPositions(enrichedFutures);
+        clearTimeout(longFetchTimer);
+      }
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return;
       setError(err instanceof Error ? err.message : 'Registry lookup failed');
     } finally {
+      if (abortControllerRef.current === controller && !isPaused) {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const handleContinue = () => {
+    if (walletAddress && fetchProgress.nextCursor) {
+      handleSearch(walletAddress, fetchProgress.nextCursor, pendingPositions);
+    }
+  };
+
+  const handleAbortAndShow = async () => {
+    if (pendingPositions.length === 0) return;
+    setIsLoading(true);
+    setIsPaused(false);
+    try {
+      const enriched = await enrichPositions(pendingPositions);
+      setFuturesPositions(enriched);
+    } catch (err) {
+      setError('Failed to process current data');
+    } finally {
       setIsLoading(false);
+      if (abortControllerRef.current) abortControllerRef.current.abort();
     }
   };
 
   const handleClear = () => {
+    if (abortControllerRef.current) abortControllerRef.current.abort();
     setWalletAddress(null);
     setUserId(null);
     setFuturesPositions([]);
     setSearchInput('');
+    setPendingPositions([]);
+    setFetchProgress({ count: 0, isLong: false });
+    setIsPaused(false);
     localStorage.removeItem('trade_analytics_address');
   };
 
@@ -492,8 +608,8 @@ export function TradeAnalytics() {
                   />
                 </div>
               </div>
-              
-              <Button 
+
+              <Button
                 onClick={() => handleSearch()}
                 disabled={isLoading || !searchInput.trim()}
                 className="w-full h-14 rounded-2xl bg-foreground text-background hover:bg-foreground/90 font-bold text-[11px] uppercase tracking-[0.2em] transition-all duration-300 disabled:opacity-50"
@@ -515,63 +631,77 @@ export function TradeAnalytics() {
     );
   }
 
-  if (isLoading) {
+  if (isLoading || isPaused) {
+    const loadingMessage = isPaused
+      ? `Data limit reached`
+      : `Syncing history... (${fetchProgress.count.toLocaleString()} records)`;
+
+    const loadingSubMessage = isPaused
+      ? `Large history detected. You can analyze the current ${fetchProgress.count.toLocaleString()} records or continue syncing for full accuracy.`
+      : `Optimizing report for high-frequency data. This may take a moment for large accounts.`;
+
     return (
-      <div className="flex flex-col items-center justify-center min-h-[600px] gap-6">
-        <Loader2 className="w-12 h-12 text-primary animate-spin" />
-        <p className="text-xs font-black text-muted-foreground uppercase tracking-widest animate-pulse">Loading trade history...</p>
+      <div className="flex items-center justify-center min-h-[600px] font-sans">
+        <LoadingSpinner
+          message={loadingMessage}
+          subMessage={loadingSubMessage}
+          isPaused={isPaused}
+          onContinue={handleContinue}
+          onAbort={handleAbortAndShow}
+          currentCount={fetchProgress.count}
+        />
       </div>
     );
   }
 
   const renderHeader = (
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 pb-8 border-b border-border">
-        <div className="flex items-center gap-6">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold text-foreground tracking-tight">Trade Analytics</h1>
-              <div className="px-2 py-0.5 bg-primary/10 border border-primary/20 rounded-md">
-                <span className="text-[8px] font-bold text-primary uppercase tracking-widest">BETA</span>
-              </div>
+    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 pb-8 border-b border-border">
+      <div className="flex items-center gap-6">
+        <div>
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">Trade Analytics</h1>
+            <div className="px-2 py-0.5 bg-primary/10 border border-primary/20 rounded-md">
+              <span className="text-[8px] font-bold text-primary uppercase tracking-widest">BETA</span>
             </div>
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.4em] flex items-center gap-3">
-              <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              {walletAddress.slice(0, 8)}...{walletAddress.slice(-6)}
-            </p>
           </div>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 sm:gap-4">
-          <div className="flex items-center p-1 bg-muted border border-border rounded-xl">
-            {(['7d', '30d', '3m', 'all'] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTimeframe(t)}
-                className={cn(
-                  "px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all",
-                  timeframe === t 
-                    ? "bg-background text-foreground shadow-sm" 
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {t === 'all' ? 'All' : t}
-              </button>
-            ))}
-          </div>
-
-          <Button 
-            variant="outline" 
-            onClick={handleClear}
-            className="rounded-xl border-border bg-card hover:bg-muted text-foreground/60 hover:text-foreground h-10 px-4 transition-all duration-300"
-          >
-            <X className="w-3.5 h-3.5 mr-2" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Change</span>
-          </Button>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.4em] flex items-center gap-3">
+            <span className="flex h-2 w-2 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            {walletAddress.slice(0, 8)}...{walletAddress.slice(-6)}
+          </p>
         </div>
       </div>
+
+      <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 sm:gap-4">
+        <div className="flex items-center p-1 bg-muted border border-border rounded-xl">
+          {(['7d', '30d', '3m', 'all'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTimeframe(t)}
+              className={cn(
+                "px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all",
+                timeframe === t
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {t === 'all' ? 'All' : t}
+            </button>
+          ))}
+        </div>
+
+        <Button
+          variant="outline"
+          onClick={handleClear}
+          className="rounded-xl border-border bg-card hover:bg-muted text-foreground/60 hover:text-foreground h-10 px-4 transition-all duration-300"
+        >
+          <X className="w-3.5 h-3.5 mr-2" />
+          <span className="text-[10px] font-bold uppercase tracking-widest">Change</span>
+        </Button>
+      </div>
+    </div>
   );
 
   if (!analytics || positions.length === 0) {
@@ -584,7 +714,7 @@ export function TradeAnalytics() {
           </div>
           <h3 className="text-lg font-bold text-foreground tracking-tight">No Trades Found</h3>
           <p className="text-xs font-semibold text-muted-foreground/40 uppercase tracking-widest max-w-sm">
-            This wallet has no {marketType} history in the selected timeframe.
+            This wallet has no history in the selected timeframe.
           </p>
         </div>
       </div>
@@ -618,7 +748,7 @@ export function TradeAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Market Exposure Matrix */}
         <Card className="lg:col-span-2 p-6 sm:p-8 bg-background border border-border rounded-xl shadow-none overflow-hidden relative group">
-          
+
           <div className="flex items-center justify-between mb-8 relative z-10">
             <div className="flex items-center gap-4">
               <div>
@@ -690,42 +820,36 @@ export function TradeAnalytics() {
         {/* Tactical Edge Detection */}
         <div className="space-y-6">
           <Card className="p-6 bg-background border border-border rounded-xl shadow-none relative overflow-hidden">
-             
-             <div className="flex items-center gap-3 mb-6">
-               <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">Top Pairs</h3>
-             </div>
 
-             <div className="space-y-6 relative z-10">
+            <div className="flex items-center gap-3 mb-6">
+              <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">Top Pairs</h3>
+            </div>
+
+            <div className="space-y-6 relative z-10">
               <div className="space-y-4 relative z-10">
                 {[
-                  { 
-                    label: 'Best Pair', 
-                    value: edge.best_pair?.name, 
-                    sub: marketType === 'futures' 
-                      ? `${edge.best_pair?.profit >= 0 ? '+' : ''}$${edge.best_pair?.profit?.toFixed(0) || 0} • ${edge.best_pair?.leverage?.toFixed(0) || 0}x • ${edge.best_pair?.side || ''}`
-                      : `${edge.best_pair?.profit >= 0 ? '+' : ''}$${edge.best_pair?.profit?.toFixed(0) || 0}`,
-                    color: 'text-emerald-500' 
+                  {
+                    label: 'Best Pair',
+                    value: edge.best_pair?.name,
+                    sub: `${edge.best_pair?.profit >= 0 ? '+' : ''}$${edge.best_pair?.profit?.toFixed(0) || 0} • ${edge.best_pair?.leverage?.toFixed(0) || 0}x • ${edge.best_pair?.side || ''}`,
+                    color: 'text-emerald-500'
                   },
-                  { 
-                    label: 'Worst Pair', 
-                    value: edge.worst_pair?.name, 
-                    sub: marketType === 'futures'
-                      ? `$${edge.worst_pair?.profit?.toFixed(0) || 0} • ${edge.worst_pair?.leverage?.toFixed(0) || 0}x`
-                      : `$${edge.worst_pair?.profit?.toFixed(0) || 0}`,
-                    color: 'text-orange-500' 
+                  {
+                    label: 'Worst Pair',
+                    value: edge.worst_pair?.name,
+                    sub: `$${edge.worst_pair?.profit?.toFixed(0) || 0} • ${edge.worst_pair?.leverage?.toFixed(0) || 0}x`,
+                    color: 'text-orange-500'
                   },
-                  ...(marketType === 'futures' ? [
-                    { 
-                      label: 'Best Long', 
-                      value: edge.best_long?.pair, 
-                      sub: `+$${edge.best_long?.net?.toFixed(0) || 0} profit` 
-                    },
-                    { 
-                      label: 'Best Short', 
-                      value: edge.best_short?.pair, 
-                      sub: `+$${edge.best_short?.net?.toFixed(0) || 0} profit` 
-                    }
-                  ] : [])
+                  {
+                    label: 'Best Long',
+                    value: edge.best_long?.pair,
+                    sub: `+$${edge.best_long?.net?.toFixed(0) || 0} profit`
+                  },
+                  {
+                    label: 'Best Short',
+                    value: edge.best_short?.pair,
+                    sub: `+$${edge.best_short?.net?.toFixed(0) || 0} profit`
+                  }
                 ].map((item, i) => (
                   <div key={i} className="flex flex-col group/item">
                     <div className="flex items-center justify-between mb-1.5">
@@ -738,208 +862,186 @@ export function TradeAnalytics() {
                   </div>
                 ))}
               </div>
-             </div>
+            </div>
           </Card>
 
-          {marketType === 'futures' && (
-            <Card className="p-6 bg-background border border-border rounded-xl shadow-none overflow-hidden">
-               <div className="flex items-center gap-3 mb-6">
-                 <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">Long vs Short</h3>
-               </div>
+          <Card className="p-6 bg-background border border-border rounded-xl shadow-none overflow-hidden">
+            <div className="flex items-center gap-3 mb-6">
+              <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">Long vs Short</h3>
+            </div>
 
-               <div className="grid grid-cols-2 gap-4">
-                  <div className="p-6 bg-card border-border/50 rounded-2xl space-y-4 hover:border-emerald-500/20 transition-all duration-500 group/long">
-                     <div className="flex items-center justify-between">
-                       <span className="text-[8px] font-bold text-emerald-500/50 uppercase">LONG</span>
-                     </div>
-                     <div className="space-y-1">
-                       <p className="text-base sm:text-xl font-bold text-foreground tracking-tighter tabular-nums">${direction_analysis.overall.long.net_pnl.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-                       <p className="text-[7px] sm:text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest">Win Rate: {direction_analysis.overall.long.win_rate.toFixed(0)}%</p>
-                     </div>
-                  </div>
-                  <div className="p-6 bg-card border-border/50 rounded-2xl space-y-4 hover:border-orange-500/20 transition-all duration-500 group/short">
-                     <div className="flex items-center justify-between">
-                       <span className="text-[8px] font-bold text-orange-500/50 uppercase">SHORT</span>
-                     </div>
-                     <div className="space-y-1">
-                       <p className="text-base sm:text-xl font-bold text-foreground tracking-tighter tabular-nums">${direction_analysis.overall.short.net_pnl.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-                       <p className="text-[7px] sm:text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest">Win Rate: {direction_analysis.overall.short.win_rate.toFixed(0)}%</p>
-                     </div>
-                  </div>
-               </div>
-            </Card>
-          )}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-6 bg-card border-border/50 rounded-2xl space-y-4 hover:border-emerald-500/20 transition-all duration-500 group/long">
+                <div className="flex items-center justify-between">
+                  <span className="text-[8px] font-bold text-emerald-500/50 uppercase">LONG</span>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-base sm:text-xl font-bold text-foreground tracking-tighter tabular-nums">${direction_analysis.overall.long.net_pnl.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                  <p className="text-[7px] sm:text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest">Win Rate: {direction_analysis.overall.long.win_rate.toFixed(0)}%</p>
+                </div>
+              </div>
+              <div className="p-6 bg-card border-border/50 rounded-2xl space-y-4 hover:border-orange-500/20 transition-all duration-500 group/short">
+                <div className="flex items-center justify-between">
+                  <span className="text-[8px] font-bold text-orange-500/50 uppercase">SHORT</span>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-base sm:text-xl font-bold text-foreground tracking-tighter tabular-nums">${direction_analysis.overall.short.net_pnl.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                  <p className="text-[7px] sm:text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest">Win Rate: {direction_analysis.overall.short.win_rate.toFixed(0)}%</p>
+                </div>
+              </div>
+            </div>
+          </Card>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Statistical Distribution */}
-          <Card className="p-6 sm:p-8 bg-background border border-border rounded-xl shadow-none relative overflow-hidden">
-            <div className="flex items-center gap-4 mb-8">
-              <div>
-                <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">PnL Distribution</h3>
-                <p className="text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">Breakdown of trade results</p>
-              </div>
+        {/* Statistical Distribution */}
+        <Card className="p-6 sm:p-8 bg-background border border-border rounded-xl shadow-none relative overflow-hidden">
+          <div className="flex items-center gap-4 mb-8">
+            <div>
+              <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">PnL Distribution</h3>
+              <p className="text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">Breakdown of trade results</p>
             </div>
+          </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-8 sm:gap-y-12 gap-x-4 sm:gap-x-8">
-               <div className="space-y-1">
-                 <span className="text-[7px] sm:text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.1em] sm:tracking-[0.2em]">Avg Trade</span>
-                 <p className="text-base sm:text-xl font-bold text-foreground tracking-tight">${pnlDist.mean_trade_pnl.toFixed(2)}</p>
-               </div>
-               <div className="space-y-1">
-                 <span className="text-[7px] sm:text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.1em] sm:tracking-[0.2em]">Median Trade</span>
-                 <p className="text-base sm:text-xl font-bold text-foreground tracking-tight">${pnlDist.median_trade_pnl.toFixed(2)}</p>
-               </div>
-               <div className="space-y-1">
-                 <span className="text-[7px] sm:text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.1em] sm:tracking-[0.2em]">Std Dev</span>
-                 <p className="text-base sm:text-xl font-bold text-orange-400 tracking-tight">± ${pnlDist.std_dev_pnl.toFixed(0)}</p>
-               </div>
-               <div className="space-y-1">
-                 <span className="text-[7px] sm:text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.1em] sm:tracking-[0.2em]">Biggest Win</span>
-                 <p className="text-base sm:text-xl font-bold text-emerald-500 tracking-tight">+${pnlDist.largest_win.toFixed(0)}</p>
-               </div>
-               <div className="space-y-1">
-                 <span className="text-[7px] sm:text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.1em] sm:tracking-[0.2em]">Biggest Loss</span>
-                 <p className="text-base sm:text-xl font-bold text-orange-600 tracking-tight">${pnlDist.largest_loss.toFixed(0)}</p>
-               </div>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-8 sm:gap-y-12 gap-x-4 sm:gap-x-8">
+            <div className="space-y-1">
+              <span className="text-[7px] sm:text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.1em] sm:tracking-[0.2em]">Avg Trade</span>
+              <p className="text-base sm:text-xl font-bold text-foreground tracking-tight">${pnlDist.mean_trade_pnl.toFixed(2)}</p>
             </div>
-
-          </Card>
-
-          {/* Fee Impact */}
-          <Card className="p-6 sm:p-8 bg-background border border-border rounded-xl shadow-none relative overflow-hidden">
-            <div className="flex items-center gap-4 mb-6">
-              <div>
-                <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">Fee Impact</h3>
-                <p className="text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">Impact on net profitability</p>
-              </div>
+            <div className="space-y-1">
+              <span className="text-[7px] sm:text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.1em] sm:tracking-[0.2em]">Median Trade</span>
+              <p className="text-base sm:text-xl font-bold text-foreground tracking-tight">${pnlDist.median_trade_pnl.toFixed(2)}</p>
             </div>
-
-            <div className="space-y-10">
-               <div className="p-6 bg-muted/20 border border-border/50 rounded-2xl relative group/fee">
-                 <div className="flex items-center justify-between mb-2">
-                   <span className="text-[7px] sm:text-[9px] font-bold text-foreground/30 uppercase tracking-[0.1em] sm:tracking-[0.2em]">Total Fees Paid</span>
-                 </div>
-                 <div className="flex items-baseline gap-3">
-                   <h4 className="text-xl sm:text-3xl font-bold text-foreground tracking-tight">${feeAnalysis.total_fees.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h4>
-                 </div>
-                 <div className="mt-4 h-1 w-full bg-muted/30 rounded-full overflow-hidden">
-                   <div className="h-full bg-orange-500/40 rounded-full" style={{ width: `${Math.min(feeAnalysis.fees_as_percent_of_gross_profit, 100)}%` }} />
-                 </div>
-               </div>
-
-               <div className="grid grid-cols-2 gap-3 sm:gap-6">
-                  <div className="p-4 sm:p-6 bg-orange-500/[0.02] rounded-2xl border border-orange-500/10 hover:bg-orange-500/[0.04] transition-all duration-300">
-                    <div className="flex items-center gap-2 mb-1.5">
-                       <span className="text-[6px] sm:text-[8px] font-bold text-orange-500 uppercase tracking-widest">Flipped to losses</span>
-                    </div>
-                    <p className="text-lg sm:text-2xl font-bold text-foreground tracking-tight">{feeAnalysis.trades_flipped_by_fees}</p>
-                    <p className="text-[6px] sm:text-[8px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">Were profitable before fees</p>
-                  </div>
-                  <div className="p-4 sm:p-6 bg-emerald-500/[0.02] rounded-2xl border border-emerald-500/10 hover:bg-emerald-500/[0.04] transition-all duration-300">
-                    <div className="flex items-center gap-2 mb-1.5">
-                       <span className="text-[6px] sm:text-[8px] font-bold text-emerald-500 uppercase tracking-widest">Winning after fees</span>
-                    </div>
-                    <p className="text-lg sm:text-2xl font-bold text-foreground tracking-tight">{feeAnalysis.profitable_trades_after_fees_percent.toFixed(1)}%</p>
-                    <p className="text-[6px] sm:text-[8px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">Of all closed trades</p>
-                  </div>
-               </div>
+            <div className="space-y-1">
+              <span className="text-[7px] sm:text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.1em] sm:tracking-[0.2em]">Std Dev</span>
+              <p className="text-base sm:text-xl font-bold text-orange-400 tracking-tight">± ${pnlDist.std_dev_pnl.toFixed(0)}</p>
             </div>
-          </Card>
-      </div>
-
-      {/* Advanced Visual Analysis */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card className={cn("p-6 sm:p-8 bg-background border border-border rounded-xl shadow-none", marketType === 'spot' ? "lg:col-span-2" : "")}>
-            <div className="flex items-center gap-4 mb-6">
-              <div>
-                <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">PnL by Hold Time</h3>
-                <p className="text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">Performance by duration</p>
-              </div>
+            <div className="space-y-1">
+              <span className="text-[7px] sm:text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.1em] sm:tracking-[0.2em]">Biggest Win</span>
+              <p className="text-base sm:text-xl font-bold text-emerald-500 tracking-tight">+${pnlDist.largest_win.toFixed(0)}</p>
             </div>
-            
-            <div className="overflow-x-auto relative z-10 mt-2">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-border/10">
-                    <th className="pb-4 text-[10px] uppercase tracking-widest text-muted-foreground/30 font-bold">Duration</th>
-                    <th className="pb-4 text-[10px] uppercase tracking-widest text-muted-foreground/30 font-bold text-right">Trades</th>
-                    <th className="pb-4 text-[10px] uppercase tracking-widest text-muted-foreground/30 font-bold text-right">Net PnL</th>
-                    <th className="pb-4 text-[10px] uppercase tracking-widest text-muted-foreground/30 font-bold text-right">Win Rate</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/5">
-                  {holdAnalysis.map((b, i) => (
-                    <tr key={i} className="group/row hover:bg-muted/5 transition-colors duration-500">
-                      <td className="py-3 text-xs font-bold text-foreground/80">{b.bucket}</td>
-                      <td className="py-3 text-xs font-bold text-foreground/30 text-right tabular-nums">{b.trade_count}</td>
-                      <td className={cn(
-                        "py-3 text-xs font-bold text-right tabular-nums",
-                        b.net_pnl >= 0 ? "text-emerald-500" : "text-orange-500"
-                      )}>
-                        {b.net_pnl >= 0 ? '+' : ''}${Math.abs(b.net_pnl).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </td>
-                      <td className="py-3 text-xs font-bold text-foreground/40 text-right tabular-nums">{b.win_rate.toFixed(0)}%</td>
-                    </tr>
+            <div className="space-y-1">
+              <span className="text-[7px] sm:text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.1em] sm:tracking-[0.2em]">Biggest Loss</span>
+              <p className="text-base sm:text-xl font-bold text-orange-500 tracking-tight">-${Math.abs(pnlDist.largest_loss).toFixed(0)}</p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Holding Time Analysis */}
+        <Card className="p-6 sm:p-8 bg-background border border-border rounded-xl shadow-none">
+          <div className="flex items-center gap-4 mb-8">
+            <div>
+              <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">Duration vs Edge</h3>
+              <p className="text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">PnL by holding time</p>
+            </div>
+          </div>
+
+          <div className="h-[240px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={holdAnalysis} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
+                <XAxis
+                  dataKey="bucket"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 8, fontWeight: 700 }}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 8, fontWeight: 700 }}
+                />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
+                <Bar dataKey="net_pnl" radius={[4, 4, 0, 0]}>
+                  {holdAnalysis.map((entry: any, index: number) => (
+                    <Cell key={index} fill={entry.net_pnl >= 0 ? '#10b981' : '#f97316'} fillOpacity={0.4} />
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-
-          {marketType === 'futures' && (
-            <Card className="p-6 sm:p-8 bg-background border border-border rounded-xl shadow-none">
-              <div className="flex items-center gap-4 mb-6">
-                <div>
-                  <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">PnL by Leverage</h3>
-                  <p className="text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">Performance by risk exposure</p>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto relative z-10 mt-2">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-border/10">
-                      <th className="pb-4 text-[10px] uppercase tracking-widest text-muted-foreground/30 font-bold">Leverage</th>
-                      <th className="pb-4 text-[10px] uppercase tracking-widest text-muted-foreground/40 font-bold text-right">Trades</th>
-                      <th className="pb-4 text-[10px] uppercase tracking-widest text-muted-foreground/30 font-bold text-right">Net PnL</th>
-                      <th className="pb-4 text-[10px] uppercase tracking-widest text-muted-foreground/30 font-bold text-right">Avg PnL</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/5">
-                    {levAnalysis.slice(0, 10).map((b, i) => (
-                      <tr key={i} className="group/row hover:bg-muted/5 transition-colors duration-500">
-                        <td className="py-3 text-xs font-bold text-foreground/80 uppercase">{b.bucket}</td>
-                        <td className="py-3 text-xs font-bold text-foreground/30 text-right tabular-nums">{b.trade_count}</td>
-                        <td className={cn(
-                          "py-3 text-xs font-bold text-right tabular-nums",
-                          b.net_pnl >= 0 ? "text-emerald-500" : "text-orange-500"
-                        )}>
-                          {b.net_pnl >= 0 ? '+' : ''}${Math.abs(b.net_pnl).toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                        </td>
-                        <td className={cn(
-                          "py-3 text-xs font-bold text-right tabular-nums opacity-60",
-                          b.avg_pnl_per_trade >= 0 ? "text-emerald-500" : "text-orange-500"
-                        )}>
-                          ${Math.abs(b.avg_pnl_per_trade).toFixed(0)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
       </div>
 
-      <div className="flex flex-col items-center gap-6 py-20">
-         <div className="h-px w-24 bg-gradient-to-r from-transparent via-border to-transparent" />
-         <div className="flex items-center gap-2">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="w-1 h-1 rounded-full bg-primary/20" style={{ opacity: 1 - (i * 0.2) }} />
-            ))}
-         </div>
+      {/* Leverage Efficiency */}
+      <Card className="p-6 sm:p-8 bg-background border border-border rounded-xl shadow-none">
+        <div className="flex items-center gap-4 mb-8">
+          <div>
+            <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">Leverage Efficiency</h3>
+            <p className="text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest mt-1">Profitability by leverage tier</p>
+          </div>
+        </div>
+
+        <div className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={levAnalysis} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
+              <XAxis
+                dataKey="bucket"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 9, fontWeight: 700 }}
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 9, fontWeight: 700 }}
+              />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
+              <Bar dataKey="net_pnl" radius={[6, 6, 0, 0]} barSize={24}>
+                {levAnalysis.map((entry: any, index: number) => (
+                  <Cell key={index} fill={entry.net_pnl >= 0 ? '#10b981' : '#f97316'} fillOpacity={0.5} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
+
+      {/* Fee Impact Matrix */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="p-8 bg-background border border-border rounded-xl shadow-none flex flex-col items-center justify-center text-center space-y-6">
+          <div className="p-4 rounded-full bg-orange-500/5 border border-orange-500/10">
+            <Scale className="w-8 h-8 text-orange-500/40" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-bold tracking-tight">${feeAnalysis.total_fees.toFixed(2)}</h3>
+            <p className="text-[9px] font-bold text-muted-foreground/20 uppercase tracking-[0.2em]">Total Lifetime Fees</p>
+          </div>
+          <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
+            <div className="h-full bg-orange-500/30" style={{ width: `${Math.min(feeAnalysis.fees_as_percent_of_gross_profit, 100)}%` }} />
+          </div>
+          <p className="text-[9px] font-semibold text-muted-foreground/30 uppercase tracking-widest">
+            {feeAnalysis.fees_as_percent_of_gross_profit.toFixed(1)}% of gross profit
+          </p>
+        </Card>
+
+        <Card className="p-8 bg-background border border-border rounded-xl shadow-none flex flex-col items-center justify-center text-center space-y-6">
+          <div className="p-4 rounded-full bg-primary/5 border border-primary/10">
+            <Percent className="w-8 h-8 text-primary/40" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-bold tracking-tight">{feeAnalysis.profitable_trades_after_fees_percent.toFixed(1)}%</h3>
+            <p className="text-[9px] font-bold text-muted-foreground/20 uppercase tracking-[0.2em]">Net Profitability</p>
+          </div>
+          <p className="text-[9px] font-semibold text-muted-foreground/30 uppercase tracking-widest max-w-[180px]">
+            {feeAnalysis.trades_flipped_by_fees} trades were winners before fees
+          </p>
+        </Card>
+
+        <Card className="p-8 bg-background border border-border rounded-xl shadow-none flex flex-col items-center justify-center text-center space-y-6">
+          <div className="p-4 rounded-full bg-emerald-500/5 border border-emerald-500/10">
+            <Target className="w-8 h-8 text-emerald-500/40" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-bold tracking-tight">${feeAnalysis.avg_fee_per_trade.toFixed(2)}</h3>
+            <p className="text-[9px] font-bold text-muted-foreground/20 uppercase tracking-[0.2em]">Avg Fee per Trade</p>
+          </div>
+          <p className="text-[9px] font-semibold text-muted-foreground/30 uppercase tracking-widest">
+            Strategy efficiency metric
+          </p>
+        </Card>
       </div>
     </div>
   );

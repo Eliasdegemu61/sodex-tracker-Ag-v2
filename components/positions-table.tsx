@@ -97,55 +97,60 @@ export function PositionsTable() {
       </div>
 
       {/* Desktop Table */}
-      <div className="hidden md:block overflow-x-auto">
-        <table className="w-full text-[11px] border-separate border-spacing-y-1.5">
-          <thead>
-            <tr className="text-black/35 dark:text-white/35 font-semibold uppercase tracking-[0.18em]">
-              <th className="text-left py-2 px-3">Pair</th>
-              <th className="text-left py-2 px-3">Side</th>
-              <th className="text-left py-2 px-3">Mode</th>
-              <th className="text-right py-2 px-3">Entry</th>
-              <th className="text-right py-2 px-3">Close</th>
-              <th className="text-right py-2 px-3">Size</th>
-              <th className="text-right py-2 px-3">Leverage</th>
-              <th className="text-right py-2 px-3">Fee</th>
-              <th className="text-right py-2 px-3">PnL</th>
-              <th className="text-right py-2 px-3">%</th>
-              <th className="text-left py-2 px-3">Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedPositions.map((position) => (
-              <tr key={position.id} className="group relative rounded-xl bg-black/[0.02] transition-all hover:bg-black/[0.04] dark:bg-white/[0.03] dark:hover:bg-white/[0.06]">
-                <td className="py-3 px-3 first:rounded-l-xl last:rounded-r-xl font-semibold text-foreground">{position.pair}</td>
-                <td className="py-3 px-3">
-                    <span className={`rounded-md px-2 py-0.5 text-[9px] font-semibold tracking-[0.18em] ${position.type === 'long' ? 'bg-green-500/12 text-green-400' : 'bg-red-500/12 text-red-400'}`}>
-                    {position.type.toUpperCase()}
-                  </span>
-                </td>
-                <td className="py-3 px-3">
-                  <span className="rounded bg-black/[0.04] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-black/45 dark:bg-white/[0.04] dark:text-white/45">
-                    {position.marginMode}
-                  </span>
-                </td>
-                <td className="py-3 px-3 text-right text-black/55 dark:text-white/55">${position.entry.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}</td>
-                <td className="py-3 px-3 text-right font-semibold text-foreground">${position.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}</td>
-                <td className="py-3 px-3 text-right text-black/55 dark:text-white/55">{position.size.toLocaleString(undefined, { maximumFractionDigits: 4 })}</td>
-                <td className="py-3 px-3 text-right font-semibold text-foreground">{position.leverage}</td>
-                <td className="py-3 px-3 text-right text-black/55 dark:text-white/55">${position.fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
-                <td className={`py-3 px-3 text-right font-semibold ${position.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {position.pnl >= 0 ? '+' : ''}${Math.abs(position.pnl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
-                </td>
-                <td className="py-3 px-3 text-right">
-                  <div className={`flex items-center justify-end gap-1 font-semibold ${position.pnlPercent >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {position.pnlPercent >= 0 ? '+' : ''}{position.pnlPercent.toFixed(2)}%
-                  </div>
-                </td>
-                <td className="py-3 px-3 first:rounded-l-xl last:rounded-r-xl text-left text-[9px] text-black/35 dark:text-white/35">{position.createdAt}</td>
+      <div className="hidden md:block overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .no-scrollbar::-webkit-scrollbar { display: none; }
+        `}} />
+        <div className="no-scrollbar overflow-x-auto">
+          <table className="w-full text-[11px] border-separate border-spacing-y-1.5">
+            <thead>
+              <tr className="text-black/35 dark:text-white/35 font-semibold uppercase tracking-[0.18em]">
+                <th className="text-left py-2 px-3">Pair</th>
+                <th className="text-left py-2 px-3">Side</th>
+                <th className="text-left py-2 px-3">Mode</th>
+                <th className="text-right py-2 px-3">Entry</th>
+                <th className="text-right py-2 px-3">Close</th>
+                <th className="text-right py-2 px-3">Size</th>
+                <th className="text-right py-2 px-3">Leverage</th>
+                <th className="text-right py-2 px-3">Fee</th>
+                <th className="text-right py-2 px-3">PnL</th>
+                <th className="text-right py-2 px-3">%</th>
+                <th className="text-left py-2 px-3">Date</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {paginatedPositions.map((position) => (
+                <tr key={position.id} className="group relative rounded-xl bg-black/[0.02] transition-all hover:bg-black/[0.04] dark:bg-white/[0.03] dark:hover:bg-white/[0.06]">
+                  <td className="py-3 px-3 first:rounded-l-xl last:rounded-r-xl font-semibold text-foreground">{position.pair}</td>
+                  <td className="py-3 px-3">
+                      <span className={`rounded-md px-2 py-0.5 text-[9px] font-semibold tracking-[0.18em] ${position.type === 'long' ? 'bg-green-500/12 text-green-400' : 'bg-red-500/12 text-red-400'}`}>
+                      {position.type.toUpperCase()}
+                    </span>
+                  </td>
+                  <td className="py-3 px-3">
+                    <span className="rounded bg-black/[0.04] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-black/45 dark:bg-white/[0.04] dark:text-white/45">
+                      {position.marginMode}
+                    </span>
+                  </td>
+                  <td className="py-3 px-3 text-right text-black/55 dark:text-white/55">${position.entry.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}</td>
+                  <td className="py-3 px-3 text-right font-semibold text-foreground">${position.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}</td>
+                  <td className="py-3 px-3 text-right text-black/55 dark:text-white/55">{position.size.toLocaleString(undefined, { maximumFractionDigits: 4 })}</td>
+                  <td className="py-3 px-3 text-right font-semibold text-foreground">{position.leverage}</td>
+                  <td className="py-3 px-3 text-right text-black/55 dark:text-white/55">${position.fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                  <td className={`py-3 px-3 text-right font-semibold ${position.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {position.pnl >= 0 ? '+' : ''}${Math.abs(position.pnl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                  </td>
+                  <td className="py-3 px-3 text-right">
+                    <div className={`flex items-center justify-end gap-1 font-semibold ${position.pnlPercent >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {position.pnlPercent >= 0 ? '+' : ''}{position.pnlPercent.toFixed(2)}%
+                    </div>
+                  </td>
+                  <td className="py-3 px-3 first:rounded-l-xl last:rounded-r-xl text-left text-[9px] text-black/35 dark:text-white/35">{position.createdAt}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Mobile Expandable List */}

@@ -1,4 +1,5 @@
 'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
@@ -6,6 +7,7 @@ import { Loader2 } from 'lucide-react';
 import { usePortfolio } from '@/context/portfolio-context';
 import { fetchDetailedBalance } from '@/lib/sodex-api';
 import { getTokenLogo } from '@/lib/token-logos';
+import { cn } from '@/lib/utils';
 
 interface AssetData {
   coin: string;
@@ -143,6 +145,10 @@ export function AssetFlowCard({ walletAddress }: AssetFlowCardProps) {
     }
   };
 
+  const [showMore, setShowMore] = useState(false);
+  const hasMore = assets.length > 4;
+  const displayedAssets = showMore ? assets : assets.slice(0, 4);
+
   if (isLoading) {
     return (
       <Card className="flex min-h-[200px] flex-col items-center justify-center rounded-[2rem] border border-black/8 bg-white p-5 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] animate-pulse dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
@@ -186,8 +192,11 @@ export function AssetFlowCard({ walletAddress }: AssetFlowCardProps) {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-2">
-            {assets.map((asset, idx) => {
+          <div className={cn(
+            "grid grid-cols-1 gap-2 transition-all duration-300",
+            showMore && assets.length > 4 ? "max-h-[300px] overflow-y-auto pr-2 custom-scrollbar" : ""
+          )}>
+            {displayedAssets.map((asset, idx) => {
               const tokenLogo = getTokenLogo(asset.coin);
               return (
                 <div
@@ -235,9 +244,32 @@ export function AssetFlowCard({ walletAddress }: AssetFlowCardProps) {
               );
             })}
           </div>
+
+          {hasMore && (
+            <button
+              onClick={() => setShowMore(!showMore)}
+              className="w-full py-2 text-[10px] font-black uppercase tracking-[0.2em] text-black/30 hover:text-black transition-colors dark:text-white/30 dark:hover:text-white"
+            >
+              {showMore ? 'Show Less' : `+${assets.length - 4} More Assets`}
+            </button>
+          )}
         </div>
       </div>
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(155, 155, 155, 0.2);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(155, 155, 155, 0.4);
+        }
+      `}</style>
     </Card>
   );
 }
-

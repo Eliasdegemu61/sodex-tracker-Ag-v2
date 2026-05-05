@@ -35,7 +35,7 @@ export function TradeAnalysis() {
 
     // Filter positions based on timeframe
     const filteredPositions = useMemo(() => {
-        if (!positions) return [];
+        if (!Array.isArray(positions) || positions.length === 0) return [];
         const now = Date.now();
         const limits: Record<TimeFrame, number> = {
             '7D': now - 7 * 24 * 60 * 60 * 1000,
@@ -160,7 +160,7 @@ export function TradeAnalysis() {
         .map(([name]) => name);
     }, [filteredPositions]);
 
-    if (isLoading || !positions || positions.length === 0) return null;
+    if (isLoading || !Array.isArray(positions) || positions.length === 0) return null;
 
     return (
         <section className="space-y-6 mt-12 pb-12 animate-in fade-in duration-1000">

@@ -11,7 +11,7 @@ interface PerformanceStreakProps {
 
 export function PerformanceStreak({ days }: PerformanceStreakProps) {
     // Calculate streaks from daily performance
-    const tradingDays = days.filter(d => d.trades > 0);
+    const tradingDays = Array.isArray(days) ? days.filter(d => d.trades > 0) : [];
     
     let currentStreak = 0;
     let currentStreakType: 'win' | 'loss' | null = null;

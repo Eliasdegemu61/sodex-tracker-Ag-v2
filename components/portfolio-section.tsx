@@ -151,25 +151,6 @@ export function PortfolioSection() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              {/* Timeframe Selector in Header */}
-              <div className="flex bg-white/5 dark:bg-white/[0.03] rounded-2xl p-1 border border-white/5">
-                {(['ALL', '30D'] as const).map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setTimeframe(t)}
-                    className={cn(
-                      "flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest",
-                      timeframe === t
-                        ? "bg-white text-black shadow-lg"
-                        : "text-white/40 hover:text-white hover:bg-white/5"
-                    )}
-                  >
-                    <Calendar className="w-3 h-3" />
-                    {t === 'ALL' ? 'Full' : '30D'}
-                  </button>
-                ))}
-              </div>
-
               <Button
                 variant="outline"
                 onClick={() => setShowUnbindConfirm(true)}

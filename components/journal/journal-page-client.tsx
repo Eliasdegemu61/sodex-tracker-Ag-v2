@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { 
     Shield, 
     Loader2, 
@@ -16,7 +16,9 @@ import {
     ChevronRight,
     Cloud,
     CloudOff,
-    LogOut
+    LogOut,
+    AlertTriangle,
+    Activity
 } from 'lucide-react';
 import { getPlans, deletePlan, syncLocalPlansToCloud } from '@/lib/journal-store';
 import { computePlanMetrics } from '@/lib/journal-engine';
@@ -29,6 +31,7 @@ import { cn } from '@/lib/utils';
 import { CyberCard, GlowLine, CyberButton } from './cyber-elements';
 import { supabase } from '@/lib/supabase-client';
 import { AuthModal } from './auth-modal';
+import { Button } from '@/components/ui/button';
 
 type View = 'list' | 'create' | 'edit' | 'dashboard' | 'address_prompt';
 
@@ -40,6 +43,49 @@ const saveIdentityLocal = (addr: string, uid: string | null) => {
         localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify({ address: addr, userId: uid }));
     } catch (e) {}
 };
+
+// Internal Loading Spinner for Journal
+function LoadingSpinner({ message, subMessage, onContinue, onAbort, isPaused, currentCount }: { 
+    message: string, 
+    subMessage?: string,
+    onContinue?: () => void,
+    onAbort?: () => void,
+    isPaused?: boolean,
+    currentCount?: number
+  }) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-6 py-12 text-center animate-in fade-in duration-500">
+        <div className="relative">
+          <Loader2 className={cn("h-10 w-10 text-primary", !isPaused && "animate-spin")} />
+          {isPaused && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-[8px] font-black uppercase text-primary">LIMIT</span>
+            </div>
+          )}
+        </div>
+        
+        <div className="space-y-2 px-4">
+          <span className="block text-lg font-bold text-foreground italic uppercase tracking-tight">{message}</span>
+          {subMessage && (
+            <span className="block text-xs text-muted-foreground/60 max-w-md mx-auto font-medium leading-relaxed">{subMessage}</span>
+          )}
+        </div>
+  
+        {isPaused && (
+          <div className="flex flex-col items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 mt-4 px-4 w-full max-w-sm">
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
+              <Button onClick={onAbort} variant="outline" className="rounded-xl border-border/10 hover:bg-muted/50 px-6 font-bold text-[10px] uppercase tracking-widest h-12 flex-1">
+                Show Current ({currentCount?.toLocaleString()})
+              </Button>
+              <Button onClick={onContinue} className="rounded-xl bg-foreground text-background hover:bg-foreground/90 font-bold px-8 gap-2 text-[10px] uppercase tracking-widest h-12 flex-1">
+                Continue Sync <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
 function AddressPrompt({ onSetAddress }: { onSetAddress: (addr: string) => void }) {
     const [input, setInput] = useState('');
@@ -77,7 +123,7 @@ function AddressPrompt({ onSetAddress }: { onSetAddress: (addr: string) => void 
     };
 
     return (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 min-h-[60vh] animate-in fade-in duration-1000">
+        <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 min-h-[60vh] animate-in fade-in duration-1000">
             <div className="max-w-md w-full space-y-8 text-center">
                 <div>
                     <h2 className="text-xl font-bold text-foreground tracking-tight mb-2">Connect Journal</h2>
@@ -89,12 +135,12 @@ function AddressPrompt({ onSetAddress }: { onSetAddress: (addr: string) => void 
                         placeholder="0x..."
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        className="w-full h-11 bg-secondary/10 border border-border/20 rounded-xl px-4 font-mono text-sm outline-none focus:border-border transition-all placeholder:text-muted-foreground/20 text-center"
+                        className="w-full h-12 bg-secondary/10 border border-border/20 rounded-xl px-4 font-mono text-sm outline-none focus:border-border transition-all placeholder:text-muted-foreground/20 text-center"
                     />
                     {error && <p className="text-xs text-red-400 font-medium">{error}</p>}
                     <button 
                         onClick={handleManualLink} 
-                        className="w-full h-11 bg-foreground text-background rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-foreground/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="w-full h-12 bg-foreground text-background rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-foreground/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                         disabled={!input.trim() || isLoading}
                     >
                         {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Continue'}
@@ -116,6 +162,11 @@ export function JournalPageClient({ isDashboard = false }: { isDashboard?: boole
     const [planPositions, setPlanPositions] = useState<EnrichedPosition[]>([]);
     const [planBalance, setPlanBalance] = useState<number>(0);
     const [isDataLoading, setIsDataLoading] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
+    const [fetchProgress, setFetchProgress] = useState<{ count: number, isLong: boolean, nextCursor?: string }>({ count: 0, isLong: false });
+    const [pendingPositions, setPendingPositions] = useState<any[]>([]);
+    const abortControllerRef = useRef<AbortController | null>(null);
+
     const [tempAddress, setTempAddress] = useState<string | null>(null);
     const [manualUserId, setManualUserId] = useState<string | null>(null);
     const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
@@ -228,40 +279,109 @@ export function JournalPageClient({ isDashboard = false }: { isDashboard?: boole
         }
     };
 
-    const fetchPlanData = useCallback(async (isAuto = false) => {
+    const fetchPlanData = useCallback(async (isAuto = false, cursor?: string, accumulated: any[] = []) => {
         if (!selectedPlan?.userId) return;
+        
+        // Reset abort controller for manual refresh or initial load
+        if (!isAuto && !cursor) {
+            if (abortControllerRef.current) abortControllerRef.current.abort();
+            const controller = new AbortController();
+            abortControllerRef.current = controller;
+            setPendingPositions([]);
+            setFetchProgress({ count: 0, isLong: false });
+        }
+
+        const controller = abortControllerRef.current!;
+
         if (!isAuto) setIsDataLoading(true);
+        setIsPaused(false);
+
+        // Long fetch timer
+        const longFetchTimer = setTimeout(() => {
+            setFetchProgress(prev => ({ ...prev, isLong: true }));
+        }, 4000);
+
         try {
-            const [rawFutures, bal] = await Promise.all([
-                fetchAllPositions(selectedPlan.userId),
+            // Soft limit of 10k records for journal
+            const SOFT_LIMIT = 10000;
+
+            const [result, bal] = await Promise.all([
+                fetchAllPositions(
+                    selectedPlan.userId, 
+                    (count) => setFetchProgress(prev => ({ ...prev, count: accumulated.length + count })),
+                    undefined,
+                    controller.signal,
+                    SOFT_LIMIT,
+                    cursor
+                ),
                 fetchTotalBalance(selectedPlan.userId)
             ]);
             
-            const enrichedFutures = await enrichPositions(rawFutures);
+            const total = [...accumulated, ...result.positions];
+
+            if (result.nextCursor && total.length >= SOFT_LIMIT) {
+                setPendingPositions(total);
+                setFetchProgress(prev => ({ ...prev, count: total.length, nextCursor: result.nextCursor }));
+                setIsPaused(true);
+                clearTimeout(longFetchTimer);
+                return;
+            }
+
+            const enrichedFutures = await enrichPositions(total);
             
-            // Sort by date descending
-            const allPos = [...enrichedFutures].sort((a, b) => b.created_at - a.created_at);
-            
-            setPlanPositions(allPos);
-            setPlanBalance(bal.totalBalance);
-            setLastRefresh(new Date());
+            if (!controller.signal.aborted) {
+                // Sort by date descending
+                const allPos = [...enrichedFutures].sort((a, b) => b.created_at - a.created_at);
+                setPlanPositions(allPos);
+                setPlanBalance(bal.totalBalance);
+                setLastRefresh(new Date());
+                clearTimeout(longFetchTimer);
+            }
         } catch (e) {
+            if (e instanceof Error && e.name === 'AbortError') return;
             console.error('[Journal] Data fetch failed:', e);
-        } finally { if (!isAuto) setIsDataLoading(false); }
+        } finally { 
+            if (abortControllerRef.current === controller && !isPaused) {
+                if (!isAuto) setIsDataLoading(false); 
+            }
+        }
     }, [selectedPlan]);
 
     useEffect(() => {
         if (selectedPlan) {
             fetchPlanData(false);
             
-            // Set up polling interval (10 seconds)
+            // Set up polling interval (15 seconds)
             const interval = setInterval(() => {
                 fetchPlanData(true);
-            }, 10000);
+            }, 15000);
 
             return () => clearInterval(interval);
         }
     }, [selectedPlan, fetchPlanData]);
+
+    const handleContinueSync = () => {
+        if (selectedPlan && fetchProgress.nextCursor) {
+            fetchPlanData(false, fetchProgress.nextCursor, pendingPositions);
+        }
+    };
+
+    const handleAbortAndAnalyze = async () => {
+        if (pendingPositions.length === 0) return;
+        setIsDataLoading(true);
+        setIsPaused(false);
+        try {
+            const enriched = await enrichPositions(pendingPositions);
+            const allPos = [...enriched].sort((a, b) => b.created_at - a.created_at);
+            setPlanPositions(allPos);
+            // Balance is already being fetched or can be refetched
+        } catch (err) {
+            console.error('[Journal] Failed to process current data');
+        } finally {
+            setIsDataLoading(false);
+            if (abortControllerRef.current) abortControllerRef.current.abort();
+        }
+    };
 
     const metrics: PlanMetrics | null = useMemo(() => {
         if (!selectedPlan) return null;
@@ -297,7 +417,7 @@ export function JournalPageClient({ isDashboard = false }: { isDashboard?: boole
         )}>
             {/* Header */}
             {!isDashboard && (
-                <header className="h-12 md:h-16 border-b border-border/10 flex items-center justify-between px-4 md:px-6 shrink-0 sticky top-0 bg-background z-50">
+                <header className="h-14 md:h-16 border-b border-border/10 flex items-center justify-between px-4 md:px-6 shrink-0 sticky top-0 bg-background z-50">
                     <div className="flex items-center gap-4">
                         <div 
                             className="text-xs font-black tracking-widest cursor-pointer hover:text-foreground/80 transition-colors opacity-50"
@@ -307,11 +427,11 @@ export function JournalPageClient({ isDashboard = false }: { isDashboard?: boole
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 md:gap-3">
                         {/* Identity Status */}
                         {isAddressPromptFinished && (
-                            <div className="flex items-center gap-3 mr-1">
-                                <div className="flex flex-col items-end">
+                            <div className="flex items-center gap-2 md:gap-3 mr-1">
+                                <div className="hidden sm:flex flex-col items-end">
                                     <span className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest leading-none mb-0.5">Connected</span>
                                     <span className="text-[10px] font-mono text-muted-foreground/60 leading-none">
                                         {tempAddress?.slice(0, 6)}...{tempAddress?.slice(-4)}
@@ -319,7 +439,7 @@ export function JournalPageClient({ isDashboard = false }: { isDashboard?: boole
                                 </div>
                                 <button 
                                     onClick={handleDisconnect}
-                                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-secondary/5 border border-border/10 text-muted-foreground/40 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all group"
+                                    className="w-8 h-8 md:w-7 md:h-7 flex items-center justify-center rounded-lg bg-secondary/5 border border-border/10 text-muted-foreground/40 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all group"
                                     title="Disconnect Address"
                                 >
                                     <X className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
@@ -327,13 +447,13 @@ export function JournalPageClient({ isDashboard = false }: { isDashboard?: boole
                             </div>
                         )}
 
-                        <div className="w-px h-4 bg-border/20 mx-1" />
+                        <div className="w-px h-4 bg-border/20 mx-1 hidden sm:block" />
 
                         {/* Cloud Sync Status */}
                         <button
                             onClick={() => user ? supabase.auth.signOut() : setIsAuthModalOpen(true)}
                             className={cn(
-                                "flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all text-[10px] font-black uppercase tracking-widest shadow-sm",
+                                "flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-xl border transition-all text-[10px] font-black uppercase tracking-widest shadow-sm",
                                 user 
                                     ? "bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500/20" 
                                     : "bg-secondary/5 border-border/10 text-muted-foreground/40 hover:bg-secondary/10 hover:text-foreground"
@@ -349,13 +469,13 @@ export function JournalPageClient({ isDashboard = false }: { isDashboard?: boole
                             <span className="hidden sm:inline">
                                 {isSyncing ? 'Syncing' : user ? 'Cloud' : 'Guest'}
                             </span>
-                            {user && <LogOut className="w-2.5 h-2.5 ml-0.5 opacity-40 hover:opacity-100" />}
+                            {user && <LogOut className="w-2.5 h-2.5 ml-0.5 opacity-40 hidden sm:inline" />}
                         </button>
                     </div>
                 </header>
             )}
 
-            <main className="flex-1 overflow-y-auto no-scrollbar pb-20">
+            <main className="flex-1 overflow-y-auto no-scrollbar pb-24 md:pb-20">
                 <div className="max-w-4xl mx-auto w-full px-4 md:px-6 pt-4 md:pt-12">
                     {!isAddressPromptFinished ? (
                         <AddressPrompt onSetAddress={handleSetAddress} />
@@ -363,37 +483,57 @@ export function JournalPageClient({ isDashboard = false }: { isDashboard?: boole
                         <div className="space-y-6 md:space-y-12">
                             {/* Breadcrumbs for Dashboard View */}
                             {view === 'dashboard' && selectedPlan && (
-                                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/30">
-                                    <span onClick={() => setView('list')} className="cursor-pointer hover:text-foreground transition-colors">Portfolios</span>
-                                    <ChevronRight className="w-3 h-3" />
-                                    <span className="text-muted-foreground/60">{selectedPlan.name}</span>
+                                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/30 overflow-x-auto whitespace-nowrap no-scrollbar pb-1">
+                                    <span onClick={() => setView('list')} className="cursor-pointer hover:text-foreground transition-colors shrink-0">Portfolios</span>
+                                    <ChevronRight className="w-3 h-3 shrink-0" />
+                                    <span className="text-muted-foreground/60 truncate">{selectedPlan.name}</span>
                                 </div>
                             )}
 
                             {view === 'list' && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                    <div className="flex items-end justify-between">
+                                    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                                         <div>
-                                            <h1 className="text-3xl font-bold tracking-tight mb-2 text-foreground">Portfolios</h1>
+                                            <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2 text-foreground">Portfolios</h1>
                                             <p className="text-sm text-muted-foreground/40 tracking-wide">Manage and track your active trading plans.</p>
                                         </div>
-                                        <CyberButton onClick={() => setView('create')} className="h-10">New Plan</CyberButton>
+                                        <CyberButton onClick={() => setView('create')} className="h-11 md:h-10 w-full sm:w-auto">New Plan</CyberButton>
                                     </div>
                                     <PlanList
                                         plans={plans}
                                         onView={(p) => { setSelectedPlan(p); setView('dashboard'); }}
-                                        onDelete={async (id) => { await deletePlan(id); loadPlans(); }}
+                                        onDelete={async (id) => { if(confirm('Delete this plan?')) { await deletePlan(id); loadPlans(); } }}
                                         onCreateNew={() => setView('create')}
                                     />
                                 </div>
                             )}
 
-                            {view === 'dashboard' && selectedPlan && metrics && (
-                                <PlanDashboard 
-                                    metrics={metrics} 
-                                    accountId={selectedPlan.userId}
-                                    onEdit={() => setView('edit')}
-                                />
+                            {view === 'dashboard' && selectedPlan && (
+                                <>
+                                    {isDataLoading || isPaused ? (
+                                        <div className="py-12 md:py-20 flex items-center justify-center min-h-[400px]">
+                                            <LoadingSpinner 
+                                                message={isPaused ? "Data Limit Reached" : `Syncing plan... (${fetchProgress.count.toLocaleString()} records)`}
+                                                subMessage={isPaused ? "The history is extremely large. Continue indexing or analyze the current batch." : "Downloading and indexing trading history for this portfolio."}
+                                                isPaused={isPaused}
+                                                onContinue={handleContinueSync}
+                                                onAbort={handleAbortAndAnalyze}
+                                                currentCount={fetchProgress.count}
+                                            />
+                                        </div>
+                                    ) : metrics ? (
+                                        <PlanDashboard 
+                                            metrics={metrics} 
+                                            accountId={selectedPlan.userId}
+                                            onEdit={() => setView('edit')}
+                                        />
+                                    ) : (
+                                        <div className="py-20 flex flex-col items-center gap-4">
+                                            <Activity className="w-8 h-8 text-muted-foreground/20" />
+                                            <p className="text-xs font-bold text-muted-foreground/30 uppercase tracking-widest">No metrics generated</p>
+                                        </div>
+                                    )}
+                                </>
                             )}
 
                             {(view === 'create' || view === 'edit') && (
@@ -404,7 +544,7 @@ export function JournalPageClient({ isDashboard = false }: { isDashboard?: boole
                                         initialPlan={view === 'edit' ? selectedPlan : null}
                                         onSave={(p) => { loadPlans(); setSelectedPlan(p); setView('dashboard'); }}
                                         onCancel={() => setView('list')}
-                                    />
+                                     />
                                 </div>
                             )}
                         </div>

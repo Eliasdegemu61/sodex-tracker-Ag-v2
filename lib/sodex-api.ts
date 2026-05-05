@@ -212,12 +212,20 @@ export interface EnrichedPosition extends PositionData {
 }
 
 export async function enrichPositions(
-  positions: PositionData[]
+  positions: any
 ): Promise<EnrichedPosition[]> {
   const symbolMap = await fetchSymbols();
+  
+  // Final safety: if passed an object with positions array, use that.
+  // This prevents 'filter is not a function' if fetchAllPositions result is passed directly.
+  const targetArray = Array.isArray(positions) 
+    ? positions 
+    : (positions && Array.isArray(positions.positions)) 
+      ? positions.positions 
+      : [];
 
-  return positions
-    .filter((position) => {
+  return targetArray
+    .filter((position: any) => {
       // Only include positions that were closed (have close price and closed size)
       const closedSize = parseFloat(position.cum_closed_size || '0');
       const closePrice = parseFloat(position.avg_close_price || '0');

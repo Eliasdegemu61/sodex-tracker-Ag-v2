@@ -94,7 +94,7 @@ export function PortfolioProvider({
 
       const { positions: fetched, nextCursor } = await fetchAllPositions(
         targetUserId,
-        (count) => setFetchProgress({ count: accumulated.length + count, nextCursor }),
+        (count) => setFetchProgress(prev => ({ ...prev, count: accumulated.length + count })),
         minTimestamp,
         controller.signal,
         SOFT_LIMIT,
@@ -180,6 +180,10 @@ export function PortfolioProvider({
     },
     []
   );
+
+  const setVaultBalance = useCallback((balance: number) => {
+    setVaultBalanceState(balance);
+  }, []);
 
   const clearWalletAddress = useCallback(() => {
     localStorage.removeItem('portfolio_wallet_address');

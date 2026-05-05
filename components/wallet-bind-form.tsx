@@ -27,7 +27,7 @@ export function WalletBindForm() {
       setStatus('Looking up your account...');
       const userId = await getUserIdByAddress(targetAddress);
       setStatus('Fetching your positions...');
-      const positions = await fetchAllPositions(userId);
+      const { positions } = await fetchAllPositions(userId);
       setStatus('Processing your data...');
       const enrichedPositions = await enrichPositions(positions);
       setStatus('Saving your account...');

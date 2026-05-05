@@ -17,7 +17,7 @@ export function PnLChart({ title = 'Profit & Loss' }: PnLChartProps) {
   const [timePeriod, setTimePeriod] = useState<'all' | '1w' | '1m' | '3m' | '1y'>('all');
 
   const getFilteredPositions = useMemo(() => {
-    if (!positions || positions.length === 0) {
+    if (!Array.isArray(positions) || positions.length === 0) {
       return [];
     }
 
@@ -265,4 +265,3 @@ export function PnLChart({ title = 'Profit & Loss' }: PnLChartProps) {
     </Card>
   );
 }
-

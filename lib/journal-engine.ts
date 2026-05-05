@@ -34,6 +34,7 @@ export function filterPositionsByPlan(
     positions: EnrichedPosition[],
     plan: TradingPlan
 ): EnrichedPosition[] {
+    if (!Array.isArray(positions)) return [];
     const start = new Date(plan.startDate).getTime();
     const end = new Date(plan.endDate).getTime() + 86_400_000; // inclusive
     return positions.filter((p) => {
@@ -48,6 +49,7 @@ export function computeDailyPerformance(
     positions: EnrichedPosition[],
     plan: TradingPlan
 ): DayPerformance[] {
+    if (!Array.isArray(positions)) return [];
     // Group positions by day
     const byDay = new Map<string, EnrichedPosition[]>();
     let lastTradeDay = toDateStr(new Date(plan.startDate).getTime());
@@ -154,6 +156,7 @@ export function computeEquityCurve(
     daily: DayPerformance[],
     plan: TradingPlan
 ): { date: string; balance: number; cumulativePnl: number; dailyPnl: number; winRate: number }[] {
+    if (!Array.isArray(daily)) return [];
     // Find the last day with trades to truncate the curve properly
     let lastTradeIndex = -1;
     for (let i = 0; i < daily.length; i++) {
@@ -201,6 +204,7 @@ export function computeEquityCurve(
 // ─── Symbol Analytics ─────────────────────────────────────────────────────────
 
 export function computeSymbolAnalytics(positions: EnrichedPosition[]): SymbolAnalytics[] {
+    if (!Array.isArray(positions)) return [];
     const map = new Map<string, EnrichedPosition[]>();
     for (const pos of positions) {
         if (!map.has(pos.pairName)) map.set(pos.pairName, []);
@@ -251,6 +255,9 @@ export function computeDisciplineScore(
     daily: DayPerformance[],
     plan: TradingPlan
 ): DisciplineScore {
+    if (!Array.isArray(daily) || daily.length === 0) {
+        return { overall: 0, breakdown: [] };
+    }
     const tradingDays = daily.filter((d) => d.trades > 0);
     const total = tradingDays.length || 1;
 

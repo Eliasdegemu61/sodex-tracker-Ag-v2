@@ -232,8 +232,9 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
   };
 
   const handleContinue = () => {
-    if (fetchProgress.nextCursor && walletAddress || searchInput) {
-      handleSearch(walletAddress || searchInput, fetchProgress.nextCursor, pendingPositions);
+    const addressToUse = activePortfolio?.walletAddress || searchInput;
+    if (fetchProgress.nextCursor && addressToUse) {
+      handleSearch(addressToUse, fetchProgress.nextCursor, pendingPositions);
     }
   };
 
@@ -392,17 +393,11 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-2xl bg-orange-500/10">
-              <Activity className="h-6 w-6 text-orange-500" />
-            </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-2xl font-bold tracking-tight">Tracker</h2>
-                <div className="px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20">
-                  <span className="text-[10px] font-bold text-green-500 uppercase tracking-wider">Live</span>
-                </div>
+                <h2 className="text-2xl font-black italic uppercase tracking-tight">Tracker</h2>
               </div>
-              <p className="text-sm text-muted-foreground font-mono">{activePortfolio.walletAddress}</p>
+              <p className="text-xs text-muted-foreground/60 font-mono">{activePortfolio.walletAddress}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">

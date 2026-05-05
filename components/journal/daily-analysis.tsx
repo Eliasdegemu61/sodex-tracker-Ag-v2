@@ -18,19 +18,23 @@ export function DailyAnalysis({ allPositions, dailyPerformance, selectedDate, on
     // Get unique dates from both performance and positions for the dropdown
     const availableDates = useMemo(() => {
         const dates = new Set<string>();
-        dailyPerformance.forEach(d => dates.add(d.date));
-        allPositions.forEach(p => {
-            const date = new Date(p.created_at).toISOString().split('T')[0];
-            dates.add(date);
-        });
+        if (Array.isArray(dailyPerformance)) {
+            dailyPerformance.forEach(d => dates.add(d.date));
+        }
+        if (Array.isArray(allPositions)) {
+            allPositions.forEach(p => {
+                const date = new Date(p.created_at).toISOString().split('T')[0];
+                dates.add(date);
+            });
+        }
         return Array.from(dates).sort((a, b) => b.localeCompare(a));
     }, [dailyPerformance, allPositions]);
 
     const dailyStats = useMemo(() => {
-        const perf = dailyPerformance.find(d => d.date === selectedDate);
-        const positions = allPositions.filter(p => 
+        const perf = Array.isArray(dailyPerformance) ? dailyPerformance.find(d => d.date === selectedDate) : null;
+        const positions = Array.isArray(allPositions) ? allPositions.filter(p => 
             new Date(p.created_at).toISOString().split('T')[0] === selectedDate
-        );
+        ) : [];
 
         const totalPnl = positions.reduce((sum, p) => sum + p.realizedPnlValue, 0);
         const winsAvailable = positions.filter(p => p.realizedPnlValue > 0).length;

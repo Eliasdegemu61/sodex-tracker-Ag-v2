@@ -8,7 +8,7 @@ export function PortfolioMetrics() {
   const { positions } = usePortfolio();
 
   const metrics = useMemo(() => {
-    if (!positions || positions.length === 0) {
+    if (!Array.isArray(positions) || positions.length === 0) {
       return {
         sharpeRatio: 0,
         maxDrawdown: 0,
@@ -41,8 +41,6 @@ export function PortfolioMetrics() {
         maxDrawdown = drawdownAmount;
       }
     });
-
-    console.log('[v0] Drawdown calc - runningMax:', runningMax, 'maxDrawdown:', maxDrawdown);
 
     // Calculate Profit Factor
     const winningTrades = positions.filter(p => p.realizedPnlValue > 0);
@@ -106,4 +104,3 @@ export function PortfolioMetrics() {
     </Card>
   );
 }
-
