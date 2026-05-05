@@ -44,12 +44,6 @@ export function Footer() {
           {/* Separator dot */}
           <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
 
-          {/* Built by text */}
-          <span className="text-xs">Built by Elias</span>
-
-          {/* Separator dot */}
-          <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
-
           {/* Disclaimer Button */}
           <button
             onClick={() => setShowDisclaimer(true)}
@@ -80,4 +74,3 @@ export function Footer() {
     </footer>
   );
 }
-

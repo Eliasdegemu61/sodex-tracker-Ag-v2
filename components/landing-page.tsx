@@ -254,8 +254,6 @@ export function LandingPage() {
             <Send className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
           </a>
           <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
-          <span className="text-xs">Built by Elias</span>
-          <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
           <button onClick={() => setShowDisclaimer(true)} className="hover:text-orange-500 transition-colors underline text-xs">Disclaimer</button>
         </div>
 
@@ -289,4 +287,3 @@ export function LandingPage() {
     </div>
   );
 }
-
