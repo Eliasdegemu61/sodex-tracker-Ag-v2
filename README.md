@@ -39,30 +39,5 @@ Advanced tools designed to improve your trading psychology and execution.
 - **Charting**: Recharts & Lightweight Charts for interactive financial data visualization.
 - **APIs**: Integrates directly with SoDex Mainnet APIs, SoSoValue Index APIs (for real-time pricing), and custom Supabase edge functions.
 
-## Getting Started
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/Eliasdegemu61/Sodex-Tracker.git
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   pnpm install
-   ```
-
-3. **Set up Environment Variables**:
-   Create a `.env.local` file in the root directory and add your Supabase credentials:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
-
-4. **Run the Development Server**:
-   ```bash
-   pnpm dev
-   ```
-   Open [http://localhost:3000](http://localhost:3000) to view the dashboard in your browser.
-
 ## Disclaimer
 This dashboard is an independent, community-built analytics tool created for tracking on-chain activity related to SoDex. It is not officially affiliated with the SoDex team. All data is provided for informational purposes only.
