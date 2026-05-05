@@ -19,7 +19,8 @@ import {
   BookOpen,
   LineChart,
   CandlestickChart,
-  MessageSquare
+  MessageSquare,
+  Coins
 } from 'lucide-react'
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -67,7 +68,7 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
     { id: 'journal', label: 'Journal', icon: BookOpen },
     { id: 'demo-trading', label: 'Demo Trading', icon: CandlestickChart },
     { id: 'analytics', label: 'Trade analytics', icon: LineChart },
-    { id: 'funding', label: 'Accrued Funding', icon: Zap },
+    { id: 'funding', label: 'Accrued Funding', icon: Coins },
   ]
 
   const { theme, toggleTheme } = useTheme()
@@ -203,7 +204,7 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
                   </div>
                   <div className="pt-4 border-t border-border/10 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-secondary/50">
+                      <div className="flex items-center gap-3">
                         {theme === 'dark' ? <Moon className="w-4 h-4 text-primary" /> : <Sun className="w-4 h-4 text-primary" />}
                       </div>
                       <span className="text-xs font-bold text-foreground capitalize">{theme} Mode</span>

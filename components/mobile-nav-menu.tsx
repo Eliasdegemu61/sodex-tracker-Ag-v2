@@ -16,7 +16,8 @@ import {
   BookOpen,
   LineChart,
   CandlestickChart,
-  MessageSquare
+  MessageSquare,
+  Coins
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/app/providers';
@@ -45,7 +46,7 @@ export function MobileNavMenu({ currentPage, onNavigate }: MobileNavMenuProps) {
       { id: 'journal', label: 'Journal', icon: BookOpen },
       { id: 'demo-trading', label: 'Demo Trading', icon: CandlestickChart },
       { id: 'analytics', label: 'Trade analytics', icon: LineChart },
-      { id: 'funding', label: 'Accrued Funding', icon: Zap },
+      { id: 'funding', label: 'Accrued Funding', icon: Coins },
     ]}
   ];
 
