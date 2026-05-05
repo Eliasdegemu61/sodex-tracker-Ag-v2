@@ -421,12 +421,12 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
           <div className="lg:col-span-2">
             <PnLChart />
           </div>
-          <AssetFlowCard />
+          <AssetFlowCard walletAddress={activePortfolio.walletAddress} />
         </div>
 
         <OpenPositions />
         <PositionsTable />
-        <FundFlowTable />
+        <FundFlowTable walletAddress={activePortfolio.walletAddress} />
       </div>
     </PortfolioProvider>
   );

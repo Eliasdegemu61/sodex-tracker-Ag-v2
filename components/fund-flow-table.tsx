@@ -34,6 +34,7 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [showingTxHash, setShowingTxHash] = useState<string | null>(null);
+  const [tokenPrices, setTokenPrices] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (!walletAddress) return;
@@ -57,7 +58,16 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
       const data = await response.json();
 
       if (data.code === '0' && data.data?.accountFlows) {
-        setFlows(data.data.accountFlows);
+        const fetchedFlows = data.data.accountFlows;
+        setFlows(fetchedFlows);
+
+        // Fetch USD prices for accurate netflow calculations
+        const uniqueTokens = Array.from(new Set(fetchedFlows.map((f: FundFlowData) => f.coin)));
+        import('@/lib/token-price-service').then(({ getTokenPrices }) => {
+          getTokenPrices(uniqueTokens as string[]).then(prices => {
+            setTokenPrices(prices);
+          });
+        });
       } else {
         throw new Error(data.message || 'No fund flow data found');
       }
@@ -123,16 +133,24 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
   const netflowStats = useMemo(() => {
     const deposits = flows
       .filter(f => isDeposit(f.type))
-      .reduce((sum, f) => sum + parseFloat(f.amount) / Math.pow(10, f.decimals), 0);
+      .reduce((sum, f) => {
+        const amount = parseFloat(f.amount) / Math.pow(10, f.decimals);
+        const price = tokenPrices[f.coin] || (f.coin.toUpperCase().includes('USD') ? 1 : 0);
+        return sum + (amount * price);
+      }, 0);
 
     const withdrawals = flows
       .filter(f => isWithdraw(f.type))
-      .reduce((sum, f) => sum + parseFloat(f.amount) / Math.pow(10, f.decimals), 0);
+      .reduce((sum, f) => {
+        const amount = parseFloat(f.amount) / Math.pow(10, f.decimals);
+        const price = tokenPrices[f.coin] || (f.coin.toUpperCase().includes('USD') ? 1 : 0);
+        return sum + (amount * price);
+      }, 0);
 
     const netflow = deposits - withdrawals;
 
     return { deposits, withdrawals, netflow };
-  }, [flows]);
+  }, [flows, tokenPrices]);
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleDateString('en-US', {
