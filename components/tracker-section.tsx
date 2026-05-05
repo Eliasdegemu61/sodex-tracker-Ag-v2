@@ -238,16 +238,18 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
   };
 
   const handleAbortAndShow = async () => {
+    if (!pendingPositions || pendingPositions.length === 0) return;
     setIsLoading(true);
     setIsPaused(false);
     try {
       const enriched = await enrichPositions(pendingPositions);
       setActivePortfolio({
-        walletAddress: walletAddress || searchInput,
+        walletAddress: searchInput,
         userId: pendingUserId!,
         positions: enriched
       });
     } catch (err) {
+      console.error('[v0] Abort and show error:', err);
       setError('Failed to process existing data');
     } finally {
       setIsLoading(false);
@@ -381,12 +383,12 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
   }
 
   return (
-    <PortfolioProvider initialData={{ 
-      positions: activePortfolio.positions, 
-      userId: activePortfolio.userId, 
-      walletAddress: activePortfolio.walletAddress, 
-      sourceWalletAddress: activePortfolio.walletAddress 
-    }}>
+    <PortfolioProvider 
+      initialUserId={activePortfolio.userId}
+      initialPositions={activePortfolio.positions}
+      initialWalletAddress={activePortfolio.walletAddress}
+      initialSourceWalletAddress={activePortfolio.walletAddress}
+    >
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">

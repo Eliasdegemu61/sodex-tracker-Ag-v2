@@ -108,11 +108,15 @@ export function PortfolioOverview() {
         const fVol = getVolumeFromPnLOverview(pnlData);
         
         const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-        const pnl30 = positions
-          .filter(p => (p.updated_at || 0) >= thirtyDaysAgo)
-          .reduce((sum, p) => sum + (p.realizedPnlValue || 0), 0);
+        const pnl30 = Array.isArray(positions) 
+          ? positions
+            .filter(p => (p.updated_at || 0) >= thirtyDaysAgo)
+            .reduce((sum, p) => sum + (p.realizedPnlValue || 0), 0)
+          : 0;
 
-        const fFees = positions.reduce((sum, p) => sum + (parseFloat(p.cum_trading_fee || '0') || 0), 0);
+        const fFees = Array.isArray(positions)
+          ? positions.reduce((sum, p) => sum + (parseFloat(p.cum_trading_fee || '0') || 0), 0)
+          : 0;
 
         setMetrics(prev => ({
           ...prev,
