@@ -236,7 +236,7 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
   }
 
   return (
-    <Card className="overflow-hidden rounded-[2rem] border border-black/8 bg-white p-5 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+    <Card className="overflow-hidden rounded-[2rem] border border-black/8 bg-white p-3 sm:p-5 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
         <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">Fund flow</h3>
 
@@ -264,7 +264,7 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
       </div>
 
       {/* Filter Buttons */}
-      <div className="mb-8 flex gap-2">
+      <div className="mb-8 flex flex-wrap gap-2">
         {[
           { id: 'all', label: 'All Transfers' },
           { id: 'deposit', label: 'Deposits' },

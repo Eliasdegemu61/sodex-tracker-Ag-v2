@@ -257,7 +257,7 @@ export default function Dashboard() {
     <div className="min-h-screen">
       {/* Header */}
       <header className="border-b border-white/5 bg-[#0A0A0A]/80 sticky top-0 z-50">
-        <div className="max-w-[1800px] mx-auto flex items-center justify-between h-20 px-4 md:px-6 gap-3 md:gap-8">
+        <div className="max-w-[2400px] mx-auto flex items-center justify-between h-20 px-2 md:px-6 gap-3 md:gap-8">
           {/* Logo Section */}
           <div className="flex items-center gap-3 flex-shrink-0 cursor-pointer" onClick={() => setCurrentPage('leaderboard')}>
             <div className="relative">
@@ -339,9 +339,9 @@ export default function Dashboard() {
       {/* Main Content - Only render active tab */}
       {currentPage === 'dex-status' && (
         <Suspense fallback={<div className="w-full h-screen flex items-center justify-center"><div className="text-muted-foreground animate-pulse text-[10px] tracking-widest uppercase">Initializing Neural Link...</div></div>}>
-          <div className="flex flex-col lg:flex-row w-full max-w-[1800px] mx-auto min-h-[calc(100vh-5rem)]">
+          <div className="flex flex-col lg:flex-row w-full max-w-[2400px] mx-auto min-h-[calc(100vh-5rem)]">
             {/* Left Sidebar */}
-            <div className="w-full lg:w-[320px] xl:w-[380px] lg:border-r border-border/10 p-6 space-y-6 lg:flex-shrink-0 order-2 lg:order-1 bg-secondary/5 lg:bg-transparent">
+            <div className="w-full lg:w-[320px] xl:w-[380px] lg:border-r border-border/10 p-3 sm:p-6 space-y-6 lg:flex-shrink-0 order-2 lg:order-1 bg-secondary/5 lg:bg-transparent">
               <div className="space-y-6">
                 <DashboardStats />
                 <TVLCard />
@@ -354,7 +354,7 @@ export default function Dashboard() {
             </div>
 
             {/* Center Content */}
-            <div className="flex-1 lg:border-r border-border/10 p-6 space-y-6 order-1 lg:order-2">
+            <div className="flex-1 lg:border-r border-border/10 p-3 sm:p-6 space-y-6 order-1 lg:order-2">
               <VolumeChart />
               <FundFlowChart />
               <VolumeRangeCard />
@@ -362,7 +362,7 @@ export default function Dashboard() {
             </div>
 
             {/* Right Sidebar */}
-            <div className="w-full lg:w-[320px] xl:w-[380px] p-6 space-y-6 lg:flex-shrink-0 order-3 bg-secondary/5 lg:bg-transparent">
+            <div className="w-full lg:w-[320px] xl:w-[380px] p-3 sm:p-6 space-y-6 lg:flex-shrink-0 order-3 bg-secondary/5 lg:bg-transparent">
               <AnnouncementsPanel />
               <TopGainersCard />
 

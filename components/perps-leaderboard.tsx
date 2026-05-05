@@ -103,7 +103,7 @@ export function PerpsLeaderboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col space-y-6 p-4 md:p-8">
+    <div className="min-h-screen bg-background flex flex-col space-y-6 p-2 sm:p-4 md:p-8">
       {/* Controls Section */}
       <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between">
         <div className="flex flex-wrap gap-3 items-center">
@@ -264,7 +264,7 @@ export function PerpsLeaderboard() {
       )}
 
       {/* Table Section */}
-      <Card className="flex-1 overflow-hidden bg-background border border-border rounded-xl shadow-sm flex flex-col p-3 md:p-8 relative">
+      <Card className="flex-1 overflow-hidden bg-background border border-border rounded-xl shadow-sm flex flex-col p-2 sm:p-5 md:p-8 relative">
         {loading && (
           <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-20 flex items-center justify-center rounded-xl">
             <div className="w-6 h-6 border-2 border-border border-t-foreground animate-spin rounded-full" />

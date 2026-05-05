@@ -747,7 +747,7 @@ export function TradeAnalytics() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Market Exposure Matrix */}
-        <Card className="lg:col-span-2 p-6 sm:p-8 bg-background border border-border rounded-xl shadow-none overflow-hidden relative group">
+        <Card className="lg:col-span-2 p-3 sm:p-8 bg-background border border-border rounded-xl shadow-none overflow-hidden relative group">
 
           <div className="flex items-center justify-between mb-8 relative z-10">
             <div className="flex items-center gap-4">
@@ -819,7 +819,7 @@ export function TradeAnalytics() {
 
         {/* Tactical Edge Detection */}
         <div className="space-y-6">
-          <Card className="p-6 bg-background border border-border rounded-xl shadow-none relative overflow-hidden">
+          <Card className="p-4 sm:p-6 bg-background border border-border rounded-xl shadow-none relative overflow-hidden">
 
             <div className="flex items-center gap-3 mb-6">
               <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">Top Pairs</h3>
@@ -865,13 +865,13 @@ export function TradeAnalytics() {
             </div>
           </Card>
 
-          <Card className="p-6 bg-background border border-border rounded-xl shadow-none overflow-hidden">
+          <Card className="p-4 sm:p-6 bg-background border border-border rounded-xl shadow-none overflow-hidden">
             <div className="flex items-center gap-3 mb-6">
               <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">Long vs Short</h3>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-6 bg-card border-border/50 rounded-2xl space-y-4 hover:border-emerald-500/20 transition-all duration-500 group/long">
+              <div className="p-3 sm:p-6 bg-card border-border/50 rounded-2xl space-y-4 hover:border-emerald-500/20 transition-all duration-500 group/long">
                 <div className="flex items-center justify-between">
                   <span className="text-[8px] font-bold text-emerald-500/50 uppercase">LONG</span>
                 </div>
@@ -880,7 +880,7 @@ export function TradeAnalytics() {
                   <p className="text-[7px] sm:text-[9px] font-semibold text-muted-foreground/20 uppercase tracking-widest">Win Rate: {direction_analysis.overall.long.win_rate.toFixed(0)}%</p>
                 </div>
               </div>
-              <div className="p-6 bg-card border-border/50 rounded-2xl space-y-4 hover:border-orange-500/20 transition-all duration-500 group/short">
+              <div className="p-3 sm:p-6 bg-card border-border/50 rounded-2xl space-y-4 hover:border-orange-500/20 transition-all duration-500 group/short">
                 <div className="flex items-center justify-between">
                   <span className="text-[8px] font-bold text-orange-500/50 uppercase">SHORT</span>
                 </div>
@@ -896,7 +896,7 @@ export function TradeAnalytics() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Statistical Distribution */}
-        <Card className="p-6 sm:p-8 bg-background border border-border rounded-xl shadow-none relative overflow-hidden">
+        <Card className="p-4 sm:p-8 bg-background border border-border rounded-xl shadow-none relative overflow-hidden">
           <div className="flex items-center gap-4 mb-8">
             <div>
               <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">PnL Distribution</h3>
@@ -929,7 +929,7 @@ export function TradeAnalytics() {
         </Card>
 
         {/* Holding Time Analysis */}
-        <Card className="p-6 sm:p-8 bg-background border border-border rounded-xl shadow-none">
+        <Card className="p-4 sm:p-8 bg-background border border-border rounded-xl shadow-none">
           <div className="flex items-center gap-4 mb-8">
             <div>
               <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">Duration vs Edge</h3>
@@ -965,7 +965,7 @@ export function TradeAnalytics() {
       </div>
 
       {/* Leverage Efficiency */}
-      <Card className="p-6 sm:p-8 bg-background border border-border rounded-xl shadow-none">
+      <Card className="p-4 sm:p-8 bg-background border border-border rounded-xl shadow-none">
         <div className="flex items-center gap-4 mb-8">
           <div>
             <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.2em]">Leverage Efficiency</h3>
@@ -1001,7 +1001,7 @@ export function TradeAnalytics() {
 
       {/* Fee Impact Matrix */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="p-8 bg-background border border-border rounded-xl shadow-none flex flex-col items-center justify-center text-center space-y-6">
+        <Card className="p-4 sm:p-8 bg-background border border-border rounded-xl shadow-none flex flex-col items-center justify-center text-center space-y-6">
           <div className="p-4 rounded-full bg-orange-500/5 border border-orange-500/10">
             <Scale className="w-8 h-8 text-orange-500/40" />
           </div>
@@ -1017,7 +1017,7 @@ export function TradeAnalytics() {
           </p>
         </Card>
 
-        <Card className="p-8 bg-background border border-border rounded-xl shadow-none flex flex-col items-center justify-center text-center space-y-6">
+        <Card className="p-4 sm:p-8 bg-background border border-border rounded-xl shadow-none flex flex-col items-center justify-center text-center space-y-6">
           <div className="p-4 rounded-full bg-primary/5 border border-primary/10">
             <Percent className="w-8 h-8 text-primary/40" />
           </div>
@@ -1030,7 +1030,7 @@ export function TradeAnalytics() {
           </p>
         </Card>
 
-        <Card className="p-8 bg-background border border-border rounded-xl shadow-none flex flex-col items-center justify-center text-center space-y-6">
+        <Card className="p-4 sm:p-8 bg-background border border-border rounded-xl shadow-none flex flex-col items-center justify-center text-center space-y-6">
           <div className="p-4 rounded-full bg-emerald-500/5 border border-emerald-500/10">
             <Target className="w-8 h-8 text-emerald-500/40" />
           </div>

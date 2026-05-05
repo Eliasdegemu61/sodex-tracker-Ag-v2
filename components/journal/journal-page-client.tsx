@@ -476,7 +476,7 @@ export function JournalPageClient({ isDashboard = false }: { isDashboard?: boole
             )}
 
             <main className="flex-1 overflow-y-auto no-scrollbar pb-24 md:pb-20">
-                <div className="max-w-4xl mx-auto w-full px-4 md:px-6 pt-4 md:pt-12">
+                <div className="max-w-[1800px] mx-auto w-full px-2 sm:px-6 pt-4 md:pt-12">
                     {!isAddressPromptFinished ? (
                         <AddressPrompt onSetAddress={handleSetAddress} />
                     ) : (

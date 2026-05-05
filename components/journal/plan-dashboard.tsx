@@ -143,7 +143,7 @@ export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps
             </div>
 
             {/* Goal Row - Very Compact */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-secondary/5 border border-border/10 rounded-2xl p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-secondary/5 border border-border/10 rounded-2xl p-4 sm:p-6">
                 <GoalStat
                     percent={timeProgressPercent}
                     label="Cycle Progress"
@@ -179,7 +179,7 @@ export function PlanDashboard({ metrics, onEdit, accountId }: PlanDashboardProps
             {/* Tab Content */}
             {activeTab === 'overview' && (
                 <div className="space-y-8 animate-in fade-in duration-500">
-                    <div className="bg-secondary/5 border border-border/10 rounded-2xl p-6">
+                    <div className="bg-secondary/5 border border-border/10 rounded-2xl p-4 sm:p-6">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">Equity Curve</h3>
                             <div className="text-[10px] font-bold text-muted-foreground/20 uppercase tracking-widest">Growth over time</div>
