@@ -103,12 +103,22 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
   const [fetchProgress, setFetchProgress] = useState<{count: number, isLong: boolean}>({ count: 0, isLong: false });
   const [error, setError] = useState<string | null>(null);
   
+  // Ref to track the current abort controller for cancellation
+  const abortControllerRef = React.useRef<AbortController | null>(null);
+
   // Timeframe option for large accounts
   const [timeframe, setTimeframe] = useState<'30D' | 'ALL'>('ALL');
 
   const handleSearch = async (addressToSearch?: string) => {
     const valueToSearch = (addressToSearch || searchInput || '').trim();
     if (!valueToSearch) return;
+
+    // Cancel any existing fetch
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     setIsLoading(true);
     setError(null);
@@ -131,27 +141,36 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
         (count) => {
           setFetchProgress(prev => ({ ...prev, count }));
         },
-        minTimestamp
+        minTimestamp,
+        controller.signal
       );
       
       const enrichedPositions = await enrichPositions(fetchedPositions);
 
-      // CRITICAL: Set everything in one go to prevent premature rendering of sub-sections
-      setActivePortfolio({
-        walletAddress: valueToSearch,
-        userId: foundUserId,
-        positions: enrichedPositions
-      });
-      
-      setError(null);
+      // Only set everything if this is still the active request
+      if (!controller.signal.aborted) {
+        setActivePortfolio({
+          walletAddress: valueToSearch,
+          userId: foundUserId,
+          positions: enrichedPositions
+        });
+        setError(null);
+      }
     } catch (err) {
+      if (err instanceof Error && err.message === 'Fetch aborted') {
+        console.log('[v0] Search cancelled for:', valueToSearch);
+        return;
+      }
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch wallet data';
       console.error('[v0] Error searching wallet:', errorMessage);
       setError(errorMessage);
       setActivePortfolio(null);
     } finally {
-      clearTimeout(longFetchTimer);
-      setIsLoading(false);
+      if (abortControllerRef.current === controller) {
+        clearTimeout(longFetchTimer);
+        setIsLoading(false);
+        abortControllerRef.current = null;
+      }
     }
   };
 
@@ -162,6 +181,15 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
       handleSearch(initialSearchAddress);
     }
   }, [initialSearchAddress]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   const handleClear = () => {
     setSearchInput('');

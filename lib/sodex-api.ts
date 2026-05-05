@@ -98,9 +98,10 @@ export async function getUserIdByAddress(address: string): Promise<string> {
 
 export async function fetchPositions(
   accountId: string | number,
-  cursor?: string
+  cursor?: string,
+  signal?: AbortSignal
 ): Promise<{ positions: PositionData[]; nextCursor?: string }> {
-  console.log('[STRICT-ID] API Fetch Positions:', accountId);
+  console.log('[STRICT-ID] API Fetch Positions:', accountId, 'Cursor:', cursor);
   const url = new URL('https://mainnet-data.sodex.dev/api/v1/perps/positions');
   url.searchParams.append('account_id', String(accountId));
   url.searchParams.append('limit', '500');
@@ -108,7 +109,7 @@ export async function fetchPositions(
     url.searchParams.append('cursor', cursor);
   }
 
-  const response = await fetch(url.toString());
+  const response = await fetch(url.toString(), { signal });
   if (!response.ok) {
     throw new Error(`Failed to fetch positions: ${response.statusText}`);
   }
@@ -127,14 +128,16 @@ export async function fetchPositions(
 export async function fetchAllPositions(
   accountId: string | number,
   onProgress?: (count: number) => void,
-  minTimestamp?: number
+  minTimestamp?: number,
+  signal?: AbortSignal
 ): Promise<PositionData[]> {
   const allPositions: PositionData[] = [];
   let cursor: string | undefined;
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    const { positions, nextCursor } = await fetchPositions(accountId, cursor);
+    if (signal?.aborted) throw new Error('Fetch aborted');
+    const { positions, nextCursor } = await fetchPositions(accountId, cursor, signal);
     
     // Add new positions
     allPositions.push(...positions);
