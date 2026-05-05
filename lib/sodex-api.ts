@@ -470,6 +470,41 @@ export async function fetchMarkPrices(): Promise<MarkPrice[]> {
   });
 }
 
+export interface FundingRateData {
+  symbol: string;
+  fundingRate: string;
+  collectionInterval: number;
+  nextCollectionTime: number;
+}
+
+export interface FundingRateResponse {
+  code: number;
+  timestamp: number;
+  data: FundingRateData;
+}
+
+export async function fetchFundingRate(symbol: string): Promise<FundingRateData> {
+  const cacheKey = `fundingRate_${symbol}`;
+  
+  // We use a shorter cache for funding rates (e.g. 1 minute) as they don't change often 
+  // but we want the nextCollectionTime to stay relatively accurate
+  return cacheManager.deduplicate(cacheKey, async () => {
+    const url = `https://mainnet-gw.sodex.dev/futures/fapi/market/v1/public/q/funding-rate?symbol=${symbol}`;
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch funding rate for ${symbol}: ${response.statusText}`);
+    }
+
+    const data: FundingRateResponse = await response.json();
+    if (data.code !== 0) {
+      throw new Error(`API error: Failed to fetch funding rate for ${symbol}`);
+    }
+
+    return data.data;
+  });
+}
+
 interface FallbackMarkPrice {
   symbol: string;
   markPrice: string;

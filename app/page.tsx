@@ -41,6 +41,8 @@ import { JournalPageClient } from '@/components/journal/journal-page-client';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { Search, Settings as SettingsIcon } from 'lucide-react'
 import { PulseDashboard } from '@/components/pulse-dashboard'
+import { AccruedFunding } from '@/components/accrued-funding'
+
 
 function LoadingCard() {
   return <Card className="p-4 md:p-6 bg-card border border-border h-64 animate-pulse" />
@@ -232,6 +234,7 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
                         </span>
                       </td>
                     </tr>
+
                   ))}
                 </tbody>
               </table>
@@ -245,7 +248,7 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
 
 export default function Dashboard() {
   const { theme, toggleTheme, mounted } = useTheme()
-  const [currentPage, setCurrentPage] = useState<'dex-status' | 'tracker' | 'portfolio' | 'leaderboard' | 'analyzer' | 'about' | 'whale-tracker' | 'assets' | 'journal' | 'analytics' | 'demo-trading' | 'pulse'>('dex-status')
+  const [currentPage, setCurrentPage] = useState<'dex-status' | 'tracker' | 'portfolio' | 'leaderboard' | 'analyzer' | 'about' | 'whale-tracker' | 'assets' | 'journal' | 'analytics' | 'demo-trading' | 'pulse' | 'funding'>('dex-status')
   const [searchAddressInput, setSearchAddressInput] = useState('')
   const [trackerSearchAddress, setTrackerSearchAddress] = useState('')
   const [showMoreMenu, setShowMoreMenu] = useState(false)
@@ -293,13 +296,19 @@ export default function Dashboard() {
       setTrackerSearchAddress(decodeURIComponent(addressParam));
     }
 
-    if (tabParam && ['dex-status', 'tracker', 'portfolio', 'leaderboard', 'analyzer', 'about', 'whale-tracker', 'assets', 'analytics', 'demo-trading', 'pulse'].includes(tabParam)) {
+    if (tabParam && ['dex-status', 'tracker', 'portfolio', 'leaderboard', 'analyzer', 'about', 'whale-tracker', 'assets', 'analytics', 'demo-trading', 'pulse', 'funding'].includes(tabParam)) {
+
       setCurrentPage(tabParam);
     } else {
       // Default to dex-status on first load
       setCurrentPage('dex-status');
     }
   }, []);
+
+  // Reset search when changing pages to prevent address persistence ("sticking")
+  useEffect(() => {
+    setTrackerSearchAddress('')
+  }, [currentPage])
 
   // Reset scroll position when page changes
   useEffect(() => {
@@ -489,6 +498,13 @@ export default function Dashboard() {
                   <PulseDashboard />
                 </Suspense>
               )}
+
+              {currentPage === 'funding' && (
+                <Suspense fallback={<LoadingCard />}>
+                  <AccruedFunding initialSearchAddress={trackerSearchAddress} />
+                </Suspense>
+              )}
+
             </div>
 
             {/* Mobile Footer (Contact Links) */}
