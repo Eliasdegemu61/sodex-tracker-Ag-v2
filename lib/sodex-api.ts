@@ -395,7 +395,7 @@ export async function fetchAccountDetails(userId: string | number): Promise<Acco
 
     console.log('[v0] Fetched account details - positions:', data.data.positions.length, 'balance:', data.data.balances[0]?.walletBalance);
     return data.data;
-  });
+  }, 5);
 }
 
 export async function fetchOpenPositions(userId: string | number): Promise<OpenPositionData[]> {
@@ -465,9 +465,8 @@ export async function fetchMarkPrices(): Promise<MarkPrice[]> {
       throw new Error(`API error: Failed to fetch mark prices`);
     }
 
-    console.log('[v0] Fetched mark prices - count:', data.data.length);
     return data.data || [];
-  });
+  }, 10);
 }
 
 export interface FundingRateData {
@@ -502,7 +501,7 @@ export async function fetchFundingRate(symbol: string): Promise<FundingRateData>
     }
 
     return data.data;
-  });
+  }, 10);
 }
 
 interface FallbackMarkPrice {

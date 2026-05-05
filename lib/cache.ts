@@ -59,7 +59,8 @@ class CacheManager {
   // Deduplicate concurrent requests - prevent duplicate API calls
   async deduplicate<T>(
     key: string,
-    fetchFn: () => Promise<T>
+    fetchFn: () => Promise<T>,
+    ttlSeconds?: number
   ): Promise<T> {
     // Check cache first
     const cached = this.get<T>(key);
@@ -74,7 +75,7 @@ class CacheManager {
     // Create new request
     const promise = fetchFn()
       .then((data) => {
-        this.set(key, data);
+        this.set(key, data, ttlSeconds);
         this.requestInProgress.delete(key);
         return data;
       })
