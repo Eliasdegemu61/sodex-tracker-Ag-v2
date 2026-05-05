@@ -332,53 +332,60 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
 
   if (!activePortfolio) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-8 max-w-2xl mx-auto px-4">
-        <div className="text-center space-y-2">
-          <h2 className="text-4xl font-black tracking-tight italic uppercase">Wallet Tracker</h2>
-          <p className="text-muted-foreground">Monitor performance, positions, and fund flows for any SoDex address.</p>
-        </div>
-        
-        <div className="w-full max-w-md space-y-4">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Enter 0x address..."
-                className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/[0.03] border border-white/10 focus:outline-none focus:border-orange-500/50 transition-all font-mono text-sm"
-              />
-            </div>
-            <Button onClick={() => handleSearch()} disabled={isLoading} className="rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold italic px-6">
-              TRACK
-            </Button>
+      <div className="flex min-h-[400px] flex-col items-center justify-center px-4 py-6">
+        <Card className="w-full max-w-xl animate-in fade-in slide-in-from-bottom-4 duration-500 rounded-[2rem] border border-black/8 bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-[#050505] dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:p-10">
+          
+          <div className="mb-8 text-center sm:text-left">
+            <h2 className="mb-2 text-3xl font-semibold tracking-[-0.04em] text-foreground sm:text-4xl">Wallet Tracker</h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">Monitor performance, positions, and fund flows for any SoDex address.</p>
           </div>
 
-          <div className="flex items-center justify-center gap-4 py-2">
-             <div className="flex bg-white/5 rounded-xl p-1">
-                {(['ALL', '30D'] as const).map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setTimeframe(t)}
-                    className={cn(
-                      "flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-black transition-all uppercase tracking-widest",
-                      timeframe === t
-                        ? "bg-white text-black shadow-lg"
-                        : "text-white/40 hover:text-white hover:bg-white/5"
-                    )}
-                  >
-                    <Calendar className="w-3 h-3" />
-                    {t === 'ALL' ? 'Full History' : 'Last 30 Days'}
-                  </button>
-                ))}
-              </div>
+          <div className="space-y-6">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Enter 0x address..."
+                value={searchInput}
+                onChange={(e) => { setSearchInput(e.target.value); setError(null); }}
+                onKeyPress={handleKeyPress}
+                className="w-full rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-3.5 text-sm font-medium text-foreground placeholder:text-black/25 focus:outline-none focus:ring-1 focus:ring-black/15 transition-all disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.02] dark:placeholder:text-white/25 dark:focus:ring-white/25"
+              />
+            </div>
+
+            <div className="flex items-center justify-center">
+               <div className="flex bg-black/[0.03] dark:bg-white/[0.03] rounded-xl p-1 w-full">
+                  {(['ALL', '30D'] as const).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setTimeframe(t)}
+                      className={cn(
+                        "flex flex-1 items-center justify-center gap-2 px-4 py-2 rounded-lg text-[10px] font-bold transition-all uppercase tracking-widest",
+                        timeframe === t
+                          ? "bg-white dark:bg-white text-black shadow-lg"
+                          : "text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white"
+                      )}
+                    >
+                      <Calendar className="w-3 h-3" />
+                      {t === 'ALL' ? 'Full History' : 'Last 30 Days'}
+                    </button>
+                  ))}
+                </div>
+            </div>
+
+            <button
+              onClick={() => handleSearch()}
+              disabled={isLoading || !searchInput.trim()}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white bg-white py-3.5 text-sm font-semibold text-black shadow-sm transition-all hover:bg-white/90 disabled:opacity-40"
+            >
+              <Search className="w-4 h-4" />
+              <span>Track Wallet</span>
+            </button>
+
+            <p className="text-[10px] text-center text-muted-foreground/40 uppercase tracking-[0.2em]">
+              Tip: Use "Last 30 Days" for high-frequency trading accounts
+            </p>
           </div>
-          <p className="text-[10px] text-center text-muted-foreground/40 uppercase tracking-[0.2em]">
-            Tip: Use "Last 30 Days" for high-frequency trading accounts
-          </p>
-        </div>
+        </Card>
       </div>
     );
   }
@@ -395,9 +402,9 @@ function TrackerContent({ initialSearchAddress }: { initialSearchAddress?: strin
           <div className="flex items-center gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-2xl font-black italic uppercase tracking-tight">Tracker</h2>
+                <h2 className="text-2xl font-semibold tracking-tight">Tracker</h2>
               </div>
-              <p className="text-xs text-muted-foreground/60 font-mono">{activePortfolio.walletAddress}</p>
+              <p className="text-xs text-muted-foreground/60">{activePortfolio.walletAddress}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">

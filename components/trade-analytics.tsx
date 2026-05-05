@@ -82,7 +82,7 @@ function LoadingSpinner({ message, subMessage, onContinue, onAbort, isPaused, cu
       </div>
 
       <div className="space-y-2">
-        <span className="block text-lg font-bold text-foreground italic uppercase tracking-tight">{message}</span>
+        <span className="block text-lg font-bold text-foreground uppercase tracking-tight">{message}</span>
         {subMessage && (
           <span className="block text-xs text-muted-foreground/60 max-w-md mx-auto font-medium leading-relaxed">{subMessage}</span>
         )}
@@ -115,7 +115,7 @@ function CustomTooltip({ active, payload, label }: any) {
         <div className="flex flex-col gap-0.5">
           <span className="text-[8px] font-bold text-muted-foreground/30 uppercase tracking-widest">Net PnL</span>
           <p className={cn(
-            "text-lg font-black italic tracking-tighter tabular-nums",
+            "text-lg font-bold tracking-tighter tabular-nums",
             isPositive ? "text-emerald-500" : "text-orange-500"
           )}>
             {isPositive ? '+' : ''}${Math.abs(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -161,7 +161,7 @@ function MetricCard({
         </div>
         <div className="flex flex-col gap-0.5 sm:gap-1 w-full">
           <h4 className={cn(
-            "text-base min-[380px]:text-lg sm:text-2xl font-black tracking-tighter tabular-nums transition-all duration-500 group-hover:translate-x-1 truncate",
+            "text-base min-[380px]:text-lg sm:text-2xl font-bold tracking-tighter tabular-nums transition-all duration-500 group-hover:translate-x-1 truncate",
             trend === 'up' ? "text-emerald-500" : trend === 'down' ? "text-orange-500" : "text-foreground"
           )}>
             {value}
@@ -776,11 +776,11 @@ export function TradeAnalytics() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-border/10">
-                  <th className="pb-4 sm:pb-6 text-[8px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] text-muted-foreground/20 font-black">Pair</th>
-                  <th className="pb-4 sm:pb-6 text-[8px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] text-muted-foreground/20 font-black text-right">Trades</th>
-                  <th className="pb-4 sm:pb-6 text-[8px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] text-muted-foreground/20 font-black text-right whitespace-nowrap">Net PnL</th>
-                  <th className="pb-4 sm:pb-6 text-[8px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] text-muted-foreground/20 font-black text-right">Profit Factor</th>
-                  <th className="pb-4 sm:pb-6 text-[8px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] text-muted-foreground/20 font-black text-right">PnL %</th>
+                  <th className="pb-4 sm:pb-6 text-[8px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] text-muted-foreground/20 font-bold">Pair</th>
+                  <th className="pb-4 sm:pb-6 text-[8px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] text-muted-foreground/20 font-bold text-right">Trades</th>
+                  <th className="pb-4 sm:pb-6 text-[8px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] text-muted-foreground/20 font-bold text-right whitespace-nowrap">Net PnL</th>
+                  <th className="pb-4 sm:pb-6 text-[8px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] text-muted-foreground/20 font-bold text-right">Profit Factor</th>
+                  <th className="pb-4 sm:pb-6 text-[8px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] text-muted-foreground/20 font-bold text-right">PnL %</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/10">

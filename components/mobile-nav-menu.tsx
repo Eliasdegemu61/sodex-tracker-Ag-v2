@@ -40,13 +40,13 @@ export function MobileNavMenu({ currentPage, onNavigate }: MobileNavMenuProps) {
       { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
       { id: 'assets', label: 'Assets', icon: Compass },
       { id: 'pulse', label: 'Community Pulse', icon: MessageSquare },
+      { id: 'funding', label: 'Accrued Funding', icon: Coins },
       { id: 'analyzer', label: 'Reverse Search', icon: Zap },
     ]},
     { section: 'Beta', items: [
       { id: 'journal', label: 'Journal', icon: BookOpen },
       { id: 'demo-trading', label: 'Demo Trading', icon: CandlestickChart },
       { id: 'analytics', label: 'Trade analytics', icon: LineChart },
-      { id: 'funding', label: 'Accrued Funding', icon: Coins },
     ]}
   ];
 

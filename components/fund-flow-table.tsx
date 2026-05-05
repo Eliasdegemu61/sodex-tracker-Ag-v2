@@ -205,7 +205,7 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
       <Card className="rounded-[2rem] border border-black/8 bg-white p-12 text-center text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
         <div className="flex flex-col items-center justify-center p-8">
           <div className="mb-4 h-8 w-8 rounded-full border-2 border-black/15 border-t-black animate-spin dark:border-white/15 dark:border-t-white" />
-          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">Interrogating ledgers</p>
+          <p className="text-[10px] font-bold text-black/35 dark:text-white/35 uppercase tracking-[0.22em]">Interrogating ledgers</p>
         </div>
       </Card>
     );
@@ -216,7 +216,7 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
       <Card className="rounded-[2rem] border border-red-500/20 bg-white p-8 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
         <div className="flex flex-col items-center justify-center py-6 text-center">
           <AlertCircle className="w-8 h-8 text-red-400/40 mb-3" />
-          <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-red-300">Stream blocked</h3>
+          <h3 className="mb-1 text-[10px] font-bold text-red-300 uppercase tracking-[0.22em]">Stream blocked</h3>
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35">{error}</p>
           <Button onClick={fetchFundFlow} variant="outline" size="sm" className="mt-4 rounded-xl border-black/10 bg-black/[0.03] text-[10px] font-semibold text-foreground hover:bg-black/[0.07] dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:hover:bg-white/[0.07]">
             Retry Sync
@@ -229,7 +229,7 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
   if (flows.length === 0) {
     return (
       <Card className="rounded-[2rem] border border-black/8 bg-white p-12 text-center text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
-        <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">Fund flow</h3>
+        <h3 className="mb-2 text-[10px] font-bold text-black/35 dark:text-white/35 uppercase tracking-[0.22em]">Fund flow</h3>
         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/25 dark:text-white/25">No transfers detected</p>
       </Card>
     );
@@ -238,7 +238,7 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
   return (
     <Card className="overflow-hidden rounded-[2rem] border border-black/8 bg-white p-3 sm:p-5 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
-        <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">Fund flow</h3>
+        <h3 className="text-[10px] font-bold text-black/35 dark:text-white/35 uppercase tracking-[0.22em]">Fund flow</h3>
 
         {/* Netflow Info */}
         <div className="grid grid-cols-3 gap-3">
@@ -294,7 +294,7 @@ export function FundFlowTable({ walletAddress }: FundFlowTableProps) {
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-[11px] border-separate border-spacing-y-1.5">
           <thead>
-            <tr className="font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35">
+            <tr className="font-bold text-black/35 dark:text-white/35 uppercase tracking-[0.18em]">
               <th className="text-left py-2 px-3">Type</th>
               <th className="text-left py-2 px-3">Asset</th>
               <th className="text-right py-2 px-3">Amount</th>

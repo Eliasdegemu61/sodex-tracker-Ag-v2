@@ -91,7 +91,7 @@ export function PositionsTable() {
   return (
     <Card className="rounded-[2rem] border border-black/8 bg-white p-3 sm:p-5 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
       <div className="flex items-center justify-between mb-6">
-          <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">
+          <h3 className="text-[10px] font-bold text-black/35 dark:text-white/35 uppercase tracking-[0.22em]">
           Position history
         </h3>
       </div>
@@ -104,7 +104,7 @@ export function PositionsTable() {
         <div className="no-scrollbar overflow-x-auto">
           <table className="w-full text-[11px] border-separate border-spacing-y-1.5">
             <thead>
-              <tr className="text-black/35 dark:text-white/35 font-semibold uppercase tracking-[0.18em]">
+              <tr className="text-black/35 dark:text-white/35 font-bold uppercase tracking-[0.18em]">
                 <th className="text-left py-2 px-3">Pair</th>
                 <th className="text-left py-2 px-3">Side</th>
                 <th className="text-left py-2 px-3">Mode</th>

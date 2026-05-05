@@ -179,7 +179,7 @@ export function PerpsLeaderboard() {
             </div>
             <div className="w-full min-w-[140px] md:w-48 h-12 md:h-28 bg-background border-x border-t border-border rounded-t-xl relative flex flex-col items-center justify-center p-2 md:p-4">
               <p className="text-[8px] md:text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-1">#2</p>
-              <p className="text-[10px] font-mono text-foreground/80 mb-1 truncate max-w-full px-2 text-center">
+              <p className="text-[10px] text-foreground/80 mb-1 truncate max-w-full px-2 text-center">
                 {podiumItems[1].wallet_address.slice(0, 4)}...{podiumItems[1].wallet_address.slice(-4)}
               </p>
               <p className="text-xs md:text-base font-bold text-foreground">
@@ -196,14 +196,14 @@ export function PerpsLeaderboard() {
                 alt="Avatar"
                 className="w-12 h-12 md:w-20 md:h-20 rounded-2xl bg-foreground/5 border-2 border-foreground/20 relative z-10"
               />
-              <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-foreground rounded-full flex items-center justify-center text-background font-black text-[8px] md:text-[10px] border-2 border-background z-20">1</div>
+              <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-foreground rounded-full flex items-center justify-center text-background font-bold text-[8px] md:text-[10px] border-2 border-background z-20">1</div>
             </div>
             <div className="w-full min-w-[160px] md:w-64 h-20 md:h-40 bg-background border-x border-t border-foreground/30 rounded-t-2xl md:rounded-t-[2rem] relative flex flex-col items-center justify-center p-3 md:p-6">
               <p className="text-[9px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-1">#1 RANK</p>
-              <p className="text-xs font-mono text-foreground mb-2 truncate max-w-full px-2 text-center">
+              <p className="text-xs text-foreground mb-2 truncate max-w-full px-2 text-center">
                 {podiumItems[0].wallet_address.slice(0, 6)}...{podiumItems[0].wallet_address.slice(-4)}
               </p>
-              <p className="text-base md:text-xl font-black text-foreground">
+              <p className="text-base md:text-xl font-bold text-foreground">
                 ${formatNumber(parseFloat(sortType === 'pnl' ? podiumItems[0].pnl_usd : podiumItems[0].volume_usd))}
               </p>
             </div>
@@ -220,7 +220,7 @@ export function PerpsLeaderboard() {
             </div>
             <div className="w-full min-w-[120px] md:w-48 h-10 md:h-24 bg-background border-x border-t border-border rounded-t-lg md:rounded-t-xl relative flex flex-col items-center justify-center p-2 md:p-4">
               <p className="text-[8px] md:text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-1">#3</p>
-              <p className="text-[9px] md:text-[10px] font-mono text-foreground/80 mb-1 truncate max-w-full px-2 text-center">
+              <p className="text-[9px] md:text-[10px] text-foreground/80 mb-1 truncate max-w-full px-2 text-center">
                 {podiumItems[2].wallet_address.slice(0, 4)}...{podiumItems[2].wallet_address.slice(-4)}
               </p>
               <p className="text-xs md:text-sm font-bold text-foreground">
@@ -239,12 +239,12 @@ export function PerpsLeaderboard() {
           </div>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
-              <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl bg-secondary/10 border border-border flex items-center justify-center font-black text-[10px] md:text-sm text-foreground shrink-0">
+              <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl bg-secondary/10 border border-border flex items-center justify-center font-bold text-[10px] md:text-sm text-foreground shrink-0">
                 #{searchResult.rank}
               </div>
               <div>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-1">Personal Performance</p>
-                <p className="text-sm font-mono text-foreground/80">{searchResult.wallet_address}</p>
+                <p className="text-sm text-foreground/80">{searchResult.wallet_address}</p>
               </div>
             </div>
             <div className="grid grid-cols-2 md:flex md:gap-12 gap-x-12 gap-y-4">
@@ -289,7 +289,7 @@ export function PerpsLeaderboard() {
                   </td>
                   <td className="px-2 md:px-6 py-3 md:py-4">
                     <div className="flex items-center gap-2 group/addr">
-                      <span className="text-[10px] md:text-xs text-foreground/80 font-mono">
+                      <span className="text-[10px] md:text-xs text-foreground/80">
                         {entry.wallet_address.slice(0, 6)}...{entry.wallet_address.slice(-4)}
                       </span>
                       <button

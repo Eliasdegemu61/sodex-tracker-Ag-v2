@@ -9,3 +9,17 @@ node_modules/
 .env*.local
 .DS_Store
 .vercel
+
+# Logs
+*.log
+build-webpack.err.log
+build-webpack.out.log
+build.err.log
+build.out.log
+dev-direct.err.log
+dev-direct.out.log
+dev-server.err.log
+dev-server.out.log
+
+# Build info
+tsconfig.tsbuildinfo

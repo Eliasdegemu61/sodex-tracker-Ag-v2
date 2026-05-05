@@ -185,7 +185,7 @@ export function PnLChart({ title = 'Profit & Loss' }: PnLChartProps) {
               <XAxis
                 dataKey="date"
                 stroke={cursorColor}
-                tick={{ fill: axisColor, fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}
+                tick={{ fill: axisColor, fontSize: 9, fontWeight: 700 }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -193,7 +193,7 @@ export function PnLChart({ title = 'Profit & Loss' }: PnLChartProps) {
                 yAxisId="cumulative-axis"
                 domain={domains.cumulative}
                 stroke={cursorColor}
-                tick={{ fill: axisColor, fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}
+                tick={{ fill: axisColor, fontSize: 9, fontWeight: 700 }}
                 tickFormatter={(value) => value.toLocaleString('en-US', { maximumFractionDigits: 2 })}
                 axisLine={false}
                 tickLine={false}
@@ -204,7 +204,7 @@ export function PnLChart({ title = 'Profit & Loss' }: PnLChartProps) {
                 yAxisId="daily-axis"
                 domain={domains.daily}
                 stroke={cursorColor}
-                tick={{ fill: axisSecondary, fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}
+                tick={{ fill: axisSecondary, fontSize: 9, fontWeight: 700 }}
                 tickFormatter={(value) => value.toLocaleString('en-US', { maximumFractionDigits: 2 })}
                 axisLine={false}
                 tickLine={false}
@@ -218,7 +218,6 @@ export function PnLChart({ title = 'Profit & Loss' }: PnLChartProps) {
                   borderRadius: '12px',
                   color: tooltipText,
                   fontSize: '10px',
-                  fontFamily: 'monospace',
                   boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
                   backdropFilter: 'blur(10px)'
                 }}

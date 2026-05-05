@@ -62,13 +62,13 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
     { id: 'analyzer', label: 'Reverse Search', icon: Zap },
     { id: 'assets', label: 'Assets', icon: Compass },
     { id: 'pulse', label: 'Community Pulse', icon: MessageSquare },
+    { id: 'funding', label: 'Accrued Funding', icon: Coins },
   ]
 
   const betaItems = [
     { id: 'journal', label: 'Journal', icon: BookOpen },
     { id: 'demo-trading', label: 'Demo Trading', icon: CandlestickChart },
     { id: 'analytics', label: 'Trade analytics', icon: LineChart },
-    { id: 'funding', label: 'Accrued Funding', icon: Coins },
   ]
 
   const { theme, toggleTheme } = useTheme()

@@ -59,13 +59,13 @@ function LoadingSpinner({ message, subMessage, onContinue, onAbort, isPaused, cu
           <Loader2 className={cn("h-10 w-10 text-primary", !isPaused && "animate-spin")} />
           {isPaused && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-[8px] font-black uppercase text-primary">LIMIT</span>
+              <span className="text-[8px] font-bold uppercase text-primary">LIMIT</span>
             </div>
           )}
         </div>
         
         <div className="space-y-2 px-4">
-          <span className="block text-lg font-bold text-foreground italic uppercase tracking-tight">{message}</span>
+          <span className="block text-lg font-bold text-foreground uppercase tracking-tight">{message}</span>
           {subMessage && (
             <span className="block text-xs text-muted-foreground/60 max-w-md mx-auto font-medium leading-relaxed">{subMessage}</span>
           )}
@@ -135,7 +135,7 @@ function AddressPrompt({ onSetAddress }: { onSetAddress: (addr: string) => void 
                         placeholder="0x..."
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        className="w-full h-12 bg-secondary/10 border border-border/20 rounded-xl px-4 font-mono text-sm outline-none focus:border-border transition-all placeholder:text-muted-foreground/20 text-center"
+                        className="w-full h-12 bg-secondary/10 border border-border/20 rounded-xl px-4 text-sm outline-none focus:border-border transition-all placeholder:text-muted-foreground/20 text-center"
                     />
                     {error && <p className="text-xs text-red-400 font-medium">{error}</p>}
                     <button 
@@ -420,7 +420,7 @@ export function JournalPageClient({ isDashboard = false }: { isDashboard?: boole
                 <header className="h-14 md:h-16 border-b border-border/10 flex items-center justify-between px-4 md:px-6 shrink-0 sticky top-0 bg-background z-50">
                     <div className="flex items-center gap-4">
                         <div 
-                            className="text-xs font-black tracking-widest cursor-pointer hover:text-foreground/80 transition-colors opacity-50"
+                            className="text-xs font-bold tracking-widest cursor-pointer hover:text-foreground/80 transition-colors opacity-50"
                             onClick={() => setView('list')}
                         >
                             JOURNAL
@@ -433,7 +433,7 @@ export function JournalPageClient({ isDashboard = false }: { isDashboard?: boole
                             <div className="flex items-center gap-2 md:gap-3 mr-1">
                                 <div className="hidden sm:flex flex-col items-end">
                                     <span className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest leading-none mb-0.5">Connected</span>
-                                    <span className="text-[10px] font-mono text-muted-foreground/60 leading-none">
+                                    <span className="text-[10px] text-muted-foreground/60 leading-none">
                                         {tempAddress?.slice(0, 6)}...{tempAddress?.slice(-4)}
                                     </span>
                                 </div>
@@ -453,7 +453,7 @@ export function JournalPageClient({ isDashboard = false }: { isDashboard?: boole
                         <button
                             onClick={() => user ? supabase.auth.signOut() : setIsAuthModalOpen(true)}
                             className={cn(
-                                "flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-xl border transition-all text-[10px] font-black uppercase tracking-widest shadow-sm",
+                                "flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-xl border transition-all text-[10px] font-bold uppercase tracking-widest shadow-sm",
                                 user 
                                     ? "bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500/20" 
                                     : "bg-secondary/5 border-border/10 text-muted-foreground/40 hover:bg-secondary/10 hover:text-foreground"

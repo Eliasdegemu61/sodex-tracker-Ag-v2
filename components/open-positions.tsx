@@ -170,7 +170,7 @@ export function OpenPositions({ accountId }: { accountId?: string | null }) {
       <Card className="rounded-[2rem] border border-black/8 bg-white p-12 text-center text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
         <AlertCircle className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3" />
         <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">No account bound</h3>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35">Bind your account to view open positions</p>
+        <p className="text-[10px] font-medium text-black/35 dark:text-white/35 uppercase tracking-[0.18em]">Bind your account to view open positions</p>
       </Card>
     );
   }
@@ -180,7 +180,7 @@ export function OpenPositions({ accountId }: { accountId?: string | null }) {
       <Card className="rounded-[2rem] border border-black/8 bg-white p-12 text-center text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
         <div className="flex flex-col items-center justify-center p-8">
           <div className="mb-4 h-8 w-8 rounded-full border-2 border-black/15 border-t-black animate-spin dark:border-white/15 dark:border-t-white" />
-          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">Scanning perimeter</p>
+          <p className="text-[10px] font-medium text-black/35 dark:text-white/35 uppercase tracking-[0.22em]">Scanning perimeter</p>
         </div>
       </Card>
     );
@@ -211,13 +211,13 @@ export function OpenPositions({ accountId }: { accountId?: string | null }) {
     <Card className="overflow-hidden rounded-[2rem] border border-black/8 bg-white p-3 sm:p-5 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-black dark:text-white dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
         <div className="flex items-center gap-3">
-          <h3 className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35 dark:text-white/35">Open positions</h3>
+          <h3 className="text-[10px] font-bold text-black/35 dark:text-white/35 uppercase tracking-[0.22em]">Open positions</h3>
           <div className="flex h-5 w-5 items-center justify-center rounded-full border border-black/12 bg-black/[0.03] dark:border-white/12 dark:bg-white/[0.03]">
             <div className="h-1.5 w-1.5 rounded-full bg-green-500 dark:bg-green-400 animate-pulse" />
           </div>
         </div>
         {lastUpdateTime && (
-          <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-black/30 dark:text-white/30">
+          <span className="text-[9px] font-medium text-black/30 dark:text-white/30 uppercase tracking-[0.16em]">
             Sync: {lastUpdateTime}
           </span>
         )}
@@ -227,17 +227,17 @@ export function OpenPositions({ accountId }: { accountId?: string | null }) {
       {balanceData && (
         <div className="grid grid-cols-3 gap-2 mb-8">
           <div className="space-y-1 rounded-2xl border border-black/8 bg-black/[0.03] p-2 md:p-4 dark:border-white/8 dark:bg-white/[0.03]">
-            <p className="text-[7px] font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35">Wallet balance</p>
+            <p className="text-[7px] font-medium text-black/35 dark:text-white/35 uppercase tracking-[0.18em]">Wallet balance</p>
             <p className="text-sm font-semibold tracking-[-0.03em] text-foreground md:text-xl">${parseFloat(balanceData.walletBalance).toFixed(2)}</p>
             <p className="hidden text-[7px] font-semibold uppercase tracking-[0.16em] text-black/20 dark:text-white/20 sm:block">perpetuals (usdc)</p>
           </div>
           <div className="space-y-1 rounded-2xl border border-green-500/18 bg-green-500/8 p-2 md:p-4">
-            <p className="text-[7px] font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35">Liquidity</p>
+            <p className="text-[7px] font-medium text-black/35 dark:text-white/35 uppercase tracking-[0.18em]">Liquidity</p>
             <p className="text-sm font-semibold tracking-[-0.03em] text-green-400 md:text-xl">${parseFloat(balanceData.availableBalance).toFixed(2)}</p>
             <p className="hidden text-[7px] font-semibold uppercase tracking-[0.16em] text-black/20 dark:text-white/20 sm:block">Available to trade</p>
           </div>
           <div className="space-y-1 rounded-2xl border border-black/8 bg-black/[0.03] p-2 md:p-4 dark:border-white/8 dark:bg-white/[0.03]">
-            <p className="text-[7px] font-semibold uppercase tracking-[0.18em] text-black/35 dark:text-white/35">Exposure</p>
+            <p className="text-[7px] font-medium text-black/35 dark:text-white/35 uppercase tracking-[0.18em]">Exposure</p>
             <p className="text-sm font-semibold tracking-[-0.03em] text-foreground md:text-xl">${totalMarginInUse.toFixed(2)}</p>
             <p className="hidden text-[7px] font-semibold uppercase tracking-[0.16em] text-black/20 dark:text-white/20 sm:block">Margin in use</p>
           </div>
@@ -305,7 +305,7 @@ export function OpenPositions({ accountId }: { accountId?: string | null }) {
                     <p className={`text-base font-semibold tracking-[-0.03em] md:text-xl ${isProfit ? 'text-green-400' : 'text-red-400'}`}>
                       {isProfit ? '+' : ''}${Math.abs(pos.unrealized).toFixed(2)}
                     </p>
-                    <p className="mt-0.5 text-[7px] font-semibold uppercase tracking-[0.18em] text-white/30 md:text-[8px]">unrealized pnl</p>
+                    <p className="mt-0.5 text-[7px] font-medium text-white/30 dark:text-white/30 uppercase tracking-[0.18em] md:text-[8px]">unrealized pnl</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-4 gap-2">
