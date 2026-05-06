@@ -42,6 +42,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/s
 import { Search, Settings as SettingsIcon } from 'lucide-react'
 import { PulseDashboard } from '@/components/pulse-dashboard'
 import { AccruedFunding } from '@/components/accrued-funding'
+import { ExportTradeHistory } from '@/components/export-trade-history'
 
 
 function LoadingCard() {
@@ -248,7 +249,7 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
 
 export default function Dashboard() {
   const { theme, toggleTheme, mounted } = useTheme()
-  const [currentPage, setCurrentPage] = useState<'dex-status' | 'tracker' | 'portfolio' | 'leaderboard' | 'analyzer' | 'about' | 'whale-tracker' | 'assets' | 'journal' | 'analytics' | 'demo-trading' | 'pulse' | 'funding'>('dex-status')
+  const [currentPage, setCurrentPage] = useState<'dex-status' | 'tracker' | 'portfolio' | 'leaderboard' | 'analyzer' | 'about' | 'whale-tracker' | 'assets' | 'journal' | 'analytics' | 'demo-trading' | 'pulse' | 'funding' | 'export-history'>('dex-status')
   const [searchAddressInput, setSearchAddressInput] = useState('')
   const [trackerSearchAddress, setTrackerSearchAddress] = useState('')
   const [showMoreMenu, setShowMoreMenu] = useState(false)
@@ -296,7 +297,7 @@ export default function Dashboard() {
       setTrackerSearchAddress(decodeURIComponent(addressParam));
     }
 
-    if (tabParam && ['dex-status', 'tracker', 'portfolio', 'leaderboard', 'analyzer', 'about', 'whale-tracker', 'assets', 'analytics', 'demo-trading', 'pulse', 'funding'].includes(tabParam)) {
+    if (tabParam && ['dex-status', 'tracker', 'portfolio', 'leaderboard', 'analyzer', 'about', 'whale-tracker', 'assets', 'analytics', 'demo-trading', 'pulse', 'funding', 'export-history'].includes(tabParam)) {
 
       setCurrentPage(tabParam);
     } else {
@@ -502,6 +503,12 @@ export default function Dashboard() {
               {currentPage === 'funding' && (
                 <Suspense fallback={<LoadingCard />}>
                   <AccruedFunding initialSearchAddress={trackerSearchAddress} />
+                </Suspense>
+              )}
+
+              {currentPage === 'export-history' && (
+                <Suspense fallback={<LoadingCard />}>
+                  <ExportTradeHistory />
                 </Suspense>
               )}
 

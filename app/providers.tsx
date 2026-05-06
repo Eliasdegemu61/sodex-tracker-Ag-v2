@@ -6,6 +6,7 @@ import { PortfolioProvider } from '@/context/portfolio-context'
 import { SessionCacheProvider } from '@/context/session-cache-context'
 import { DexDataProvider } from '@/context/dex-data-context'
 import { VolumeDataProvider } from '@/context/volume-data-context'
+import { ExportProvider } from '@/context/export-context'
 
 interface ThemeContextType {
   theme: 'light' | 'dark'
@@ -74,7 +75,9 @@ export function Providers({ children }: { children: ReactNode }) {
         <DexDataProvider>
           <VolumeDataProvider>
             <PortfolioProvider>
-              <ThemeProvider>{children}</ThemeProvider>
+              <ExportProvider>
+                <ThemeProvider>{children}</ThemeProvider>
+              </ExportProvider>
             </PortfolioProvider>
           </VolumeDataProvider>
         </DexDataProvider>

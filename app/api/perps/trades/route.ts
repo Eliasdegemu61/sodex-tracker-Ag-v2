@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-interface SpotTrade {
+interface PerpsTrade {
   account_id: number;
   symbol_id: number;
   trade_id: number;
@@ -15,10 +15,10 @@ interface SpotTrade {
   is_maker: boolean;
 }
 
-interface SpotTradesResponse {
+interface PerpsTradesResponse {
   code: number;
   message: string;
-  data: SpotTrade[];
+  data: PerpsTrade[];
   meta: {
     next_cursor?: string;
   };
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const url = new URL('https://mainnet-data.sodex.dev/api/v1/spot/trades');
+    const url = new URL('https://mainnet-data.sodex.dev/api/v1/perps/trades');
     url.searchParams.set('account_id', accountId);
     url.searchParams.set('limit', limit);
     if (cursor) {
@@ -50,15 +50,16 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      console.error('[spot/trades] Upstream API error:', response.status);
+      console.error('[perps/trades] Upstream API error:', response.status);
       return NextResponse.json(
-        { error: `Failed to fetch spot trades: ${response.statusText}` },
+        { error: `Failed to fetch perps trades: ${response.statusText}` },
         { status: response.status }
       );
     }
 
-    const data: SpotTradesResponse = await response.json();
+    const data: PerpsTradesResponse = await response.json();
 
+    // Return the data in the format the export helper expects
     return NextResponse.json({
       code: data.code,
       message: data.message,
@@ -66,9 +67,9 @@ export async function GET(request: NextRequest) {
       meta: data.meta
     });
   } catch (error) {
-    console.error('[spot/trades] Fetch error:', error);
+    console.error('[perps/trades] Fetch error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch spot trades' },
+      { error: 'Failed to fetch perps trades' },
       { status: 500 }
     );
   }

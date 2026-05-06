@@ -69,6 +69,7 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
     { id: 'journal', label: 'Journal', icon: BookOpen },
     { id: 'demo-trading', label: 'Demo Trading', icon: CandlestickChart },
     { id: 'analytics', label: 'Trade analytics', icon: LineChart },
+    { id: 'export-history', label: 'Export History', icon: FileText },
   ]
 
   const { theme, toggleTheme } = useTheme()
