@@ -20,7 +20,11 @@ import {
   LineChart,
   CandlestickChart,
   MessageSquare,
-  Coins
+  Coins,
+  Layers,
+  Radio,
+  Target,
+  Signal
 } from 'lucide-react'
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -55,13 +59,13 @@ interface SidebarNavProps {
 export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const workspaceItems = [
-    { id: 'dex-status', label: 'SoDex Status', icon: Activity },
-    { id: 'tracker', label: 'Tracker', icon: TrendingUp },
+    { id: 'dex-status', label: 'SoDex Status', icon: Signal },
+    { id: 'tracker', label: 'Tracker', icon: Target },
     { id: 'portfolio', label: 'Portfolio', icon: Wallet },
     { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
     { id: 'analyzer', label: 'Reverse Search', icon: Search },
-    { id: 'assets', label: 'Assets', icon: Compass },
-    { id: 'pulse', label: 'Community Pulse', icon: MessageSquare },
+    { id: 'assets', label: 'Assets', icon: Layers },
+    { id: 'pulse', label: 'Community Pulse', icon: Radio },
     { id: 'funding', label: 'Accrued Funding', icon: Coins },
     { id: 'export-history', label: 'Trade History', icon: FileText },
   ]
@@ -182,43 +186,6 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
-      <SidebarFooter className="p-4 mt-auto border-t border-border/50">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <Popover>
-              <PopoverTrigger asChild>
-                <SidebarMenuButton className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all duration-300 hover:bg-secondary/10 hover:text-foreground w-full text-left">
-                  <Settings className="h-4 w-4" />
-                  <span className="text-sm font-medium">Settings</span>
-                </SidebarMenuButton>
-              </PopoverTrigger>
-              <PopoverContent side="right" align="end" className="w-80 p-5 bg-card border border-border/50 rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <p className="text-[13px] font-medium text-foreground leading-relaxed">
-                      There is nothing to change, but if you want dark/light mode
-                    </p>
-                  </div>
-                  <div className="pt-4 border-t border-border/10 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-3">
-                        {theme === 'dark' ? <Moon className="w-4 h-4 text-primary" /> : <Sun className="w-4 h-4 text-primary" />}
-                      </div>
-                      <span className="text-xs font-bold text-foreground capitalize">{theme} Mode</span>
-                    </div>
-                    <Switch 
-                      checked={theme === 'dark'} 
-                      onCheckedChange={() => toggleTheme()}
-                      className="data-[state=checked]:bg-primary"
-                    />
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
 
       {/* Disclaimer Dialog */}
       <Dialog open={showDisclaimer} onOpenChange={setShowDisclaimer}>

@@ -18,7 +18,11 @@ import {
   CandlestickChart,
   MessageSquare,
   Coins,
-  FileText
+  FileText,
+  Layers,
+  Radio,
+  Target,
+  Signal
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/app/providers';
@@ -35,12 +39,12 @@ export function MobileNavMenu({ currentPage, onNavigate }: MobileNavMenuProps) {
 
   const navItems = [
     { section: 'Main Navigation', items: [
-      { id: 'dex-status', label: 'SoDex Status', icon: Activity },
-      { id: 'tracker', label: 'Tracker', icon: TrendingUp },
+      { id: 'dex-status', label: 'SoDex Status', icon: Signal },
+      { id: 'tracker', label: 'Tracker', icon: Target },
       { id: 'portfolio', label: 'Portfolio', icon: Wallet },
       { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
-      { id: 'assets', label: 'Assets', icon: Compass },
-      { id: 'pulse', label: 'Community Pulse', icon: MessageSquare },
+      { id: 'assets', label: 'Assets', icon: Layers },
+      { id: 'pulse', label: 'Community Pulse', icon: Radio },
       { id: 'funding', label: 'Accrued Funding', icon: Coins },
       { id: 'export-history', label: 'Trade History', icon: FileText },
       { id: 'analyzer', label: 'Reverse Search', icon: Search },
