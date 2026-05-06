@@ -167,9 +167,9 @@ export function ExportTradeHistory() {
     <div className="space-y-6 pb-16 animate-in fade-in duration-500">
       {/* Page Header */}
       <div className="pb-6 border-b border-border">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1">Export Trade History</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1">Trade History</h1>
         <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
-          Full CSV Export for Spot & Perps
+          Full CSV Export for Spot & Futures
         </p>
       </div>
 

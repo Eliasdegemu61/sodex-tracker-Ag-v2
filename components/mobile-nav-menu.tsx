@@ -18,7 +18,7 @@ import {
   CandlestickChart,
   MessageSquare,
   Coins,
-  FileDown
+  FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/app/providers';
@@ -38,6 +38,7 @@ export function MobileNavMenu({ currentPage, onNavigate }: MobileNavMenuProps) {
       { id: 'dex-status', label: 'SoDex Status', icon: Activity },
       { id: 'tracker', label: 'Tracker', icon: TrendingUp },
       { id: 'portfolio', label: 'Portfolio', icon: Wallet },
+      { id: 'export-history', label: 'Trade History', icon: FileText },
       { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
       { id: 'assets', label: 'Assets', icon: Compass },
       { id: 'pulse', label: 'Community Pulse', icon: MessageSquare },
@@ -48,7 +49,6 @@ export function MobileNavMenu({ currentPage, onNavigate }: MobileNavMenuProps) {
       { id: 'journal', label: 'Journal', icon: BookOpen },
       { id: 'demo-trading', label: 'Demo Trading', icon: CandlestickChart },
       { id: 'analytics', label: 'Trade analytics', icon: LineChart },
-      { id: 'export-history', label: 'Export History', icon: FileDown },
     ]}
   ];
 

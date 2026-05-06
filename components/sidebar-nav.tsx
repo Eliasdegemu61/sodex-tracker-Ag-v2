@@ -58,6 +58,7 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
     { id: 'dex-status', label: 'SoDex Status', icon: Activity },
     { id: 'tracker', label: 'Tracker', icon: TrendingUp },
     { id: 'portfolio', label: 'Portfolio', icon: Wallet },
+    { id: 'export-history', label: 'Trade History', icon: FileText },
     { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
     { id: 'analyzer', label: 'Reverse Search', icon: Zap },
     { id: 'assets', label: 'Assets', icon: Compass },
@@ -69,7 +70,6 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
     { id: 'journal', label: 'Journal', icon: BookOpen },
     { id: 'demo-trading', label: 'Demo Trading', icon: CandlestickChart },
     { id: 'analytics', label: 'Trade analytics', icon: LineChart },
-    { id: 'export-history', label: 'Export History', icon: FileText },
   ]
 
   const { theme, toggleTheme } = useTheme()
