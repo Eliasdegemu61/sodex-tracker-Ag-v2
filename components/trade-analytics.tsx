@@ -613,7 +613,7 @@ export function TradeAnalytics() {
                     <span>Syncing...</span>
                   </div>
                 ) : "Generate Report"}
-              </Button>
+              </button>
 
 
               {error && <p className="text-xs font-bold text-orange-500 text-center">{error}</p>}
