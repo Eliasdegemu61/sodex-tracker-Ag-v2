@@ -126,8 +126,8 @@ function AddressPrompt({ onSetAddress }: { onSetAddress: (addr: string) => void 
         <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 min-h-[400px] animate-in fade-in duration-1000">
             <div className="max-w-lg w-full space-y-6 md:space-y-8 text-center bg-secondary/5 p-6 md:p-10 rounded-[1.5rem] md:rounded-[2rem] border border-border/10">
                 <div>
-                    <h2 className="text-xl md:text-2xl font-bold text-foreground tracking-tighter mb-1 uppercase italic">Journal</h2>
-                    <p className="text-[10px] md:text-xs text-muted-foreground/40 font-medium uppercase tracking-wider">Securely link wallet to sync history</p>
+                    <h2 className="text-xl md:text-2xl font-bold text-foreground tracking-tighter mb-1">Journal</h2>
+                    <p className="text-[10px] md:text-xs text-muted-foreground/40 font-medium tracking-wider">link wallet to sync history</p>
                 </div>
                 <div className="space-y-4">
                     <input
@@ -140,7 +140,7 @@ function AddressPrompt({ onSetAddress }: { onSetAddress: (addr: string) => void 
                     {error && <p className="text-[10px] text-red-400 font-bold uppercase tracking-widest">{error}</p>}
                     <button 
                         onClick={handleManualLink} 
-                        className="w-full h-11 md:h-12 bg-foreground text-background rounded-xl font-bold text-[10px] md:text-xs uppercase tracking-[0.2em] hover:bg-foreground/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="w-full h-11 md:h-12 bg-foreground text-background rounded-xl font-bold text-[10px] md:text-xs tracking-[0.2em] hover:bg-foreground/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                         disabled={!input.trim() || isLoading}
                     >
                         {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Connect Wallet'}

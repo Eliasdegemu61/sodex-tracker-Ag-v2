@@ -50,8 +50,8 @@ export function WalletBindForm() {
       <div className="w-full max-w-lg animate-in fade-in slide-in-from-bottom-4 duration-500 rounded-[1.5rem] md:rounded-[2rem] border border-black/8 bg-white p-6 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-[#050505] dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
         
         <div className="mb-6 md:mb-8">
-          <h2 className="mb-1 text-2xl md:text-4xl font-bold tracking-tight text-foreground italic uppercase">Portfolio</h2>
-          <p className="text-[10px] md:text-sm font-medium text-muted-foreground/60 uppercase tracking-wider">Securely bind your wallet to track performance</p>
+          <h2 className="mb-1 text-2xl md:text-4xl font-bold tracking-tight text-foreground">Portfolio</h2>
+          <p className="text-[10px] md:text-sm font-medium text-muted-foreground/60 tracking-wider">bind your wallet to track performance</p>
         </div>
 
         <div className="space-y-4">
@@ -83,7 +83,7 @@ export function WalletBindForm() {
           <button
             onClick={() => handleBind()}
             disabled={isLoading || !address.trim()}
-            className="flex w-full items-center justify-center gap-2 rounded-xl md:rounded-2xl border border-white bg-white py-3 md:py-4 text-xs md:text-sm font-bold text-black shadow-sm transition-all hover:bg-white/90 disabled:opacity-40 uppercase tracking-widest"
+            className="flex w-full items-center justify-center gap-2 rounded-xl md:rounded-2xl border border-white bg-white py-3 md:py-4 text-xs md:text-sm font-bold text-black shadow-sm transition-all hover:bg-white/90 disabled:opacity-40 tracking-widest"
           >
             {isLoading ? (
               <>

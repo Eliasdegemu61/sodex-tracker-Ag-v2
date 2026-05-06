@@ -581,16 +581,16 @@ export function TradeAnalytics() {
       <div className="min-h-[400px] flex items-center justify-center p-4 font-sans">
         <div className="w-full max-w-lg space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-500">
           <div className="text-center space-y-2">
-            <h1 className="text-2xl md:text-4xl font-bold text-foreground tracking-tight italic uppercase">Analytics</h1>
-            <p className="text-[10px] md:text-sm font-medium text-muted-foreground/40 uppercase tracking-wider mx-auto">
-              Generate deep perps performance reports
+            <h1 className="text-2xl md:text-4xl font-bold text-foreground tracking-tight">Analytics</h1>
+            <p className="text-[10px] md:text-sm font-medium text-muted-foreground/40 tracking-wider mx-auto">
+              perps performance reports
             </p>
           </div>
 
           <Card className="p-6 md:p-8 bg-background border border-border rounded-xl shadow-none relative overflow-hidden">
             <div className="space-y-4 md:space-y-6 relative z-10">
               <div className="space-y-1.5">
-                <label className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-[0.2em] ml-1">Wallet Address</label>
+                <label className="text-[9px] font-bold text-muted-foreground/30 tracking-[0.2em] ml-1">Wallet Address</label>
                 <div className="relative group">
                   <Input
                     placeholder="0x..."
@@ -602,10 +602,10 @@ export function TradeAnalytics() {
                 </div>
               </div>
 
-              <Button
+              <button
                 onClick={() => handleSearch()}
                 disabled={isLoading || !searchInput.trim()}
-                className="w-full h-12 md:h-14 rounded-xl md:rounded-2xl bg-foreground text-background hover:bg-foreground/90 font-bold text-[10px] md:text-[11px] uppercase tracking-[0.2em] transition-all duration-300 disabled:opacity-50"
+                className="w-full h-12 md:h-14 rounded-xl md:rounded-2xl bg-foreground text-background hover:bg-foreground/90 font-bold text-[10px] md:text-[11px] tracking-[0.2em] transition-all duration-300 disabled:opacity-50"
               >
                 {isLoading ? (
                   <div className="flex items-center gap-2">

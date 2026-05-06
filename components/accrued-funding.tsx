@@ -414,8 +414,8 @@ export function AccruedFunding({ initialSearchAddress }: { initialSearchAddress?
       <div className="flex min-h-[400px] flex-col items-center justify-center px-4 py-8">
         <div className="w-full max-w-lg animate-in fade-in slide-in-from-bottom-4 duration-500 rounded-[1.5rem] md:rounded-[2rem] border border-white/5 bg-white/[0.01] p-6 md:p-10 shadow-xl">
           <div className="mb-6 md:mb-8 space-y-1">
-            <h2 className="text-2xl md:text-4xl font-bold tracking-tighter text-foreground italic uppercase">Funding</h2>
-            <p className="text-[10px] md:text-sm font-medium text-muted-foreground/40 uppercase tracking-wider">Inspect real-time funding for any address</p>
+            <h2 className="text-2xl md:text-4xl font-bold tracking-tighter text-foreground">Funding</h2>
+            <p className="text-[10px] md:text-sm font-medium text-muted-foreground/40 tracking-wider">inspect real-time funding for any address</p>
           </div>
 
           <div className="space-y-4">
@@ -441,7 +441,7 @@ export function AccruedFunding({ initialSearchAddress }: { initialSearchAddress?
             <button
               onClick={() => handleSearch()}
               disabled={isLoading || !searchInput.trim()}
-              className="flex w-full h-11 md:h-14 items-center justify-center gap-2 rounded-xl md:rounded-2xl bg-foreground text-background transition-all active:scale-[0.98] hover:bg-foreground/90 disabled:opacity-20 font-bold text-xs md:text-sm uppercase tracking-widest"
+              className="flex w-full h-11 md:h-14 items-center justify-center gap-2 rounded-xl md:rounded-2xl bg-foreground text-background transition-all active:scale-[0.98] hover:bg-foreground/90 disabled:opacity-20 font-bold text-xs md:text-sm tracking-widest"
             >
               <TrendingUp className="h-4 w-4" />
               <span>Inspect Funding</span>
