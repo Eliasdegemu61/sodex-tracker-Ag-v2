@@ -23,7 +23,8 @@ function tradesToCsv(
     'price',
     'quantity',
     'usd_value',
-    'fee',
+    'fee_raw',
+    'fee_usd',
     'is_maker',
     'order_id',
   ].join(',');
@@ -39,6 +40,12 @@ function tradesToCsv(
     const usdValue = price * qty;
     const symbolName = symbolMap.get(t.symbol_id)?.name ?? `SYMBOL_${t.symbol_id}`;
     const dateStr = new Date(t.ts_ms).toISOString();
+    
+    // Fee logic: In Spot Buy, fee is in Base asset. In Spot Sell or Perps, fee is in USD.
+    let feeUsd = parseFloat(t.fee || '0');
+    if (market === 'spot' && t.side === 1) {
+      feeUsd = feeUsd * price;
+    }
 
     return [
       t.trade_id,
@@ -50,6 +57,7 @@ function tradesToCsv(
       t.quantity,
       usdValue.toFixed(4),
       t.fee,
+      feeUsd.toFixed(8),
       t.is_maker ? 'true' : 'false',
       t.order_id,
     ].join(',');
@@ -121,10 +129,21 @@ export function ExportTradeHistory() {
     const pairCounts: Record<string, number> = {};
 
     collectedTrades.forEach(t => {
-      totalFees += parseFloat(t.fee || '0');
+      const feeRaw = parseFloat(t.fee || '0');
       const price = parseFloat(t.price);
       const qty = parseFloat(t.quantity);
+      
+      // Calculate USD Volume
       totalVolume += (price * qty);
+
+      // Correct Fee Logic:
+      // In Spot Buy (side 1), fee is denominated in the Base Asset (e.g. SOSO).
+      // In Spot Sell (side 2) or Perps, fee is already denominated in Quote Asset (USD).
+      if (lastMarket === 'spot' && t.side === 1) {
+        totalFees += (feeRaw * price);
+      } else {
+        totalFees += feeRaw;
+      }
 
       const pairName = symbols.get(t.symbol_id)?.name || `ID: ${t.symbol_id}`;
       pairCounts[pairName] = (pairCounts[pairName] || 0) + 1;
@@ -140,7 +159,7 @@ export function ExportTradeHistory() {
       totalVolume,
       topPairs
     };
-  }, [collectedTrades, symbols]);
+  }, [collectedTrades, symbols, lastMarket]);
 
   const isWorking = status === 'resolving' || status === 'fetching' || status === 'building' || localBuilding;
 
@@ -289,11 +308,11 @@ export function ExportTradeHistory() {
               <p className="text-lg font-bold text-foreground tabular-nums">{stats.totalTrades.toLocaleString()}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Fees</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Fees (USD)</p>
               <p className="text-lg font-bold text-foreground tabular-nums">${stats.totalFees.toFixed(2)}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Volume</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Volume (USD)</p>
               <p className="text-lg font-bold text-foreground tabular-nums">${stats.totalVolume.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
             </div>
             <div className="space-y-1">
