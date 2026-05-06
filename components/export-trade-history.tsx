@@ -160,7 +160,7 @@ export function ExportTradeHistory() {
         <div className="space-y-1">
           <p className="text-[11px] font-bold text-foreground uppercase tracking-widest">Rate Limit Notice</p>
           <p className="text-[11px] text-muted-foreground leading-relaxed">
-            SoDex API has strict rate limits. We fetch 1 page every 30 seconds. For accounts with hundreds of thousands trades, this is an overnight process. Please do not close this tab once the export starts. You can browse other dashboard sections while the export continues in the background.
+            SoDex API has strict rate limits. We fetch 6 pages per minute (1 page every 10 seconds). For accounts with hundreds of thousands of trades, this can take several hours. Please do not close this tab once the export starts. You can browse other dashboard sections while the export continues in the background.
           </p>
         </div>
       </div>
@@ -227,7 +227,7 @@ export function ExportTradeHistory() {
                 <div className="flex items-center gap-2 mt-1">
                   <Clock className="w-3 h-3 text-muted-foreground" />
                   <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
-                    {status === 'fetching' ? 'Throttled: 1 page / 30s. Background Active.' : 'Please wait'}
+                    {status === 'fetching' ? 'Throttled: 1 page / 10s. Background Active.' : 'Please wait'}
                   </p>
                 </div>
               </div>
@@ -357,7 +357,7 @@ export function ExportTradeHistory() {
           <ul className="space-y-2 text-[11px] text-muted-foreground leading-relaxed">
             <li className="flex items-start gap-2">
               <span className="text-muted-foreground/30 font-bold">1.</span>
-              Strict mode: 1 request every 30 seconds to respect SoDex rate limits.
+              Strict mode: 6 requests per minute (1 every 10s) to respect SoDex limits.
             </li>
             <li className="flex items-start gap-2">
               <span className="text-muted-foreground/30 font-bold">2.</span>
@@ -382,23 +382,23 @@ export function ExportTradeHistory() {
           <div className="space-y-3">
             <div className="flex items-center justify-between text-[11px] border-b border-border/50 pb-1.5">
               <span className="text-muted-foreground">1,000 trades</span>
-              <span className="font-bold text-foreground">~1 minute</span>
+              <span className="font-bold text-foreground">~20 seconds</span>
             </div>
             <div className="flex items-center justify-between text-[11px] border-b border-border/50 pb-1.5">
               <span className="text-muted-foreground">10,000 trades</span>
-              <span className="font-bold text-foreground">~10 minutes</span>
+              <span className="font-bold text-foreground">~3.3 minutes</span>
             </div>
             <div className="flex items-center justify-between text-[11px] border-b border-border/50 pb-1.5">
               <span className="text-muted-foreground">100,000 trades</span>
-              <span className="font-bold text-foreground">~1.6 hours</span>
+              <span className="font-bold text-foreground">~33 minutes</span>
             </div>
             <div className="flex items-center justify-between text-[11px] border-b border-border/50 pb-1.5">
               <span className="text-muted-foreground">250,000 trades</span>
-              <span className="font-bold text-foreground">~4.1 hours</span>
+              <span className="font-bold text-foreground">~1.4 hours</span>
             </div>
             <div className="flex items-center justify-between text-[11px]">
               <span className="text-muted-foreground">1,000,000 trades</span>
-              <span className="font-bold text-foreground">~16.6 hours</span>
+              <span className="font-bold text-foreground">~5.5 hours</span>
             </div>
           </div>
         </div>
