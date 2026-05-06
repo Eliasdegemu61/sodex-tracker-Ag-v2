@@ -38,11 +38,11 @@ export function MobileNavMenu({ currentPage, onNavigate }: MobileNavMenuProps) {
       { id: 'dex-status', label: 'SoDex Status', icon: Activity },
       { id: 'tracker', label: 'Tracker', icon: TrendingUp },
       { id: 'portfolio', label: 'Portfolio', icon: Wallet },
-      { id: 'export-history', label: 'Trade History', icon: FileText },
       { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
       { id: 'assets', label: 'Assets', icon: Compass },
       { id: 'pulse', label: 'Community Pulse', icon: MessageSquare },
       { id: 'funding', label: 'Accrued Funding', icon: Coins },
+      { id: 'export-history', label: 'Trade History', icon: FileText },
       { id: 'analyzer', label: 'Reverse Search', icon: Zap },
     ]},
     { section: 'Beta', items: [
