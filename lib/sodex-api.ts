@@ -102,7 +102,7 @@ export async function fetchPositions(
   signal?: AbortSignal
 ): Promise<{ positions: PositionData[]; nextCursor?: string }> {
   console.log('[STRICT-ID] API Fetch Positions:', accountId, 'Cursor:', cursor);
-  const url = new URL('https://mainnet-data.sodex.dev/api/v1/perps/positions');
+  const url = new URL('/api/perps/positions', window.location.origin);
   url.searchParams.append('account_id', String(accountId));
   url.searchParams.append('limit', '500');
   if (cursor) {
@@ -173,15 +173,15 @@ export async function fetchAllPositions(
     }
     cursor = nextCursor;
 
-    // Increased delay to prevent rate limits and browser lag
-    await new Promise(resolve => setTimeout(resolve, 150));
+    // Increased delay to 3 seconds to prevent rate limits and ensure stability
+    await new Promise(resolve => setTimeout(resolve, 3000));
   }
 
   return { positions: allPositions };
 }
 
 export async function fetchSymbols(): Promise<Map<number, SymbolData>> {
-  const response = await fetch('https://mainnet-gw.sodex.dev/bolt/symbols?names');
+  const response = await fetch('/api/perps/symbols');
   if (!response.ok) {
     throw new Error(`Failed to fetch symbols: ${response.statusText}`);
   }
@@ -426,7 +426,7 @@ export async function fetchMarkPrices(): Promise<MarkPrice[]> {
   const cacheKey = 'markPrices';
 
   return cacheManager.deduplicate(cacheKey, async () => {
-    const url = `https://mainnet-gw.sodex.dev/futures/fapi/market/v1/public/q/mark-price`;
+    const url = `/api/perps/mark-prices`;
 
     const response = await fetch(url);
     if (!response.ok) {
@@ -598,8 +598,8 @@ export async function fetchDetailedBalance(userId: string | number): Promise<Det
       // Import spot balance calculator dynamically to avoid circular dependencies
       const { fetchDetailedSpotBalance } = await import('./spot-balance');
 
-      // Fetch futures balance
-      const futuresResponse = await fetch(`https://mainnet-gw.sodex.dev/futures/fapi/user/v1/public/account/details?accountId=${accountId}`).then(r => r.json());
+      // Fetch futures balance via proxy
+      const futuresResponse = await fetch(`/api/perps/account-details?accountId=${accountId}`).then(r => r.json());
 
       if (futuresResponse.code !== 0) {
         throw new Error(`Failed to fetch futures balance: code=${futuresResponse.code}`);
@@ -744,7 +744,7 @@ export async function fetchUserRank(
   windowType: string = '30D',
   sortBy: string = 'volume'
 ): Promise<any> {
-  const url = new URL('https://mainnet-data.sodex.dev/api/v1/leaderboard/rank');
+  const url = new URL('/api/leaderboard/rank', window.location.origin);
   url.searchParams.append('window_type', windowType);
   url.searchParams.append('sort_by', sortBy);
   url.searchParams.append('wallet_address', walletAddress);
@@ -768,7 +768,7 @@ export async function fetchLiveLeaderboardData(
   sortBy: string = 'pnl',
   pageSize: number = 50
 ): Promise<any[]> {
-  const url = new URL('https://mainnet-data.sodex.dev/api/v1/leaderboard');
+  const url = new URL('/api/leaderboard/list', window.location.origin);
   url.searchParams.append('window_type', windowType);
   url.searchParams.append('sort_by', sortBy);
   url.searchParams.append('sort_order', 'desc');

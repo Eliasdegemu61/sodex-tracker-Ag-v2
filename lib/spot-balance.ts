@@ -44,7 +44,7 @@ function isUsdcToken(cleanToken: string): boolean {
 // Fetch SOSO price from SODEX API - DYNAMIC (no cache)
 async function fetchSosoPrice(): Promise<number> {
   try {
-    const response = await fetch('https://gw-sodex.sosovalue.com/quote/token/price/soso');
+    const response = await fetch('/api/perps/soso-price');
     
     if (!response.ok) {
       console.error('[v0] Failed to fetch SOSO price:', response.statusText);
@@ -169,8 +169,8 @@ export async function fetchDetailedSpotBalance(userId: string | number): Promise
   
   return cacheManager.deduplicate(cacheKey, async () => {
     try {
-      // Fetch spot balance data
-      const response = await fetch(`https://mainnet-gw.sodex.dev/pro/p/user/balance/list?accountId=${userId}`);
+      // Fetch spot balance data via proxy
+      const response = await fetch(`/api/perps/spot-balances?accountId=${userId}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch spot balance: ${response.statusText}`);
@@ -188,9 +188,9 @@ export async function fetchDetailedSpotBalance(userId: string | number): Promise
       // Fetch prices from all 3 sources
       const markPrices = new Map<string, number>();
 
-      // Source 1: Mark prices from perps markets
+      // Source 1: Mark prices from perps markets via proxy
       try {
-        const markPricesResponse = await fetch('https://mainnet-gw.sodex.dev/api/v1/perps/markets/mark-prices');
+        const markPricesResponse = await fetch('/api/perps/mark-prices');
         if (markPricesResponse.ok) {
           const markData = await markPricesResponse.json();
           if (markData.code === 0 && markData.data) {
@@ -205,9 +205,9 @@ export async function fetchDetailedSpotBalance(userId: string | number): Promise
         console.warn('[v0] Error fetching mark prices:', error);
       }
 
-      // Source 2: Agg tickers from futures market
+      // Source 2: Agg tickers from futures market via proxy
       try {
-        const aggTickersResponse = await fetch('https://mainnet-gw.sodex.dev/futures/fapi/market/v1/public/q/agg-tickers');
+        const aggTickersResponse = await fetch('/api/perps/agg-tickers');
         if (aggTickersResponse.ok) {
           const aggData = await aggTickersResponse.json();
           if (aggData.code === 0 && aggData.data) {
