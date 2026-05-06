@@ -109,20 +109,46 @@ export async function fetchPositions(
     url.searchParams.append('cursor', cursor);
   }
 
-  const response = await fetch(url.toString(), { signal });
-  if (!response.ok) {
-    throw new Error(`Failed to fetch positions: ${response.statusText}`);
+  let retries = 3;
+  let lastError: Error | null = null;
+
+  while (retries > 0) {
+    try {
+      const response = await fetch(url.toString(), { signal });
+      
+      if (response.status === 503 || response.status === 429) {
+        console.warn(`[STRICT-ID] API Busy (${response.status}), retrying...`, retries);
+        retries--;
+        if (retries > 0) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          continue;
+        }
+      }
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch positions: ${response.statusText}`);
+      }
+
+      const data: PositionsResponse = await response.json();
+      if (data.code !== 0) {
+        throw new Error(`API error: ${data.message}`);
+      }
+
+      return {
+        positions: data.data || [],
+        nextCursor: data.meta?.next_cursor,
+      };
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') throw err;
+      lastError = err as Error;
+      retries--;
+      if (retries > 0) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
   }
 
-  const data: PositionsResponse = await response.json();
-  if (data.code !== 0) {
-    throw new Error(`API error: ${data.message}`);
-  }
-
-  return {
-    positions: data.data || [],
-    nextCursor: data.meta?.next_cursor,
-  };
+  throw lastError || new Error('Failed to fetch positions after retries');
 }
 
 export async function fetchAllPositions(

@@ -512,26 +512,19 @@ export function TradeAnalytics() {
         localStorage.setItem('trade_analytics_address', address);
       }
 
-      // Soft limit of 10k records for segmented fetching
-      const SOFT_LIMIT = 10000;
-
       const { positions: fetched, nextCursor } = await fetchAllPositions(
         foundUserId,
         (count) => setFetchProgress(prev => ({ ...prev, count: accumulated.length + count })),
         undefined, // no time limit here, we handle timeframe filter in useMemo for analytics
         controller.signal,
-        SOFT_LIMIT,
+        undefined, // Remove SOFT_LIMIT to fetch complete history
         cursor
       );
 
       const total = [...accumulated, ...fetched];
 
-      if (nextCursor && total.length >= SOFT_LIMIT) {
-        setPendingPositions(total);
-        setFetchProgress(prev => ({ ...prev, count: total.length, nextCursor }));
-        setIsPaused(true);
-        clearTimeout(longFetchTimer);
-        return;
+      if (nextCursor) {
+        // fetchAllPositions now handles the full loop with 3s delay
       }
 
       const enrichedFutures = await enrichPositions(total);
@@ -585,26 +578,26 @@ export function TradeAnalytics() {
 
   if (!walletAddress) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center p-6 font-sans">
-        <div className="w-full max-w-xl space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-500">
-          <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold text-foreground tracking-tight">Trade Analytics</h1>
-            <p className="text-muted-foreground text-sm max-w-md mx-auto font-medium leading-relaxed">
-              enter your wallet to generate perps performance report.
+      <div className="min-h-[400px] flex items-center justify-center p-4 font-sans">
+        <div className="w-full max-w-lg space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-500">
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl md:text-4xl font-bold text-foreground tracking-tight italic uppercase">Analytics</h1>
+            <p className="text-[10px] md:text-sm font-medium text-muted-foreground/40 uppercase tracking-wider mx-auto">
+              Generate deep perps performance reports
             </p>
           </div>
 
-          <Card className="p-8 bg-background border border-border rounded-xl shadow-none relative overflow-hidden">
-            <div className="space-y-6 relative z-10">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] ml-1">Wallet Address</label>
+          <Card className="p-6 md:p-8 bg-background border border-border rounded-xl shadow-none relative overflow-hidden">
+            <div className="space-y-4 md:space-y-6 relative z-10">
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-[0.2em] ml-1">Wallet Address</label>
                 <div className="relative group">
                   <Input
-                    placeholder="Search address..."
+                    placeholder="0x..."
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    className="bg-background/50 border-border h-14 rounded-2xl px-6 text-foreground placeholder:text-muted-foreground/30 focus:border-primary/30 transition-all duration-300"
+                    className="bg-background/50 border-border h-12 md:h-14 rounded-xl md:rounded-2xl px-5 md:px-6 text-xs md:text-sm text-foreground placeholder:text-muted-foreground/20 focus:border-primary/30 transition-all duration-300"
                   />
                 </div>
               </div>
@@ -612,14 +605,14 @@ export function TradeAnalytics() {
               <Button
                 onClick={() => handleSearch()}
                 disabled={isLoading || !searchInput.trim()}
-                className="w-full h-14 rounded-2xl bg-foreground text-background hover:bg-foreground/90 font-bold text-[11px] uppercase tracking-[0.2em] transition-all duration-300 disabled:opacity-50"
+                className="w-full h-12 md:h-14 rounded-xl md:rounded-2xl bg-foreground text-background hover:bg-foreground/90 font-bold text-[10px] md:text-[11px] uppercase tracking-[0.2em] transition-all duration-300 disabled:opacity-50"
               >
                 {isLoading ? (
                   <div className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Analyzing...</span>
+                    <span>Syncing...</span>
                   </div>
-                ) : "Analyze Performance"}
+                ) : "Generate Report"}
               </Button>
 
 

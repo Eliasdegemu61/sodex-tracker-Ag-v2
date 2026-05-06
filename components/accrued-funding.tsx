@@ -411,23 +411,23 @@ export function AccruedFunding({ initialSearchAddress }: { initialSearchAddress?
 
   if (!userId || !walletAddress) {
     return (
-      <div className="flex min-h-[calc(100vh-13rem)] flex-col items-center justify-center px-4 py-6">
-        <div className="w-full max-w-xl animate-in fade-in slide-in-from-bottom-4 duration-500 rounded-[1.5rem] md:rounded-[2rem] border border-white/5 bg-white/[0.01] p-6 md:p-10">
-          <div className="mb-6 md:mb-8 space-y-2">
-            <h2 className="text-2xl md:text-4xl font-bold tracking-tighter text-foreground">Accrued Funding</h2>
-            <p className="text-xs md:text-sm text-muted-foreground/40 font-medium">Enter a wallet address to inspect real-time funding accruals for open positions.</p>
+      <div className="flex min-h-[400px] flex-col items-center justify-center px-4 py-8">
+        <div className="w-full max-w-lg animate-in fade-in slide-in-from-bottom-4 duration-500 rounded-[1.5rem] md:rounded-[2rem] border border-white/5 bg-white/[0.01] p-6 md:p-10 shadow-xl">
+          <div className="mb-6 md:mb-8 space-y-1">
+            <h2 className="text-2xl md:text-4xl font-bold tracking-tighter text-foreground italic uppercase">Funding</h2>
+            <p className="text-[10px] md:text-sm font-medium text-muted-foreground/40 uppercase tracking-wider">Inspect real-time funding for any address</p>
           </div>
 
           <div className="space-y-4">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/30" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/30" />
               <input
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 placeholder="0x..."
-                className="w-full h-12 md:h-14 rounded-xl md:rounded-2xl border border-white/5 bg-white/[0.02] pl-11 pr-4 text-sm font-medium text-foreground placeholder:text-muted-foreground/20 focus:outline-none focus:border-white/10 transition-all"
+                className="w-full h-11 md:h-14 rounded-xl md:rounded-2xl border border-white/5 bg-white/[0.02] pl-10 pr-4 text-xs md:text-sm font-medium text-foreground placeholder:text-muted-foreground/20 focus:outline-none focus:border-white/10 transition-all"
               />
             </div>
 
@@ -441,7 +441,7 @@ export function AccruedFunding({ initialSearchAddress }: { initialSearchAddress?
             <button
               onClick={() => handleSearch()}
               disabled={isLoading || !searchInput.trim()}
-              className="flex w-full h-12 md:h-14 items-center justify-center gap-2 rounded-xl md:rounded-2xl bg-foreground text-background transition-all active:scale-[0.98] hover:bg-foreground/90 disabled:opacity-20 font-bold text-sm"
+              className="flex w-full h-11 md:h-14 items-center justify-center gap-2 rounded-xl md:rounded-2xl bg-foreground text-background transition-all active:scale-[0.98] hover:bg-foreground/90 disabled:opacity-20 font-bold text-xs md:text-sm uppercase tracking-widest"
             >
               <TrendingUp className="h-4 w-4" />
               <span>Inspect Funding</span>

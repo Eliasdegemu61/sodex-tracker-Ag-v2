@@ -87,8 +87,6 @@ export function PortfolioProvider({
     }
 
     const controller = abortControllerRef.current!;
-    const SOFT_LIMIT = 10000;
-
     try {
       const minTimestamp = timeframe === '30D' ? Date.now() - 30 * 24 * 60 * 60 * 1000 : undefined;
 
@@ -97,17 +95,15 @@ export function PortfolioProvider({
         (count) => setFetchProgress(prev => ({ ...prev, count: accumulated.length + count })),
         minTimestamp,
         controller.signal,
-        SOFT_LIMIT,
+        undefined, // Remove SOFT_LIMIT to fetch complete history
         cursor
       );
 
       const total = [...accumulated, ...fetched];
       pendingPositionsRef.current = total;
 
-      if (nextCursor && total.length >= SOFT_LIMIT) {
-        setFetchProgress({ count: total.length, nextCursor });
-        setIsPaused(true);
-        return;
+      if (nextCursor) {
+        // fetchAllPositions now handles the full loop with 3s delay
       }
 
       const enriched = await enrichPositions(total);

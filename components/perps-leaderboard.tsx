@@ -167,63 +167,63 @@ export function PerpsLeaderboard() {
 
       {/* Podium Section */}
       {!searchResult && page === 1 && podiumItems.length === 3 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-8 items-end justify-items-center py-4 md:py-10 px-2 md:px-4 relative max-w-4xl mx-auto mb-4 md:mb-8">
+        <div className="grid grid-cols-3 gap-1 sm:gap-4 md:gap-8 items-end justify-items-center py-4 md:py-10 px-1 md:px-4 relative max-w-4xl mx-auto mb-4 md:mb-8">
           {/* Rank 2 */}
-          <div className="order-2 md:order-1 flex flex-col items-center scale-90 md:scale-100">
-            <div className="relative mb-2">
+          <div className="order-2 md:order-1 flex flex-col items-center scale-[0.8] sm:scale-100 origin-bottom">
+            <div className="relative mb-1 md:mb-2">
               <img
                 src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${podiumItems[1].wallet_address}`}
                 alt="Avatar"
-                className="w-10 h-10 md:w-16 md:h-16 rounded-xl bg-secondary/20 border border-border relative z-10"
+                className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 rounded-lg bg-secondary/20 border border-border relative z-10"
               />
             </div>
-            <div className="w-full min-w-[140px] md:w-48 h-12 md:h-28 bg-background border-x border-t border-border rounded-t-xl relative flex flex-col items-center justify-center p-2 md:p-4">
-              <p className="text-[8px] md:text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-1">#2</p>
-              <p className="text-[10px] text-foreground/80 mb-1 truncate max-w-full px-2 text-center">
-                {podiumItems[1].wallet_address.slice(0, 4)}...{podiumItems[1].wallet_address.slice(-4)}
+            <div className="w-full min-w-[80px] sm:min-w-[120px] md:w-48 h-10 sm:h-20 md:h-28 bg-background border-x border-t border-border rounded-t-lg md:rounded-t-xl relative flex flex-col items-center justify-center p-1 sm:p-2 md:p-4">
+              <p className="text-[7px] md:text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-0.5 md:mb-1">#2</p>
+              <p className="text-[8px] md:text-[10px] text-foreground/80 mb-0.5 md:mb-1 truncate max-w-full px-1 md:px-2 text-center">
+                {podiumItems[1].wallet_address.slice(0, 3)}...{podiumItems[1].wallet_address.slice(-2)}
               </p>
-              <p className="text-xs md:text-base font-bold text-foreground">
+              <p className="text-[10px] sm:text-xs md:text-base font-bold text-foreground">
                 ${formatNumber(parseFloat(sortType === 'pnl' ? podiumItems[1].pnl_usd : podiumItems[1].volume_usd))}
               </p>
             </div>
           </div>
 
           {/* Rank 1 */}
-          <div className="order-1 md:order-2 flex flex-col items-center -translate-y-2 md:-translate-y-6 z-10 scale-105 md:scale-110">
-            <div className="relative mb-3">
+          <div className="order-1 md:order-2 flex flex-col items-center -translate-y-1 md:-translate-y-6 z-10 scale-[0.95] sm:scale-105 md:scale-110 origin-bottom">
+            <div className="relative mb-2 md:mb-3">
               <img
                 src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${podiumItems[0].wallet_address}`}
                 alt="Avatar"
-                className="w-12 h-12 md:w-20 md:h-20 rounded-2xl bg-foreground/5 border-2 border-foreground/20 relative z-10"
+                className="w-10 h-10 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-xl md:rounded-2xl bg-foreground/5 border-2 border-foreground/20 relative z-10"
               />
-              <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-foreground rounded-full flex items-center justify-center text-background font-bold text-[8px] md:text-[10px] border-2 border-background z-20">1</div>
+              <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-foreground rounded-full flex items-center justify-center text-background font-bold text-[7px] md:text-[10px] border-2 border-background z-20">1</div>
             </div>
-            <div className="w-full min-w-[160px] md:w-64 h-20 md:h-40 bg-background border-x border-t border-foreground/30 rounded-t-2xl md:rounded-t-[2rem] relative flex flex-col items-center justify-center p-3 md:p-6">
-              <p className="text-[9px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-1">#1 RANK</p>
-              <p className="text-xs text-foreground mb-2 truncate max-w-full px-2 text-center">
-                {podiumItems[0].wallet_address.slice(0, 6)}...{podiumItems[0].wallet_address.slice(-4)}
+            <div className="w-full min-w-[90px] sm:min-w-[140px] md:w-64 h-14 sm:h-28 md:h-40 bg-background border-x border-t border-foreground/30 rounded-t-xl md:rounded-t-[2rem] relative flex flex-col items-center justify-center p-1.5 sm:p-3 md:p-6">
+              <p className="text-[8px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-0.5 md:mb-1">#1 RANK</p>
+              <p className="text-[9px] sm:text-xs text-foreground mb-1 md:mb-2 truncate max-w-full px-1 md:px-2 text-center">
+                {podiumItems[0].wallet_address.slice(0, 4)}...{podiumItems[0].wallet_address.slice(-3)}
               </p>
-              <p className="text-base md:text-xl font-bold text-foreground">
+              <p className="text-xs sm:text-base md:text-xl font-bold text-foreground">
                 ${formatNumber(parseFloat(sortType === 'pnl' ? podiumItems[0].pnl_usd : podiumItems[0].volume_usd))}
               </p>
             </div>
           </div>
 
           {/* Rank 3 */}
-          <div className="order-3 md:order-3 flex flex-col items-center scale-85 md:scale-95 origin-bottom">
-            <div className="relative mb-2">
+          <div className="order-3 md:order-3 flex flex-col items-center scale-[0.75] sm:scale-95 origin-bottom">
+            <div className="relative mb-1 md:mb-2">
               <img
                 src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${podiumItems[2].wallet_address}`}
                 alt="Avatar"
-                className="w-10 h-10 md:w-16 md:h-16 rounded-xl bg-secondary/20 border border-border relative z-10"
+                className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 rounded-lg bg-secondary/20 border border-border relative z-10"
               />
             </div>
-            <div className="w-full min-w-[120px] md:w-48 h-10 md:h-24 bg-background border-x border-t border-border rounded-t-lg md:rounded-t-xl relative flex flex-col items-center justify-center p-2 md:p-4">
-              <p className="text-[8px] md:text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-1">#3</p>
-              <p className="text-[9px] md:text-[10px] text-foreground/80 mb-1 truncate max-w-full px-2 text-center">
-                {podiumItems[2].wallet_address.slice(0, 4)}...{podiumItems[2].wallet_address.slice(-4)}
+            <div className="w-full min-w-[70px] sm:min-w-[100px] md:w-48 h-8 sm:h-18 md:h-24 bg-background border-x border-t border-border rounded-t-lg md:rounded-t-xl relative flex flex-col items-center justify-center p-1 sm:p-2 md:p-4">
+              <p className="text-[7px] md:text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mb-0.5 md:mb-1">#3</p>
+              <p className="text-[8px] md:text-[10px] text-foreground/80 mb-0.5 md:mb-1 truncate max-w-full px-1 md:px-2 text-center">
+                {podiumItems[2].wallet_address.slice(0, 3)}...{podiumItems[2].wallet_address.slice(-2)}
               </p>
-              <p className="text-xs md:text-sm font-bold text-foreground">
+              <p className="text-[10px] sm:text-xs md:text-sm font-bold text-foreground">
                 ${formatNumber(parseFloat(sortType === 'pnl' ? podiumItems[2].pnl_usd : podiumItems[2].volume_usd))}
               </p>
             </div>

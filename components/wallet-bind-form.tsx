@@ -46,24 +46,24 @@ export function WalletBindForm() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-13rem)] flex-col items-center justify-center px-4 py-6">
-      <div className="w-full max-w-xl animate-in fade-in slide-in-from-bottom-4 duration-500 rounded-[2rem] border border-black/8 bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-[#050505] dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:p-10">
+    <div className="flex min-h-[400px] flex-col items-center justify-center px-4 py-8">
+      <div className="w-full max-w-lg animate-in fade-in slide-in-from-bottom-4 duration-500 rounded-[1.5rem] md:rounded-[2rem] border border-black/8 bg-white p-6 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-[#050505] dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
         
-        <div className="mb-8">
-          <h2 className="mb-2 text-3xl font-semibold tracking-[-0.04em] text-foreground sm:text-4xl">Portfolio</h2>
-          <p className="text-sm leading-relaxed text-muted-foreground">Enter wallet address.</p>
+        <div className="mb-6 md:mb-8">
+          <h2 className="mb-1 text-2xl md:text-4xl font-bold tracking-tight text-foreground italic uppercase">Portfolio</h2>
+          <p className="text-[10px] md:text-sm font-medium text-muted-foreground/60 uppercase tracking-wider">Securely bind your wallet to track performance</p>
         </div>
 
         <div className="space-y-4">
           <div className="relative">
             <input
               type="text"
-              placeholder="Enter wallet address"
+              placeholder="0x..."
               value={address}
               onChange={(e) => { setAddress(e.target.value); setError(null); }}
               onKeyDown={handleKeyDown}
               disabled={isLoading}
-              className="w-full rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-3.5 text-sm font-medium text-foreground placeholder:text-black/25 focus:outline-none focus:ring-1 focus:ring-black/15 transition-all disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.02] dark:placeholder:text-white/25 dark:focus:ring-white/25"
+              className="w-full rounded-xl md:rounded-2xl border border-black/10 bg-black/[0.02] px-4 py-3 md:py-4 text-xs md:text-sm font-medium text-foreground placeholder:text-black/25 focus:outline-none focus:ring-1 focus:ring-black/15 transition-all disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.02] dark:placeholder:text-white/25 dark:focus:ring-white/25"
             />
           </div>
 
@@ -83,17 +83,17 @@ export function WalletBindForm() {
           <button
             onClick={() => handleBind()}
             disabled={isLoading || !address.trim()}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white bg-white py-3.5 text-sm font-semibold text-black shadow-sm transition-all hover:bg-white/90 disabled:opacity-40"
+            className="flex w-full items-center justify-center gap-2 rounded-xl md:rounded-2xl border border-white bg-white py-3 md:py-4 text-xs md:text-sm font-bold text-black shadow-sm transition-all hover:bg-white/90 disabled:opacity-40 uppercase tracking-widest"
           >
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Loading...</span>
+                <span>Syncing...</span>
               </>
             ) : (
               <>
                 <Search className="w-4 h-4" />
-                <span>Bind Account</span>
+                <span>Bind Wallet</span>
               </>
             )}
           </button>

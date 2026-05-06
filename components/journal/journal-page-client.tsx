@@ -123,11 +123,11 @@ function AddressPrompt({ onSetAddress }: { onSetAddress: (addr: string) => void 
     };
 
     return (
-        <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 min-h-[60vh] animate-in fade-in duration-1000">
-            <div className="max-w-md w-full space-y-8 text-center">
+        <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 min-h-[400px] animate-in fade-in duration-1000">
+            <div className="max-w-lg w-full space-y-6 md:space-y-8 text-center bg-secondary/5 p-6 md:p-10 rounded-[1.5rem] md:rounded-[2rem] border border-border/10">
                 <div>
-                    <h2 className="text-xl font-bold text-foreground tracking-tight mb-2">Connect Journal</h2>
-                    <p className="text-xs text-muted-foreground/40 font-medium leading-relaxed">Enter your wallet address to sync your trading history.</p>
+                    <h2 className="text-xl md:text-2xl font-bold text-foreground tracking-tighter mb-1 uppercase italic">Journal</h2>
+                    <p className="text-[10px] md:text-xs text-muted-foreground/40 font-medium uppercase tracking-wider">Securely link wallet to sync history</p>
                 </div>
                 <div className="space-y-4">
                     <input
@@ -135,15 +135,15 @@ function AddressPrompt({ onSetAddress }: { onSetAddress: (addr: string) => void 
                         placeholder="0x..."
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        className="w-full h-12 bg-secondary/10 border border-border/20 rounded-xl px-4 text-sm outline-none focus:border-border transition-all placeholder:text-muted-foreground/20 text-center"
+                        className="w-full h-11 md:h-12 bg-secondary/10 border border-border/20 rounded-xl px-4 text-xs md:text-sm outline-none focus:border-border transition-all placeholder:text-muted-foreground/20 text-center font-medium"
                     />
-                    {error && <p className="text-xs text-red-400 font-medium">{error}</p>}
+                    {error && <p className="text-[10px] text-red-400 font-bold uppercase tracking-widest">{error}</p>}
                     <button 
                         onClick={handleManualLink} 
-                        className="w-full h-12 bg-foreground text-background rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-foreground/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="w-full h-11 md:h-12 bg-foreground text-background rounded-xl font-bold text-[10px] md:text-xs uppercase tracking-[0.2em] hover:bg-foreground/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                         disabled={!input.trim() || isLoading}
                     >
-                        {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Continue'}
+                        {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Connect Wallet'}
                     </button>
                 </div>
             </div>
@@ -302,16 +302,13 @@ export function JournalPageClient({ isDashboard = false }: { isDashboard?: boole
         }, 4000);
 
         try {
-            // Soft limit of 10k records for journal
-            const SOFT_LIMIT = 10000;
-
             const [result, bal] = await Promise.all([
                 fetchAllPositions(
                     selectedPlan.userId, 
                     (count) => setFetchProgress(prev => ({ ...prev, count: accumulated.length + count })),
                     undefined,
                     controller.signal,
-                    SOFT_LIMIT,
+                    undefined, // Remove SOFT_LIMIT to fetch complete history
                     cursor
                 ),
                 fetchTotalBalance(selectedPlan.userId)
@@ -319,12 +316,10 @@ export function JournalPageClient({ isDashboard = false }: { isDashboard?: boole
             
             const total = [...accumulated, ...result.positions];
 
-            if (result.nextCursor && total.length >= SOFT_LIMIT) {
-                setPendingPositions(total);
-                setFetchProgress(prev => ({ ...prev, count: total.length, nextCursor: result.nextCursor }));
-                setIsPaused(true);
-                clearTimeout(longFetchTimer);
-                return;
+            if (result.nextCursor) {
+                // If there's more data, we continue fetching automatically with the 3s delay (handled in fetchAllPositions)
+                // The current fetchAllPositions implementation already loops and delays.
+                // We only reach here if fetchAllPositions finishes or is aborted.
             }
 
             const enrichedFutures = await enrichPositions(total);
