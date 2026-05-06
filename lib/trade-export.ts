@@ -47,7 +47,6 @@ export async function fetchAllTrades(
 ): Promise<ExportResult> {
   const { onProgress, signal, initialCursor, initialTrades = [] } = options;
 
-  // Use LOCAL API PROXY routes to avoid CORS errors
   const baseUrl =
     market === 'spot'
       ? '/api/spot/trades'
@@ -55,14 +54,18 @@ export async function fetchAllTrades(
 
   const limit = 500;
   let cursor = initialCursor;
-  const all: RawTrade[] = [...initialTrades];
   
+  // Use a map to track trade_ids and avoid duplicates if the API loops or returns same data
+  const tradeMap = new Map<number, RawTrade>();
+  initialTrades.forEach(t => tradeMap.set(t.trade_id, t));
+
   let consecutiveErrors = 0;
+  let lastFetchedCursor: string | undefined = undefined;
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
     if (signal?.aborted) {
-      return { trades: all, nextCursor: cursor, finished: false };
+      return { trades: Array.from(tradeMap.values()), nextCursor: cursor, finished: false };
     }
 
     try {
@@ -95,18 +98,33 @@ export async function fetchAllTrades(
       consecutiveErrors = 0;
 
       const newData = json.data ?? [];
-      all.push(...newData);
-      onProgress?.(all.length);
-
-      if (!json.meta?.next_cursor) {
-        return { trades: all, finished: true };
+      
+      // Safety check: if no new data and no next cursor, we are done
+      if (newData.length === 0 && !json.meta?.next_cursor) {
+        return { trades: Array.from(tradeMap.values()), finished: true };
       }
 
+      // Deduplicate and add to map
+      let newUniqueCount = 0;
+      newData.forEach(t => {
+        if (!tradeMap.has(t.trade_id)) {
+          tradeMap.set(t.trade_id, t);
+          newUniqueCount++;
+        }
+      });
+
+      console.log(`[trade-export] Page fetched: ${newData.length} trades (${newUniqueCount} new)`);
+      onProgress?.(tradeMap.size);
+
+      // Stop if there is no next cursor or if the cursor is the same as the one we just used
+      if (!json.meta?.next_cursor || json.meta.next_cursor === cursor) {
+        return { trades: Array.from(tradeMap.values()), finished: true };
+      }
+
+      lastFetchedCursor = cursor;
       cursor = json.meta.next_cursor;
 
-      // --- ULTRA STRICT RATE LIMITING ---
-      // 1 request every 30 seconds as requested
-      console.log('[trade-export] Page fetched. Waiting 30s before next request...');
+      // ULTRA STRICT RATE LIMITING
       await new Promise((r) => setTimeout(r, 30000));
 
     } catch (error: any) {
@@ -115,14 +133,10 @@ export async function fetchAllTrades(
       consecutiveErrors++;
       console.error(`[trade-export] Fetch error (attempt ${consecutiveErrors}):`, error);
 
-      // Increased retry delays for ultra-strict mode
       const retryDelay = consecutiveErrors === 1 ? 5000 : consecutiveErrors === 2 ? 15000 : 30000;
-      
       if (consecutiveErrors > 3) {
-        // Stop earlier to let user manually resume
-        return { trades: all, nextCursor: cursor, finished: false };
+        return { trades: Array.from(tradeMap.values()), nextCursor: cursor, finished: false };
       }
-
       await new Promise((r) => setTimeout(r, retryDelay));
     }
   }
