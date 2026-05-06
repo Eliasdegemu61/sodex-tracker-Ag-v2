@@ -43,7 +43,7 @@ export function MobileNavMenu({ currentPage, onNavigate }: MobileNavMenuProps) {
       { id: 'pulse', label: 'Community Pulse', icon: MessageSquare },
       { id: 'funding', label: 'Accrued Funding', icon: Coins },
       { id: 'export-history', label: 'Trade History', icon: FileText },
-      { id: 'analyzer', label: 'Reverse Search', icon: Zap },
+      { id: 'analyzer', label: 'Reverse Search', icon: Search },
     ]},
     { section: 'Beta', items: [
       { id: 'journal', label: 'Journal', icon: BookOpen },

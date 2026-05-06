@@ -59,7 +59,7 @@ export function SidebarNav({ currentPage, onNavigate }: SidebarNavProps) {
     { id: 'tracker', label: 'Tracker', icon: TrendingUp },
     { id: 'portfolio', label: 'Portfolio', icon: Wallet },
     { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
-    { id: 'analyzer', label: 'Reverse Search', icon: Zap },
+    { id: 'analyzer', label: 'Reverse Search', icon: Search },
     { id: 'assets', label: 'Assets', icon: Compass },
     { id: 'pulse', label: 'Community Pulse', icon: MessageSquare },
     { id: 'funding', label: 'Accrued Funding', icon: Coins },
