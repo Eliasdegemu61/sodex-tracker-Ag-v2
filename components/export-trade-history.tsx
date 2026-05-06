@@ -187,7 +187,9 @@ export function ExportTradeHistory() {
             disabled={isWorking || !address.trim()}
             className={cn(
               "h-11 rounded-lg font-bold text-[11px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 disabled:opacity-40",
-              "bg-foreground text-background hover:bg-foreground/90"
+              status === 'fetching' && lastMarket === 'perps'
+                ? "bg-foreground text-background"
+                : "border border-border text-foreground hover:bg-secondary/10"
             )}
           >
             <FileDown className="w-4 h-4" />
@@ -199,7 +201,9 @@ export function ExportTradeHistory() {
             disabled={isWorking || !address.trim()}
             className={cn(
               "h-11 rounded-lg font-bold text-[11px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 disabled:opacity-40",
-              "border border-border text-foreground hover:bg-secondary/10"
+              status === 'fetching' && lastMarket === 'spot'
+                ? "bg-foreground text-background"
+                : "border border-border text-foreground hover:bg-secondary/10"
             )}
           >
             <FileDown className="w-4 h-4" />
@@ -324,7 +328,7 @@ export function ExportTradeHistory() {
           {collectedTrades.length > 0 && lastMarket && (
             <div className="flex flex-col gap-2">
               <button
-                onClick={() => handleExport(lastMarket, true)}
+                onClick={() => startExport(lastMarket, true)}
                 className="w-full h-10 bg-red-500 text-white rounded-lg font-bold text-[10px] uppercase tracking-[0.2em] hover:bg-red-600 transition-all flex items-center justify-center gap-2"
               >
                 <RefreshCcw className="w-4 h-4" />
@@ -361,7 +365,7 @@ export function ExportTradeHistory() {
           </li>
           <li className="flex items-start gap-2">
             <span className="text-muted-foreground/30 font-bold">4.</span>
-            Browser: Do not close the tab or put your computer to sleep during the process.
+            **Browser**: Do not close the tab or put your computer to sleep during the process.
           </li>
         </ul>
       </div>
