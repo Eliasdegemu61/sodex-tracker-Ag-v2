@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Loader2, Calendar as CalendarIcon, Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, Calendar as CalendarIcon, Search, X, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatNumber } from '@/lib/format-number';
 import { cn } from '@/lib/utils';
+import React from 'react';
 
 interface UserVolumeData {
   userId: string;
@@ -35,6 +36,7 @@ export function SopointsAnalyzer() {
   const [rowsPerPage, setRowsPerPage] = useState<number>(20);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
   const validateDateRange = (start: string, end: string): boolean => {
     const startD = new Date(start);
@@ -176,6 +178,10 @@ export function SopointsAnalyzer() {
   const totalWeightedVolume = sortedResults.reduce((s, u) => s + u.futuresVolGained + u.spotVolGained * 2, 0);
 
   const formatDate = (d: string) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+
+  const toggleRow = (address: string) => {
+    setExpandedRow(expandedRow === address ? null : address);
+  };
 
   return (
     <div className="space-y-6 pb-16 animate-in fade-in duration-500">
@@ -324,13 +330,14 @@ export function SopointsAnalyzer() {
                   <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 w-12">#</th>
                   <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Address</th>
                   {analysisState.hasFuturesData && (
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 text-right">Futures</th>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 text-right hidden sm:table-cell">Futures</th>
                   )}
                   {analysisState.hasSpotData && (
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 text-right">Spot</th>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 text-right hidden sm:table-cell">Spot</th>
                   )}
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 text-right">Total Vol</th>
+                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 text-right hidden sm:table-cell">Total Vol</th>
                   <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 text-right hidden sm:table-cell">Est. SO Points</th>
+                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 text-right sm:hidden w-10"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/30">
@@ -344,38 +351,80 @@ export function SopointsAnalyzer() {
                   const rank = startIdx + idx + 1;
                   const weightedVol = user.futuresVolGained + user.spotVolGained * 2;
                   const estimatedSoPoints = totalWeightedVolume > 0 ? (weightedVol / totalWeightedVolume) * 1_000_000 : 0;
+                  const isExpanded = expandedRow === user.address;
+
                   return (
-                    <tr key={user.address} className="group hover:bg-secondary/5 transition-colors duration-200">
-                      <td className="px-6 py-4">
-                        <span className={cn(
-                          "text-xs font-bold tabular-nums",
-                          rank === 1 ? "text-foreground" : rank <= 3 ? "text-foreground/70" : "text-muted-foreground/30"
-                        )}>
-                          {rank}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-xs font-mono text-muted-foreground/70 truncate max-w-[180px] sm:max-w-xs block group-hover:text-foreground transition-colors">
-                          {user.address}
-                        </span>
-                      </td>
-                      {analysisState.hasFuturesData && (
-                        <td className="px-6 py-4 text-xs font-semibold text-foreground/60 text-right tabular-nums">
-                          {formatNumber(user.futuresVolGained)}
+                    <React.Fragment key={user.address}>
+                      <tr 
+                        onClick={() => toggleRow(user.address)}
+                        className={cn(
+                          "group hover:bg-secondary/5 transition-colors duration-200 cursor-pointer sm:cursor-default",
+                          isExpanded && "bg-secondary/5"
+                        )}
+                      >
+                        <td className="px-6 py-4">
+                          <span className={cn(
+                            "text-[11px] sm:text-xs font-bold tabular-nums",
+                            rank === 1 ? "text-foreground" : rank <= 3 ? "text-foreground/70" : "text-muted-foreground/30"
+                          )}>
+                            {rank}
+                          </span>
                         </td>
-                      )}
-                      {analysisState.hasSpotData && (
-                        <td className="px-6 py-4 text-xs font-semibold text-foreground/60 text-right tabular-nums">
-                          {formatNumber(user.spotVolGained)}
+                        <td className="px-6 py-4">
+                          <span className="text-[11px] sm:text-xs font-mono text-muted-foreground/70 truncate max-w-[180px] sm:max-w-xs block group-hover:text-foreground transition-colors">
+                            {user.address}
+                          </span>
                         </td>
+                        {analysisState.hasFuturesData && (
+                          <td className="px-6 py-4 text-[11px] sm:text-xs font-semibold text-foreground/60 text-right tabular-nums hidden sm:table-cell">
+                            {formatNumber(user.futuresVolGained)}
+                          </td>
+                        )}
+                        {analysisState.hasSpotData && (
+                          <td className="px-6 py-4 text-[11px] sm:text-xs font-semibold text-foreground/60 text-right tabular-nums hidden sm:table-cell">
+                            {formatNumber(user.spotVolGained)}
+                          </td>
+                        )}
+                        <td className="px-6 py-4 text-[11px] sm:text-xs font-bold text-foreground text-right tabular-nums hidden sm:table-cell">
+                          {formatNumber(user.totalVolGained)}
+                        </td>
+                        <td className="px-6 py-4 text-[11px] sm:text-xs font-bold text-foreground/50 text-right tabular-nums hidden sm:table-cell">
+                          {formatNumber(estimatedSoPoints)}
+                        </td>
+                        <td className="px-6 py-4 text-right sm:hidden">
+                          {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                        </td>
+                      </tr>
+                      {/* Mobile Expanded View */}
+                      {isExpanded && (
+                        <tr className="sm:hidden bg-secondary/5 animate-in slide-in-from-top-1 duration-200">
+                          <td colSpan={3} className="px-6 py-4">
+                            <div className="grid grid-cols-2 gap-4 pb-2">
+                              {analysisState.hasFuturesData && (
+                                <div className="space-y-1">
+                                  <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Futures Vol</p>
+                                  <p className="text-xs font-bold text-foreground tabular-nums">{formatNumber(user.futuresVolGained)}</p>
+                                </div>
+                              )}
+                              {analysisState.hasSpotData && (
+                                <div className="space-y-1">
+                                  <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Spot Vol</p>
+                                  <p className="text-xs font-bold text-foreground tabular-nums">{formatNumber(user.spotVolGained)}</p>
+                                </div>
+                              )}
+                              <div className="space-y-1">
+                                <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Total Vol</p>
+                                <p className="text-xs font-bold text-primary tabular-nums">{formatNumber(user.totalVolGained)}</p>
+                              </div>
+                              <div className="space-y-1">
+                                <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Est. SO Points</p>
+                                <p className="text-xs font-bold text-foreground/50 tabular-nums">{formatNumber(estimatedSoPoints)}</p>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
                       )}
-                      <td className="px-6 py-4 text-xs font-bold text-foreground text-right tabular-nums">
-                        {formatNumber(user.totalVolGained)}
-                      </td>
-                      <td className="px-6 py-4 text-xs font-bold text-foreground/50 text-right tabular-nums hidden sm:table-cell">
-                        {formatNumber(estimatedSoPoints)}
-                      </td>
-                    </tr>
+                    </React.Fragment>
                   );
                 })}
               </tbody>

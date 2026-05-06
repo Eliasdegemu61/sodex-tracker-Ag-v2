@@ -57,12 +57,14 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
   const [currentPage, setCurrentPage] = useState(1)
   const [isLoadingReverse, setIsLoadingReverse] = useState(false)
   const [isLoadingPage, setIsLoadingPage] = useState(false)
+  const [expandedRow, setExpandedRow] = useState<string | null>(null)
   
   const ITEMS_PER_PAGE = 20
   const totalPages = Math.ceil(fullResults.length / ITEMS_PER_PAGE)
 
   const loadPageData = async (allData: any[], pageNum: number) => {
     setIsLoadingPage(true)
+    setExpandedRow(null)
     try {
       const startIndex = (pageNum - 1) * ITEMS_PER_PAGE
       const endIndex = startIndex + ITEMS_PER_PAGE
@@ -96,6 +98,7 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
   const handleReverseSearch = async () => {
     if (!reversePrefix && !reverseSuffix) return
     setIsLoadingReverse(true)
+    setExpandedRow(null)
     try {
       const params = new URLSearchParams()
       if (reversePrefix) params.append('prefix', reversePrefix.toLowerCase())
@@ -123,6 +126,10 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
     }
   }
 
+  const toggleRow = (address: string) => {
+    setExpandedRow(expandedRow === address ? null : address)
+  }
+
   return (
     <div className="space-y-6 pb-16 animate-in fade-in duration-500">
 
@@ -133,28 +140,28 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
       </div>
 
       {/* Search Controls */}
-      <div className="bg-background border border-border rounded-xl p-6 sm:p-8 shadow-none space-y-6">
+      <div className="bg-background sm:bg-background border border-border sm:border rounded-xl sm:rounded-xl p-4 sm:p-8 shadow-none space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">First Characters</label>
+            <label className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">First Characters</label>
             <input
               placeholder="e.g. 0x12"
               maxLength={4}
               value={reversePrefix}
               onChange={(e) => setReversePrefix(e.target.value.toUpperCase())}
               onKeyDown={(e) => e.key === 'Enter' && handleReverseSearch()}
-              className="w-full h-10 bg-secondary/5 border border-border rounded-lg px-3 font-mono text-sm text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-border/80 transition-all"
+              className="w-full h-9 sm:h-10 bg-secondary/5 border border-border rounded-lg px-3 font-mono text-[11px] sm:text-sm text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-border/80 transition-all"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Last Characters</label>
+            <label className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Last Characters</label>
             <input
               placeholder="e.g. a2f4"
               maxLength={4}
               value={reverseSuffix}
               onChange={(e) => setReverseSuffix(e.target.value.toUpperCase())}
               onKeyDown={(e) => e.key === 'Enter' && handleReverseSearch()}
-              className="w-full h-10 bg-secondary/5 border border-border rounded-lg px-3 font-mono text-sm text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-border/80 transition-all"
+              className="w-full h-9 sm:h-10 bg-secondary/5 border border-border rounded-lg px-3 font-mono text-[11px] sm:text-sm text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-border/80 transition-all"
             />
           </div>
         </div>
@@ -162,7 +169,7 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
         <button
           onClick={handleReverseSearch}
           disabled={isLoadingReverse || (!reversePrefix && !reverseSuffix)}
-          className="w-full h-11 bg-foreground text-background rounded-lg font-bold text-[11px] uppercase tracking-[0.2em] hover:bg-foreground/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+          className="w-full h-10 sm:h-11 bg-foreground text-background rounded-lg font-bold text-[10px] sm:text-[11px] uppercase tracking-[0.2em] hover:bg-foreground/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2"
         >
           {isLoadingReverse ? (
             <><Loader2 className="w-4 h-4 animate-spin" /><span>Searching...</span></>
@@ -172,10 +179,10 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
 
       {/* Results */}
       {fullResults.length > 0 && (
-        <div className="bg-background border border-border rounded-xl shadow-none overflow-hidden">
+        <div className="bg-transparent sm:bg-background border-none sm:border border-border rounded-none sm:rounded-xl shadow-none overflow-hidden -mx-4 sm:mx-0">
 
           {/* Header */}
-          <div className="px-6 py-5 border-b border-border flex items-center justify-between gap-4">
+          <div className="px-4 sm:px-6 py-5 border-b border-border flex items-center justify-between gap-4">
             <div>
               <h2 className="text-sm font-bold text-foreground tracking-tight">Results</h2>
               <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-0.5">{fullResults.length.toLocaleString()} matching addresses</p>
@@ -211,32 +218,62 @@ function DistributionAnalyzerPage({ onBack }: { onBack: () => void }) {
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-border/50">
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">#</th>
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Address</th>
-                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 text-right">All-Time Volume</th>
+                    <th className="px-4 sm:px-6 py-4 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 w-10 sm:w-16">#</th>
+                    <th className="px-4 sm:px-6 py-4 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Address</th>
+                    <th className="px-4 sm:px-6 py-4 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 text-right hidden sm:table-cell">All-Time Volume</th>
+                    <th className="px-4 sm:px-6 py-4 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 text-right sm:hidden"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/30">
-                  {paginatedResults.map((trader, i) => (
-                    <tr key={i} className="group hover:bg-secondary/5 transition-colors">
-                      <td className="px-6 py-4">
-                        <span className="text-xs font-bold text-muted-foreground/30 tabular-nums">{(currentPage - 1) * ITEMS_PER_PAGE + i + 1}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-xs font-mono text-muted-foreground/70 group-hover:text-foreground transition-colors">
-                          {trader.address || 'N/A'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <span className="text-xs font-bold text-foreground tabular-nums">
-                          {trader.volume !== undefined
-                            ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Number(trader.volume))
-                            : <span className="text-muted-foreground/30">—</span>}
-                        </span>
-                      </td>
-                    </tr>
-
-                  ))}
+                  {paginatedResults.map((trader, i) => {
+                    const isExpanded = expandedRow === trader.address;
+                    return (
+                      <React.Fragment key={i}>
+                        <tr 
+                          onClick={() => toggleRow(trader.address)}
+                          className={cn(
+                            "group hover:bg-secondary/5 transition-colors cursor-pointer sm:cursor-default",
+                            isExpanded && "bg-secondary/5"
+                          )}
+                        >
+                          <td className="px-4 sm:px-6 py-4">
+                            <span className="text-[10px] sm:text-xs font-bold text-muted-foreground/30 tabular-nums">{(currentPage - 1) * ITEMS_PER_PAGE + i + 1}</span>
+                          </td>
+                          <td className="px-4 sm:px-6 py-4">
+                            <span className="text-[10px] sm:text-xs font-mono text-muted-foreground/70 group-hover:text-foreground transition-colors truncate max-w-[200px] sm:max-w-none block">
+                              {trader.address || 'N/A'}
+                            </span>
+                          </td>
+                          <td className="px-4 sm:px-6 py-4 text-right hidden sm:table-cell">
+                            <span className="text-xs font-bold text-foreground tabular-nums">
+                              {trader.volume !== undefined
+                                ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Number(trader.volume))
+                                : <span className="text-muted-foreground/30">—</span>}
+                            </span>
+                          </td>
+                          <td className="px-4 sm:px-6 py-4 text-right sm:hidden">
+                            <svg className={cn("w-3 h-3 text-muted-foreground transition-transform", isExpanded && "rotate-180")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </td>
+                        </tr>
+                        {isExpanded && (
+                          <tr className="sm:hidden bg-secondary/5 animate-in slide-in-from-top-1 duration-200">
+                            <td colSpan={3} className="px-4 sm:px-6 py-4">
+                              <div className="flex flex-col gap-1.5">
+                                <span className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-widest">All-Time Volume</span>
+                                <span className="text-[11px] font-bold text-primary tabular-nums">
+                                  {trader.volume !== undefined
+                                    ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Number(trader.volume))
+                                    : '—'}
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -261,7 +298,7 @@ export default function Dashboard() {
     { id: 'tracker', label: 'Tracker', icon: TrendingUp },
     { id: 'portfolio', label: 'Portfolio', icon: Wallet },
     { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
-    { id: 'analyzer', label: 'Reverse Search', icon: Zap },
+    { id: 'analyzer', label: 'Reverse Search', icon: Search },
     { id: 'analytics', label: 'Trade analytics', icon: LineChart },
     { id: 'assets', label: 'Assets', icon: Compass },
   ] as const;
@@ -384,10 +421,7 @@ export default function Dashboard() {
                   </button>
                 </a>
 
-                {/* Mobile Navigation Toggle (Top Right) */}
-                <div className="lg:hidden">
-                  <MobileNavMenu currentPage={currentPage} onNavigate={setCurrentPage as any} />
-                </div>
+                {/* Mobile Navigation Placeholder (moved to root) */}
               </div>
             </div>
           </header>
@@ -534,6 +568,7 @@ export default function Dashboard() {
           <AnnouncementSidePanel />
         </SidebarInset>
       </div>
+      <MobileNavMenu currentPage={currentPage} onNavigate={setCurrentPage as any} />
     </SidebarProvider>
   )
 }

@@ -71,78 +71,50 @@ export function MobileNavMenu({ currentPage, onNavigate }: MobileNavMenuProps) {
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+      document.body.style.overflow = 'hidden';
     } else {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.body.style.overflow = 'unset';
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.body.style.overflow = 'unset';
     };
   }, [isOpen]);
 
   return (
-    <div className="lg:hidden" ref={menuRef}>
-      {/* Menu Toggle Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "flex items-center justify-center w-9 h-9 rounded-xl transition-all active:scale-90 border",
-          theme === 'light'
-            ? "bg-black/5 border-black/10 text-black hover:text-black hover:bg-black/10"
-            : "bg-white/[0.03] border-white/5 text-white/40 hover:text-white hover:bg-white/10",
-          isOpen && (theme === 'light' ? "text-black border-black/20 bg-black/10" : "text-white border-white/20 bg-white/10")
-        )}
-      >
-        {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-      </button>
-
-      {/* Popover Menu */}
-      {isOpen && (
-        <div className="fixed inset-x-0 top-[70px] z-[100] px-4 animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className={cn(
-            "border rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.3)] p-2 max-w-[260px] ml-auto overflow-hidden",
-            theme === 'light' ? "bg-white border-black/5" : "bg-[#0D0D0D] border-white/10"
-          )}>
-            <div className="flex flex-col gap-5 p-2">
-              {navItems.map((group) => (
-                <div key={group.section} className="flex flex-col gap-1.5">
-                  <span className="px-3.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 mb-1">
-                    {group.section}
-                  </span>
-                  <div className="flex flex-col gap-1">
-                    {group.items.map((item) => {
-                      const Icon = item.icon;
-                      const isActive = currentPage === item.id;
-                      return (
-                        <button
-                          key={item.id}
-                          onClick={() => handleNavClick(item.id)}
-                          className={cn(
-                            "flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 text-left w-full border border-transparent group",
-                            isActive
-                              ? (theme === 'light' 
-                                  ? "bg-black/[0.06] text-black border-black/10" 
-                                  : "bg-white/[0.08] text-white border-white/10")
-                              : (theme === 'light' 
-                                  ? "text-black/60 hover:text-black hover:bg-black/5" 
-                                  : "text-white/60 hover:text-white hover:bg-white/5")
-                          )}
-                        >
-                          <Icon className={cn(
-                            "w-4 h-4 transition-transform group-hover:scale-110",
-                            isActive ? "" : "text-muted-foreground"
-                          )} />
-                          <span className="text-sm font-bold tracking-tight">{item.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[110] border-t bg-background/95 backdrop-blur-md">
+      <div className="flex items-center gap-7 px-6 py-3 overflow-x-auto no-scrollbar scroll-smooth">
+        {navItems.flatMap(group => group.items).map((item) => {
+          const Icon = item.icon;
+          const isActive = currentPage === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => handleNavClick(item.id)}
+              className={cn(
+                "flex flex-col items-center gap-1 min-w-fit transition-all duration-300",
+                isActive 
+                  ? "text-orange-500 scale-105" 
+                  : "text-muted-foreground/40 hover:text-muted-foreground/80"
+              )}
+            >
+              <Icon className={cn("w-4 h-4", isActive ? "stroke-[2.5px]" : "stroke-[2px]")} />
+              <span className="text-[8px] font-black uppercase tracking-[0.1em] whitespace-nowrap opacity-70">
+                {item.label === 'Community Pulse' ? 'Pulse' : 
+                 item.label === 'Accrued Funding' ? 'Funding' : 
+                 item.label === 'Reverse Search' ? 'Search' :
+                 item.label === 'SoDex Status' ? 'Status' :
+                 item.label === 'Trade analytics' ? 'Analytics' :
+                 item.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      {/* Bottom Safe Area for Mobile Browsers */}
+      <div className="h-[env(safe-area-inset-bottom)]" />
     </div>
   );
 }
