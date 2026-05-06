@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Download, FileDown, X, Loader2, CheckCircle2, AlertCircle, RefreshCcw, Clock, Info, BarChart3 } from 'lucide-react';
+import { Download, FileDown, X, Loader2, CheckCircle2, AlertCircle, RefreshCcw, Clock, Info, BarChart3, Timer } from 'lucide-react';
 import { fetchSymbols, type SymbolData } from '@/lib/sodex-api';
 import { type RawTrade } from '@/lib/trade-export';
 import { useExport } from '@/context/export-context';
@@ -347,27 +347,61 @@ export function ExportTradeHistory() {
         </div>
       )}
 
-      {/* Info */}
-      <div className="bg-background border border-border rounded-xl p-6 sm:p-8 shadow-none space-y-3">
-        <h3 className="text-xs font-bold text-foreground uppercase tracking-widest">How it works</h3>
-        <ul className="space-y-2 text-xs text-muted-foreground leading-relaxed">
-          <li className="flex items-start gap-2">
-            <span className="text-muted-foreground/30 font-bold">1.</span>
-            Strict mode: 1 request every 30 seconds to respect SoDex rate limits.
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-muted-foreground/30 font-bold">2.</span>
-            Background Process: You can switch to other pages like Tracker or Portfolio while the export runs.
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-muted-foreground/30 font-bold">3.</span>
-            Stability: If the fetch stops, use the Resume button to continue without losing data.
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-muted-foreground/30 font-bold">4.</span>
-            **Browser**: Do not close the tab or put your computer to sleep during the process.
-          </li>
-        </ul>
+      {/* Info & Estimates */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-background border border-border rounded-xl p-6 sm:p-8 shadow-none space-y-3 h-full">
+          <div className="flex items-center gap-2 mb-2">
+            <Info className="w-4 h-4 text-primary" />
+            <h3 className="text-xs font-bold text-foreground uppercase tracking-widest">How it works</h3>
+          </div>
+          <ul className="space-y-2 text-[11px] text-muted-foreground leading-relaxed">
+            <li className="flex items-start gap-2">
+              <span className="text-muted-foreground/30 font-bold">1.</span>
+              Strict mode: 1 request every 30 seconds to respect SoDex rate limits.
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-muted-foreground/30 font-bold">2.</span>
+              Background Process: You can switch to other pages while the export runs.
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-muted-foreground/30 font-bold">3.</span>
+              Stability: If the fetch stops, use the Resume button to continue.
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-muted-foreground/30 font-bold">4.</span>
+              Browser: Do not close the tab or put your computer to sleep.
+            </li>
+          </ul>
+        </div>
+
+        <div className="bg-background border border-border rounded-xl p-6 sm:p-8 shadow-none space-y-3 h-full">
+          <div className="flex items-center gap-2 mb-2">
+            <Timer className="w-4 h-4 text-primary" />
+            <h3 className="text-xs font-bold text-foreground uppercase tracking-widest">Time Estimates</h3>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-[11px] border-b border-border/50 pb-1.5">
+              <span className="text-muted-foreground">1,000 trades</span>
+              <span className="font-bold text-foreground">~1 minute</span>
+            </div>
+            <div className="flex items-center justify-between text-[11px] border-b border-border/50 pb-1.5">
+              <span className="text-muted-foreground">10,000 trades</span>
+              <span className="font-bold text-foreground">~10 minutes</span>
+            </div>
+            <div className="flex items-center justify-between text-[11px] border-b border-border/50 pb-1.5">
+              <span className="text-muted-foreground">100,000 trades</span>
+              <span className="font-bold text-foreground">~1.6 hours</span>
+            </div>
+            <div className="flex items-center justify-between text-[11px] border-b border-border/50 pb-1.5">
+              <span className="text-muted-foreground">250,000 trades</span>
+              <span className="font-bold text-foreground">~4.1 hours</span>
+            </div>
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-muted-foreground">1,000,000 trades</span>
+              <span className="font-bold text-foreground">~16.6 hours</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
